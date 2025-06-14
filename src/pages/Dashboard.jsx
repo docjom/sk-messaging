@@ -38,19 +38,24 @@ function Dashboard() {
   const [chatId, setChatId] = useState("");
   const [chats, setChats] = useState([]);
   const [users, setUsers] = useState([]);
-  const [selectedUsers, setSelectedUsers] = useState([]);
-  const [chatName, setChatName] = useState("");
-  const [selectedUser, setSelectedUser] = useState(null); // Store selected user details
+  const [selectedUsers, setSelectedUsers] = useState([]); // Track selected users for group chats
+  const [chatName, setChatName] = useState(""); // Track the name of the chat
+  const [selectedUser, setSelectedUser] = useState(null); // Track selected user for direct chat
+  const [currentChat, setCurrentChat] = useState(null); // Track current chat info
 
   // Fetch current user and user list
   useEffect(() => {
     const fetchUsers = async () => {
-      const querySnapshot = await getDocs(collection(db, "users"));
-      const usersList = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-      setUsers(usersList);
+      try {
+        const querySnapshot = await getDocs(collection(db, "users"));
+        const usersList = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setUsers(usersList);
+      } catch (error) {
+        console.error("Error fetching users:", error);
+      }
     };
 
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -100,81 +105,149 @@ function Dashboard() {
     }
   }, [chatId]);
 
+  // Handle selecting a user for direct messaging
+  const handleSelectUser = async (selectedUserData) => {
+    setSelectedUser(selectedUserData);
+    
+    // Check if a direct chat already exists with this user
+    const existingChat = await checkExistingDirectChat(selectedUserData.id);
+    if (existingChat) {
+      setChatId(existingChat.id);
+      setCurrentChat(existingChat);
+    } else {
+      // Create a new direct chat
+      const newChatId = await createChat("direct", [user.uid, selectedUserData.id], selectedUserData.displayName);
+      if (newChatId) {
+        setChatId(newChatId);
+        // Find the newly created chat in the chats array
+        const newChat = chats.find(chat => chat.id === newChatId);
+        setCurrentChat(newChat);
+      }
+    }
+  };
+
+  // Check if a direct chat already exists between the current user and selected user
+  const checkExistingDirectChat = async (selectedUserId) => {
+    try {
+      const chatsRef = collection(db, "chats");
+      const q = query(chatsRef, where("type", "==", "direct"));
+      const querySnapshot = await getDocs(q);
+      
+      for (const doc of querySnapshot.docs) {
+        const chatData = doc.data();
+        // Check if both users are in this direct chat
+        if (chatData.users.includes(user.uid) && chatData.users.includes(selectedUserId)) {
+          return { id: doc.id, ...chatData };
+        }
+      }
+      return null;
+    } catch (error) {
+      console.error("Error checking existing chat:", error);
+      return null;
+    }
+  };
+
+  // Handle selecting a chat from the chat list
+  const handleSelectChat = (chat) => {
+    setChatId(chat.id);
+    setCurrentChat(chat);
+    
+    // If it's a direct chat, set the selected user
+    if (chat.type === "direct") {
+      const otherUserId = chat.users.find(uid => uid !== user.uid);
+      const otherUser = users.find(u => u.id === otherUserId);
+      setSelectedUser(otherUser);
+    } else {
+      setSelectedUser(null);
+    }
+  };
+
+  // Handle sending message
   const handleSendMessage = async () => {
     if (!chatId) {
       console.error("Chat ID is not set.");
-      return; // Prevent sending the message if chatId is invalid
+      return;
     }
 
-    if (message.trim() !== "" && selectedUser) {
+    if (message.trim() !== "") {
       await sendMessage(chatId, user.uid, message);
-      setMessage(""); // Clear input after sending the message
+      setMessage("");
     }
   };
 
-  const handleSelectUser = async (user) => {
-    setSelectedUser(user);
-    setSelectedUsers([user.id]); // Only allow one user selection for direct chat
-
-    // Check if a direct chat already exists with this user
-    const existingChat = await checkExistingChat(user);
-    if (existingChat) {
-      // Set the chatId if the chat already exists
-      setChatId(existingChat.id);
-    } else {
-      // Create a new chat if no existing chat is found
-      const chatId = await createChat("direct", [user.id, user.uid]);
-      setChatId(chatId); // Set the chatId after creating the chat
+  // Handle Enter key press for sending messages
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
     }
   };
 
-  const checkExistingChat = async (selectedUser) => {
-    // Check for an existing direct chat between the current user and the selected user
-    const chatsRef = collection(db, "chats");
-    const q = query(
-      chatsRef,
-      where("users", "array-contains", selectedUser.id)
-    );
-    const querySnapshot = await getDocs(q);
-    if (!querySnapshot.empty) {
-      // Return the first matching chat if it exists
-      return querySnapshot.docs[0].data();
+  // Function to create a new chat (either direct or group)
+  const createChat = async (type, userIds, name = "") => {
+    try {
+      const chatsRef = collection(db, "chats");
+      const chatDoc = await addDoc(chatsRef, {
+        type,
+        name: name || (type === "direct" ? "Direct Chat" : chatName),
+        users: userIds,
+        createdAt: serverTimestamp(),
+      });
+      return chatDoc.id;
+    } catch (error) {
+      console.error("Error creating chat:", error);
+      return null;
     }
-    return null;
   };
 
+  // Handle logout
   const handleLogout = () => {
     auth.signOut().then(() => {
       navigate("/");
     });
   };
 
+  // Create a group chat
   const createGroupChat = async () => {
-    if (selectedUsers.length >= 2) {
-      // Allow multiple users for a group chat
-      const chatId = await createChat("group", selectedUsers);
-      console.log("Group chat created with ID:", chatId);
+    if (selectedUsers.length >= 2 && chatName.trim()) {
+      const allUsers = [...selectedUsers, user.uid]; // Include current user
+      const newChatId = await createChat("group", allUsers, chatName);
+      if (newChatId) {
+        console.log("Group chat created with ID:", newChatId);
+        setChatName(""); // Clear input
+        setSelectedUsers([]); // Clear selections
+      }
     } else {
-      alert("Please select at least two users for a group chat.");
+      alert("Please select at least two users and provide a chat name for a group chat.");
     }
   };
 
-  const createChat = async (type, users) => {
-    try {
-      const chatName = type === "group" ? chatName : users.join(", ");
-      const chatsRef = collection(db, "chats");
-      const chatDoc = await addDoc(chatsRef, {
-        type,
-        name: chatName,
-        users,
-        createdAt: serverTimestamp(),
-      });
+  // Toggle user selection for group chats
+  const toggleUserSelection = (userId) => {
+    setSelectedUsers(prev => 
+      prev.includes(userId) 
+        ? prev.filter(id => id !== userId)
+        : [...prev, userId]
+    );
+  };
 
-      // After creating the chat, return the chatId
-      return chatDoc.id;
-    } catch (error) {
-      console.error("Error creating chat:", error);
+  // Get display name for sender
+  const getSenderDisplayName = (senderId) => {
+    if (senderId === user?.uid) {
+      return "You";
     }
+    const sender = users.find(u => u.id === senderId);
+    return sender?.displayName || "Unknown User";
+  };
+
+  // Get chat display name
+  const getChatDisplayName = (chat) => {
+    if (chat.type === "direct") {
+      const otherUserId = chat.users.find(uid => uid !== user.uid);
+      const otherUser = users.find(u => u.id === otherUserId);
+      return otherUser?.displayName || "Unknown User";
+    }
+    return chat.name;
   };
 
   if (loading) {
@@ -191,74 +264,86 @@ function Dashboard() {
       <div className="w-64 bg-gray-800 text-white fixed lg:sticky top-0 left-0 z-50 overflow-y-auto p-4 flex flex-col h-full">
         <h2 className="text-xl font-bold mb-4">Chats</h2>
 
-        {/* Create Group Chat Button */}
-        <div className="flex justify-start gap-2 mb-4">
-          <button
-            onClick={createGroupChat}
-            className="py-2 px-5 border rounded-full bg-gray-700 hover:bg-gray-600"
-          >
-            <Icon
-              icon="material-symbols:group-rounded"
-              width="24"
-              height="24"
-            />
-            GM
-          </button>
-        </div>
-
-        {/* Users List */}
-        <h2 className="text-xl font-bold mb-4">Users List</h2>
-        <div className="space-y-4 mb-4">
-          {users.map((u) => (
+        {/* Chat List */}
+        <div className="space-y-2 mb-4 flex-1">
+          {chats.map((chat) => (
             <div
-              key={u.id}
-              onClick={() => handleSelectUser(u)}
-              className={`cursor-pointer p-2 rounded ${
-                selectedUsers.includes(u.id)
-                  ? "bg-blue-500"
-                  : "hover:bg-gray-700"
+              key={chat.id}
+              onClick={() => handleSelectChat(chat)}
+              className={`cursor-pointer hover:bg-gray-700 p-2 rounded ${
+                chatId === chat.id ? "bg-blue-600" : ""
               }`}
             >
-              {u.displayName}
+              <div className="font-semibold">{getChatDisplayName(chat)}</div>
+              <div className="text-xs text-gray-400">{chat.type}</div>
             </div>
           ))}
         </div>
 
-        {/* Group Chat Input */}
-        <div className="mt-4">
+        {/* Users List for Direct Chat */}
+        <div className="border-t border-gray-700 pt-4">
+          <h3 className="text-lg font-bold mb-2">Start New Chat</h3>
+          <div className="space-y-2 max-h-32 overflow-y-auto">
+            {users
+              .filter(u => u.id !== user?.uid) // Exclude current user
+              .map((u) => (
+                <div
+                  key={u.id}
+                  onClick={() => handleSelectUser(u)}
+                  className="cursor-pointer p-2 rounded hover:bg-gray-700 text-sm"
+                >
+                  {u.displayName}
+                </div>
+              ))}
+          </div>
+        </div>
+
+        {/* Group Chat Section */}
+        <div className="border-t border-gray-700 pt-4 mt-4">
+          <h3 className="text-lg font-bold mb-2">Create Group Chat</h3>
+          
+          {/* Group Chat Name Input */}
           <input
             type="text"
             value={chatName}
             onChange={(e) => setChatName(e.target.value)}
             placeholder="Group Chat Name"
-            className="p-2 w-full rounded mb-4"
+            className="p-2 w-full rounded mb-2 text-black"
           />
+
+          {/* User Selection for Group Chat */}
+          <div className="max-h-24 overflow-y-auto mb-2">
+            {users
+              .filter(u => u.id !== user?.uid)
+              .map((u) => (
+                <div
+                  key={u.id}
+                  onClick={() => toggleUserSelection(u.id)}
+                  className={`cursor-pointer p-1 rounded text-sm ${
+                    selectedUsers.includes(u.id)
+                      ? "bg-blue-500"
+                      : "hover:bg-gray-700"
+                  }`}
+                >
+                  {u.displayName}
+                </div>
+              ))}
+          </div>
+
           <button
             onClick={createGroupChat}
-            className="w-full bg-green-500 text-white px-4 py-2 rounded"
+            className="w-full bg-green-500 text-white px-4 py-2 rounded text-sm"
+            disabled={selectedUsers.length < 2 || !chatName.trim()}
           >
-            Create Group Chat
+            Create Group ({selectedUsers.length} selected)
           </button>
         </div>
 
-        {/* Chat List */}
-        <div className="space-y-4 mt-4">
-          {chats.map((chat) => (
-            <div
-              key={chat.id}
-              onClick={() => setChatId(chat.id)}
-              className="cursor-pointer hover:bg-gray-700 p-2 rounded"
-            >
-              {chat.name}
-            </div>
-          ))}
-        </div>
-
         {/* Logout Button */}
-        <div className="mt-auto">
+        <div className="mt-4 pt-4 border-t border-gray-700">
           <button
             onClick={handleLogout}
-            className="w-full bg-red-500 text-white px-4 py-2 rounded mt-4"
+            className="w-full bg-red-500 text-white px-4 py-2 rounded"
           >
             Logout
           </button>
@@ -266,69 +351,85 @@ function Dashboard() {
       </div>
 
       {/* Center Chat Area */}
-      <div className="lg:flex-1 bg-gray-100 p-4 ml-64 sm:ml-64 lg:ml-0">
+      <div className="lg:flex-1 bg-gray-100 p-4 ml-64 sm:ml-64 lg:ml-0 flex flex-col">
+        {/* Header */}
         <div className="bg-white p-4 rounded shadow mb-4 flex items-center justify-between">
-          <h1 className="text-2xl font-semibold">
-            Welcome, {user.displayName}
-          </h1>
+          <div>
+            <h1 className="text-2xl font-semibold capitalize">
+              Welcome, {user?.displayName}
+            </h1>
+            {currentChat && (
+              <p className="text-gray-600 capitalize">
+                Chat: {getChatDisplayName(currentChat)}
+              </p>
+            )}
+          </div>
           <img
-            src={user.photoURL}
+            src={user?.photoURL}
             alt="User Profile"
             className="w-12 h-12 rounded-full"
           />
         </div>
 
         {/* Chat Messages */}
-        <div className="bg-white p-4 rounded shadow flex-1">
-          <div>
-            <h1 className="text-2xl font-semibold">
-              Selected User: {selectedUser?.displayName || "None"}
-            </h1>
-            <img
-              src={selectedUser?.photoURL || ""}
-              alt="User Profile"
-              className="w-12 h-12 rounded-full"
-            />
-          </div>
-
-          <div>
-            {/* Display conversation */}
-            <div className="overflow-y-auto max-h-[60vh] mb-4">
-              {messages.length > 0 ? (
-                messages.map((msg) => (
-                  <div key={msg.id} className="flex items-start mb-4">
-                    <img
-                      src={user.photoURL}
-                      alt="User Profile"
-                      className="w-8 h-8 rounded-full mr-2"
-                    />
-                    <div>
-                      <p className="font-semibold">{msg.senderId}</p>
-                      <p>{msg.message}</p>
+        <div className="bg-white rounded shadow flex-1 flex flex-col">
+          {chatId ? (
+            <>
+              {/* Messages Area */}
+              <div className="flex-1 overflow-y-auto p-4">
+                {messages.length > 0 ? (
+                  messages.map((msg) => (
+                    <div 
+                      key={msg.id} 
+                      className={`flex mb-4 ${
+                        msg.senderId === user.uid ? 'justify-end' : 'justify-start'
+                      }`}
+                    >
+                      <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                        msg.senderId === user.uid 
+                          ? 'bg-blue-500 text-white' 
+                          : 'bg-gray-200 text-black'
+                      }`}>
+                        <p className="text-xs font-semibold mb-1">
+                          {getSenderDisplayName(msg.senderId)}
+                        </p>
+                        <p>{msg.message}</p>
+                      </div>
                     </div>
+                  ))
+                ) : (
+                  <div className="flex items-center justify-center h-full text-gray-500">
+                    No messages yet. Start the conversation!
                   </div>
-                ))
-              ) : (
-                <p>No messages available</p>
-              )}
-            </div>
-          </div>
+                )}
+              </div>
 
-          {/* Message Input */}
-          <div className="flex p-4 bg-gray-200 rounded">
-            <input
-              type="text"
-              className="flex-1 p-2 border rounded"
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-            />
-            <button
-              onClick={handleSendMessage}
-              className="ml-2 bg-blue-500 text-white px-4 py-2 rounded"
-            >
-              Send
-            </button>
-          </div>
+              {/* Message Input */}
+              <div className="p-4 border-t">
+                <div className="flex">
+                  <input
+                    type="text"
+                    className="flex-1 p-2 border rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    placeholder="Type your message..."
+                  />
+                  <button
+                    onClick={handleSendMessage}
+                    className="bg-blue-500 text-white px-6 py-2 rounded-r-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    disabled={!message.trim()}
+                  >
+                    Send
+                  </button>
+                </div>
+              </div>
+            </>
+          ) : (
+            <div className="flex items-center justify-center h-full text-gray-500">
+              Select a chat or start a new conversation
+            </div>
+          )}
         </div>
       </div>
     </div>
