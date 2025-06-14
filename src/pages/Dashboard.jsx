@@ -335,7 +335,7 @@ function Dashboard() {
             <div
               key={chat.id}
               onClick={() => handleSelectChat(chat)}
-              className={`cursor-pointer hover:bg-gray-700 p-2 rounded ${
+              className={`cursor-pointer hover:bg-gray-700 bg-gray-700/50 p-2 rounded ${
                 chatId === chat.id ? "bg-blue-600" : ""
               }`}
             >
@@ -359,8 +359,13 @@ function Dashboard() {
                 <div
                   key={u.id}
                   onClick={() => handleSelectUser(u)}
-                  className="cursor-pointer capitalize p-2 rounded hover:bg-gray-700 text-sm"
+                  className="cursor-pointer capitalize p-2 flex justify-start items-center gap-2 rounded hover:bg-gray-700 text-sm"
                 >
+                  <img
+                    src={u?.photoURL}
+                    alt="User Profile"
+                    className="w-8 h-8 rounded-full"
+                  />
                   {u.displayName}
                 </div>
               ))}
@@ -388,12 +393,17 @@ function Dashboard() {
                 <div
                   key={u.id}
                   onClick={() => toggleUserSelection(u.id)}
-                  className={`cursor-pointer p-1 rounded text-sm capitalize ${
+                  className={`cursor-pointer p-1 flex justify-start items-center gap-2 rounded text-sm capitalize ${
                     selectedUsers.includes(u.id)
                       ? "bg-blue-500"
                       : "hover:bg-gray-700"
                   }`}
                 >
+                  <img
+                    src={u?.photoURL}
+                    alt="User Profile"
+                    className="w-8 h-8 rounded-full"
+                  />
                   {u.displayName}
                 </div>
               ))}
