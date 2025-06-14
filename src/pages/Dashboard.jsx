@@ -523,7 +523,7 @@ function Dashboard() {
                           <p className="text-xs font-semibold mb-1">
                             {getSenderDisplayName(msg.senderId)}
                           </p>
-                          <p>{msg.message}</p>
+                          <p className="text-base">{msg.message}</p>
                         </div>
                         {/* Timestamp below the message bubble */}
                         <p
