@@ -312,7 +312,7 @@ function Dashboard() {
                 <div
                   key={u.id}
                   onClick={() => handleSelectUser(u)}
-                  className="cursor-pointer p-2 rounded hover:bg-gray-700 text-sm"
+                  className="cursor-pointer capitalize p-2 rounded hover:bg-gray-700 text-sm"
                 >
                   {u.displayName}
                 </div>
