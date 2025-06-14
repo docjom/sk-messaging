@@ -1,7 +1,7 @@
 import { signInWithPopup } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 import { auth, provider, db } from "./firebase";
-import { doc, setDoc, getDoc } from "firebase/firestore"; 
+import { doc, setDoc, getDoc } from "firebase/firestore";
 
 function Login() {
   const navigate = useNavigate();
@@ -29,7 +29,7 @@ function Login() {
         console.log("User already exists in Firestore.");
       }
 
-      navigate("/dashboard"); 
+      navigate("/dashboard");
     } catch (error) {
       console.error("Login error", error);
     }
@@ -37,10 +37,10 @@ function Login() {
 
   return (
     <div className="flex flex-col items-center justify-center h-screen">
-      <h1 className="text-2xl mb-4">Login with Google</h1>
+      <h1 className="text-3xl font-semibold mb-4">Login with Google</h1>
       <button
         onClick={handleGoogleLogin}
-        className="bg-blue-500 text-white px-6 py-2 rounded"
+        className="bg-blue-500 text-white px-6 text-lg font-semibold py-2 rounded"
       >
         Sign in with Google
       </button>

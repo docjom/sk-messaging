@@ -371,7 +371,7 @@ function Dashboard() {
       </div>
 
       {/* Center Chat Area */}
-      <div className="lg:flex-1 bg-gray-100 p-4 ml-64 sm:ml-64 lg:ml-0 flex flex-col">
+      <div className="flex-1 bg-gray-100 p-4 ml-64 sm:ml-64 lg:ml-0 flex flex-col">
         {/* Header */}
         <div className="bg-white p-4 rounded shadow mb-4 flex items-center justify-between">
           <h1 className="text-2xl font-semibold capitalize">
