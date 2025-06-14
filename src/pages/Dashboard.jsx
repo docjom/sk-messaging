@@ -445,11 +445,19 @@ function Dashboard() {
                   <div className="flex flex-col">
                     <p className="text-sm text-gray-500 mb-1">Members:</p>
                     <div className="flex flex-wrap items-center gap-2">
+                      <div className="bg-gray-200/50 p-1 rounded-full">
+                        {" "}
+                        <Icon
+                          icon="material-symbols:add-rounded"
+                          width="24"
+                          height="24"
+                        />
+                      </div>
                       {currentChat.users
                         .map((userId) =>
                           users.find((u) => u.id === userId || u.uid === userId)
                         )
-                        .filter(Boolean) // Remove any undefined users
+                        .filter(Boolean)
                         .map((member) => (
                           <div
                             key={member.id || member.uid}
@@ -520,7 +528,7 @@ function Dashboard() {
                               : "bg-gray-200/50  text-gray-800"
                           }`}
                         >
-                          <p className="text-xs font-semibold mb-1">
+                          <p className="text-xs capitalize font-semibold mb-1">
                             {getSenderDisplayName(msg.senderId)}
                           </p>
                           <p className="text-base">{msg.message}</p>
