@@ -292,7 +292,9 @@ function Dashboard() {
                 chatId === chat.id ? "bg-blue-600" : ""
               }`}
             >
-              <div className="font-semibold">{getChatDisplayName(chat)}</div>
+              <div className="font-semibold capitalize">
+                {getChatDisplayName(chat)}
+              </div>
               <div className="text-xs capitalize text-gray-400">
                 {chat.type}
               </div>
