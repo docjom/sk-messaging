@@ -268,6 +268,53 @@ function Dashboard() {
     return chat.name;
   };
 
+  // Format timestamp
+  const formatTimestamp = (timestamp) => {
+    if (!timestamp) return "";
+
+    const messageDate = timestamp.toDate();
+    const now = new Date();
+    const diffInMs = now - messageDate;
+    const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
+    const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
+    const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
+
+    // If less than 1 minute ago
+    if (diffInMinutes < 1) {
+      return "Just now";
+    }
+
+    // If less than 1 hour ago
+    if (diffInMinutes < 60) {
+      return `${diffInMinutes}m ago`;
+    }
+
+    // If less than 24 hours ago
+    if (diffInHours < 24) {
+      return `${diffInHours}h ago`;
+    }
+
+    // If less than 7 days ago
+    if (diffInDays < 7) {
+      return `${diffInDays}d ago`;
+    }
+
+    // If same year
+    if (messageDate.getFullYear() === now.getFullYear()) {
+      return messageDate.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+      });
+    }
+
+    // Different year
+    return messageDate.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -464,17 +511,30 @@ function Dashboard() {
                           : "justify-start"
                       }`}
                     >
-                      <div
-                        className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-                          msg.senderId === user.uid
-                            ? "bg-blue-500 text-white"
-                            : "bg-gray-200 text-black"
-                        }`}
-                      >
-                        <p className="text-xs font-semibold mb-1">
-                          {getSenderDisplayName(msg.senderId)}
+                      <div>
+                        {" "}
+                        <div
+                          className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                            msg.senderId === user.uid
+                              ? "bg-blue-500 text-white"
+                              : "bg-gray-200/50  text-gray-800"
+                          }`}
+                        >
+                          <p className="text-xs font-semibold mb-1">
+                            {getSenderDisplayName(msg.senderId)}
+                          </p>
+                          <p>{msg.message}</p>
+                        </div>
+                        {/* Timestamp below the message bubble */}
+                        <p
+                          className={`text-xs text-gray-500 ${
+                            msg.senderId === user.uid
+                              ? "text-right"
+                              : "text-left"
+                          }`}
+                        >
+                          {formatTimestamp(msg.timestamp)}
                         </p>
-                        <p>{msg.message}</p>
                       </div>
                     </div>
                   ))
