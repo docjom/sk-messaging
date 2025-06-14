@@ -39,10 +39,10 @@ function Dashboard() {
   const [chatId, setChatId] = useState("");
   const [chats, setChats] = useState([]);
   const [users, setUsers] = useState([]);
-  const [selectedUsers, setSelectedUsers] = useState([]); // Track selected users for group chats
-  const [chatName, setChatName] = useState(""); // Track the name of the chat
-  const [selectedUser, setSelectedUser] = useState(null); // Track selected user for direct chat
-  const [currentChat, setCurrentChat] = useState(null); // Track current chat info
+  const [selectedUsers, setSelectedUsers] = useState([]); 
+  const [chatName, setChatName] = useState(""); 
+  const [selectedUser, setSelectedUser] = useState(null); 
+  const [currentChat, setCurrentChat] = useState(null); 
 
   // Fetch current user and user list
   useEffect(() => {
@@ -222,14 +222,11 @@ function Dashboard() {
   // Create a group chat
   const createGroupChat = async () => {
     if (selectedUsers.length >= 1 && chatName.trim()) {
-      // Changed from >= 2 to >= 1
-      const allUsers = [...selectedUsers, user.uid]; // Include current user
+      const allUsers = [...selectedUsers, user.uid]; 
       const newChatId = await createChat("group", allUsers, chatName);
       if (newChatId) {
         console.log("Group chat created with ID:", newChatId);
-        // Set the newly created chat as active
         setChatId(newChatId);
-        // Clear inputs
         setChatName("");
         setSelectedUsers([]);
         // The chat will appear in the list due to the onSnapshot listener
