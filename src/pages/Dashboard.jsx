@@ -341,7 +341,7 @@ function Dashboard() {
                 <div
                   key={u.id}
                   onClick={() => toggleUserSelection(u.id)}
-                  className={`cursor-pointer p-1 rounded text-sm ${
+                  className={`cursor-pointer p-1 rounded text-sm capitalize ${
                     selectedUsers.includes(u.id)
                       ? "bg-blue-500"
                       : "hover:bg-gray-700"
