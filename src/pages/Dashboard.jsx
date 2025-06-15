@@ -45,6 +45,7 @@ function Dashboard() {
   const [currentChat, setCurrentChat] = useState(null);
   const [menu, setMenu] = useState(false);
   const [createGroupModal, setCreateGroupModal] = useState(false);
+  const [contactsModal, setContactsModal] = useState(false);
 
   // Toggle menu visibility
   const toggleMenu = () => {
@@ -59,6 +60,13 @@ function Dashboard() {
   };
   const closeCreateGroupModal = () => {
     setCreateGroupModal(false);
+  };
+  // Toggle contacts modal visibility
+  const toggleContactsModal = () => {
+    setContactsModal(!contactsModal);
+  };
+  const closeContactsModal = () => {
+    setContactsModal(false);
   };
 
   // Fetch current user and user list
@@ -146,6 +154,9 @@ function Dashboard() {
         setCurrentChat(newChat);
       }
     }
+    setContactsModal(false);
+    setCreateGroupModal(false);
+    setMenu(false);
   };
 
   // Check if a direct chat already exists between the current user and selected user
@@ -326,7 +337,10 @@ function Dashboard() {
                 </div>
                 <span className="font-semibold">New Group</span>
               </div>
-              <div className="flex items-center gap-4 cursor-pointer hover:bg-gray-700 p-2 rounded">
+              <div
+                onClick={toggleContactsModal}
+                className="flex items-center gap-4 cursor-pointer hover:bg-gray-700 p-2 rounded"
+              >
                 <div>
                   <Icon icon="solar:user-linear" width="24" height="24" />
                 </div>
@@ -419,6 +433,48 @@ function Dashboard() {
               </div>
             </div>
           )}
+          {contactsModal && (
+            <div className=" bg-gray-500/30 fixed top-0 left-0 z-50 w-screen h-screen text-white">
+              <div className="flex h-screen justify-center items-center">
+                <div className="p-4 border rounded-lg bg-gray-800">
+                  <div>
+                    <div className="flex justify-between items-center">
+                      <h1 className="font-semibold text-lg w-80"> Contacts</h1>
+                      <div onClick={closeContactsModal}>
+                        <Icon
+                          icon="solar:close-square-bold"
+                          width="24"
+                          height="24"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      {/* Users List for Direct Chat */}
+                      <div className="max-h-96 overflow-y-auto mb-2">
+                        {users
+                          .filter((u) => u.id !== user?.uid)
+                          .map((u) => (
+                            <div
+                              key={u.id}
+                              onClick={() => handleSelectUser(u)}
+                              className="cursor-pointer capitalize p-2 flex justify-start items-center gap-2 rounded hover:bg-gray-700 text-sm"
+                            >
+                              <img
+                                src={u?.photoURL}
+                                alt="User Profile"
+                                className="w-8 h-8 rounded-full"
+                              />
+                              {u.displayName}
+                            </div>
+                          ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
       {/* menu end */}
@@ -453,29 +509,6 @@ function Dashboard() {
               </div>
             </div>
           ))}
-        </div>
-
-        {/* Users List for Direct Chat */}
-        <div className="border-t border-gray-700 pt-4">
-          <h3 className="text-lg font-bold mb-2">Start New Chat</h3>
-          <div className="space-y-2 max-h-32 overflow-y-auto">
-            {users
-              .filter((u) => u.id !== user?.uid) // Exclude current user
-              .map((u) => (
-                <div
-                  key={u.id}
-                  onClick={() => handleSelectUser(u)}
-                  className="cursor-pointer capitalize p-2 flex justify-start items-center gap-2 rounded hover:bg-gray-700 text-sm"
-                >
-                  <img
-                    src={u?.photoURL}
-                    alt="User Profile"
-                    className="w-8 h-8 rounded-full"
-                  />
-                  {u.displayName}
-                </div>
-              ))}
-          </div>
         </div>
       </div>
 
