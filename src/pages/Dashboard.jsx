@@ -43,6 +43,15 @@ function Dashboard() {
   const [chatName, setChatName] = useState("");
   const [selectedUser, setSelectedUser] = useState(null);
   const [currentChat, setCurrentChat] = useState(null);
+  const [menu, setMenu] = useState(false);
+
+  // Toggle menu visibility
+  const toggleMenu = () => {
+    setMenu(true);
+  };
+  const closeMenu = () => {
+    setMenu(false);
+  };
 
   // Fetch current user and user list
   useEffect(() => {
@@ -276,10 +285,37 @@ function Dashboard() {
 
   return (
     <div className="h-screen flex flex-col lg:flex-row">
+      {/* menu */}
+      {menu && (
+        <div
+          onClick={() => closeMenu()}
+          className=" bg-gray-500 fixed top-0 left-0 z-20 w-screen h-screen"
+        ></div>
+      )}
+
+      {menu && (
+        <div className="w-64 bg-gray-800 text-white fixed top-0 left-0 z-50 overflow-y-auto p-4 flex flex-col h-full">
+          <div className=" rounded mb-4 flex items-center gap-2 justify-start">
+            <img
+              src={user?.photoURL}
+              alt="User Profile"
+              className="w-12 h-12 rounded-full"
+            />
+            <h1 className="text-lg font-semibold capitalize">
+              {user?.displayName}
+            </h1>
+          </div>
+        </div>
+      )}
+      {/* menu end */}
+
       {/* Left Panel (Sidebar) */}
-      <div className="w-64 bg-gray-800 text-white fixed lg:sticky top-0 left-0 z-50 overflow-y-auto p-4 flex flex-col h-full">
+      <div className="w-64 bg-gray-800 text-white fixed lg:sticky top-0 left-0 z-10 overflow-y-auto p-4 flex flex-col h-full">
         <div className="flex items-center justify-start gap-2 mb-4">
-          <div className="rounded-full bg-gray-700/50 p-2">
+          <div
+            onClick={() => toggleMenu()}
+            className="rounded-full bg-gray-700/50 p-2"
+          >
             <Icon icon="duo-icons:menu" width="24" height="24" />
           </div>
           <h2 className="text-xl font-bold">Chats</h2>
@@ -389,16 +425,6 @@ function Dashboard() {
       <div className="flex-1 bg-gray-100 ml-64 sm:ml-64 lg:ml-0 sticky top-0 left-0 z-50 overflow-y-auto flex flex-col h-full">
         {/* Header */}
         <div className="fixed top-0 left-0 right-0 bg-white shadow ml-64 z-50">
-          {/* <div className="bg-white p-2 rounded shadow mb-4 flex items-center justify-between">
-            <h1 className="text-2xl font-semibold capitalize">
-              Welcome, {user?.displayName}
-            </h1>
-            <img
-              src={user?.photoURL}
-              alt="User Profile"
-              className="w-12 h-12 rounded-full"
-            />
-          </div> */}
           <div className="bg-white px-4 py-2 rounded shadow w-full flex items-center">
             {currentChat && (
               <div className="w-full flex justify-start items-center  gap-2">
