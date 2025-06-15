@@ -286,25 +286,26 @@ function Dashboard() {
   return (
     <div className="h-screen flex flex-col lg:flex-row">
       {/* menu */}
-      {menu && (
-        <div
-          onClick={() => closeMenu()}
-          className=" bg-gray-500 fixed top-0 left-0 z-20 w-screen h-screen"
-        ></div>
-      )}
 
       {menu && (
-        <div className="w-64 bg-gray-800 text-white fixed top-0 left-0 z-50 overflow-y-auto p-4 flex flex-col h-full">
-          <div className=" rounded mb-4 flex items-center gap-2 justify-start">
-            <img
-              src={user?.photoURL}
-              alt="User Profile"
-              className="w-12 h-12 rounded-full"
-            />
-            <h1 className="text-lg font-semibold capitalize">
-              {user?.displayName}
-            </h1>
+        <div>
+          {" "}
+          <div className="w-64 bg-gray-800 text-white fixed top-0 left-0 z-50 overflow-y-auto p-4 flex flex-col h-full">
+            <div className=" rounded mb-4 flex items-center gap-2 justify-start">
+              <img
+                src={user?.photoURL}
+                alt="User Profile"
+                className="w-12 h-12 rounded-full"
+              />
+              <h1 className="text-lg font-semibold capitalize">
+                {user?.displayName}
+              </h1>
+            </div>
           </div>
+          <div
+            onClick={() => closeMenu()}
+            className=" bg-gray-500/30 fixed top-0 left-0 z-40 w-screen h-screen backdrop-blur-sm"
+          ></div>
         </div>
       )}
       {/* menu end */}
@@ -422,9 +423,9 @@ function Dashboard() {
       </div>
 
       {/* Center Chat Area */}
-      <div className="flex-1 bg-gray-100 ml-64 sm:ml-64 lg:ml-0 sticky top-0 left-0 z-50 overflow-y-auto flex flex-col h-full">
+      <div className="flex-1 bg-gray-100 ml-64 sm:ml-64 lg:ml-0 sticky top-0 left-0 z-20 overflow-y-auto flex flex-col h-full">
         {/* Header */}
-        <div className="fixed top-0 left-0 right-0 bg-white shadow ml-64 z-50">
+        <div className="fixed top-0 left-0 right-0 bg-white shadow ml-64 z-30">
           <div className="bg-white px-4 py-2 rounded shadow w-full flex items-center">
             {currentChat && (
               <div className="w-full flex justify-start items-center  gap-2">
@@ -545,7 +546,7 @@ function Dashboard() {
               </div>
 
               {/* Message Input */}
-              <div className="fixed bottom-0 left-0 right-0 bg-gray-50 shadow-lg ml-64 z-50">
+              <div className="fixed bottom-0 left-0 right-0 bg-gray-50 shadow-lg ml-64 z-30">
                 <div className="px-4 py-2  border-t border-gray-300 ">
                   <div className="flex">
                     <input
