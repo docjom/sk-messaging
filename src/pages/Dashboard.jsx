@@ -17,6 +17,8 @@ import {
 } from "firebase/firestore";
 import { Icon } from "@iconify/react";
 import { ChatListLoading } from "../components/ChatListLoading";
+import { MessagesLoading } from "../components/MessagesLoading";
+import MessageLogo3d from "../assets/robot.png";
 
 const sendMessage = async (chatId, senderId, message) => {
   try {
@@ -56,6 +58,7 @@ function Dashboard() {
   const [createGroupModal, setCreateGroupModal] = useState(false);
   const [contactsModal, setContactsModal] = useState(false);
   const [chatsLoading, setChatsLoading] = useState(true);
+  const [messagesLoading, setMessagesLoading] = useState(false);
 
   // Toggle menu visibility
   const toggleMenu = () => {
@@ -128,6 +131,7 @@ function Dashboard() {
   // Fetch messages for the selected chat
   useEffect(() => {
     if (chatId) {
+      setMessagesLoading(true); // Start loading
       const messagesRef = collection(db, "chats", chatId, "messages");
       const q = query(messagesRef, orderBy("timestamp"));
       const unsubscribe = onSnapshot(q, (querySnapshot) => {
@@ -136,9 +140,13 @@ function Dashboard() {
           messagesArray.push({ id: doc.id, ...doc.data() });
         });
         setMessages(messagesArray);
+        setMessagesLoading(false);
       });
 
       return () => unsubscribe();
+    } else {
+      setMessages([]);
+      setMessagesLoading(false);
     }
   }, [chatId]);
 
@@ -588,9 +596,9 @@ function Dashboard() {
       {/* Center Chat Area */}
       <div className="flex-1 bg-gray-100 ml-64 sm:ml-64 lg:ml-0 sticky top-0 left-0 z-20 overflow-y-auto flex flex-col h-full">
         {/* Header */}
-        <div className="fixed top-0 left-0 right-0 bg-white shadow ml-64 z-30">
-          <div className="bg-white px-4 py-2 rounded shadow w-full flex items-center">
-            {currentChat && (
+        {currentChat && (
+          <div className="fixed top-0 left-0 right-0 bg-white shadow ml-64 z-30">
+            <div className="bg-white px-4 py-2 rounded shadow w-full flex items-center">
               <div className="w-full flex justify-start items-center  gap-2">
                 {/* Show group members if it's a group chat */}
                 {currentChat.type === "group" && (
@@ -665,59 +673,63 @@ function Dashboard() {
                   </div>
                 )}
               </div>
-            )}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Chat Messages */}
         <div className="bg-white rounded shadow flex-1 pt-12 pb-9 flex flex-col">
           {chatId ? (
             <>
-              {/* Messages Area */}
-              <div className="flex-1 overflow-y-auto h-96 p-4">
-                {messages.length > 0 ? (
-                  messages.map((msg) => (
-                    <div
-                      key={msg.id}
-                      className={`flex mb-4 ${
-                        msg.senderId === user.uid
-                          ? "justify-end"
-                          : "justify-start"
-                      }`}
-                    >
-                      <div>
-                        {" "}
-                        <div
-                          className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-                            msg.senderId === user.uid
-                              ? "bg-blue-500 text-white"
-                              : "bg-gray-200/50  text-gray-800"
-                          }`}
-                        >
-                          <p className="text-xs capitalize font-semibold mb-1">
-                            {getSenderDisplayName(msg.senderId)}
+              {/* Messages Area with Loading */}
+              {messagesLoading ? (
+                <MessagesLoading />
+              ) : (
+                <div className="flex-1 overflow-y-auto h-96 p-4">
+                  {messages.length > 0 ? (
+                    messages.map((msg) => (
+                      <div
+                        key={msg.id}
+                        className={`flex mb-4 ${
+                          msg.senderId === user.uid
+                            ? "justify-end"
+                            : "justify-start"
+                        }`}
+                      >
+                        <div>
+                          {" "}
+                          <div
+                            className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                              msg.senderId === user.uid
+                                ? "bg-blue-500 text-white"
+                                : "bg-gray-200/50  text-gray-800"
+                            }`}
+                          >
+                            <p className="text-xs capitalize font-semibold mb-1">
+                              {getSenderDisplayName(msg.senderId)}
+                            </p>
+                            <p className="text-sm">{msg.message}</p>
+                          </div>
+                          {/* Timestamp below the message bubble */}
+                          <p
+                            className={`text-xs text-gray-500 ${
+                              msg.senderId === user.uid
+                                ? "text-right"
+                                : "text-left"
+                            }`}
+                          >
+                            {formatTimestamp(msg.timestamp)}
                           </p>
-                          <p className="text-sm">{msg.message}</p>
                         </div>
-                        {/* Timestamp below the message bubble */}
-                        <p
-                          className={`text-xs text-gray-500 ${
-                            msg.senderId === user.uid
-                              ? "text-right"
-                              : "text-left"
-                          }`}
-                        >
-                          {formatTimestamp(msg.timestamp)}
-                        </p>
                       </div>
+                    ))
+                  ) : (
+                    <div className="flex items-center justify-center h-full text-gray-500">
+                      No messages yet. Start the conversation!
                     </div>
-                  ))
-                ) : (
-                  <div className="flex items-center justify-center h-full text-gray-500">
-                    No messages yet. Start the conversation!
-                  </div>
-                )}
-              </div>
+                  )}
+                </div>
+              )}
 
               {/* Message Input */}
               <div className="fixed bottom-0 left-0 right-0 bg-gray-50 shadow-lg ml-64 z-30">
@@ -731,6 +743,7 @@ function Dashboard() {
                       onChange={(e) => setMessage(e.target.value)}
                       onKeyPress={handleKeyPress}
                       placeholder="Write a message..."
+                      disabled={messagesLoading}
                     />
                     <button
                       onClick={handleSendMessage}
@@ -752,8 +765,19 @@ function Dashboard() {
               </div>
             </>
           ) : (
-            <div className="flex items-center justify-center h-full text-gray-500">
-              Select a chat or start a new conversation
+            <div className="flex items-center justify-center h-full text-gray-800 ">
+              <div>
+                <div className="flex items-center justify-center">
+                  <img
+                    src={MessageLogo3d}
+                    alt="3d chat icon"
+                    className="sm:size-30 size-20"
+                  />
+                </div>
+                <h1 className="sm:text-2xl text-lg font-semibold">
+                  Select a chat to start messaging
+                </h1>
+              </div>
             </div>
           )}
         </div>
