@@ -16,6 +16,7 @@ import {
   where,
 } from "firebase/firestore";
 import { Icon } from "@iconify/react";
+import { ChatListLoading } from "../components/ChatListLoading";
 
 const sendMessage = async (chatId, senderId, message) => {
   try {
@@ -54,6 +55,7 @@ function Dashboard() {
   const [menu, setMenu] = useState(false);
   const [createGroupModal, setCreateGroupModal] = useState(false);
   const [contactsModal, setContactsModal] = useState(false);
+  const [chatsLoading, setChatsLoading] = useState(true);
 
   // Toggle menu visibility
   const toggleMenu = () => {
@@ -116,6 +118,7 @@ function Dashboard() {
           chatsArray.push({ id: doc.id, ...doc.data() });
         });
         setChats(chatsArray);
+        setChatsLoading(false);
       });
 
       return () => unsubscribe();
@@ -497,85 +500,88 @@ function Dashboard() {
           </div>
           <h2 className="text-xl font-bold">Chats</h2>
         </div>
-
-        {/* Chat List */}
-        <div className="space-y-2 mb-4 flex-1">
-          {chats.map((chat) => (
-            <div
-              key={chat.id}
-              onClick={() => handleSelectChat(chat)}
-              className={`cursor-pointer p-2 rounded transition-colors ${
-                chatId === chat.id
-                  ? "bg-blue-500/30 hover:bg-blue-500/40"
-                  : "bg-gray-700/50 hover:bg-gray-700"
-              }`}
-            >
-              <div className="flex items-center gap-2">
-                {chat.type === "direct" ? (
-                  <div
-                    className={`p-2 rounded-full  transition-colors ${
-                      chatId === chat.id
-                        ? "bg-blue-500 "
-                        : "bg-gray-700/50 hover:bg-gray-700"
-                    }`}
-                  >
-                    <Icon icon="solar:user-linear" width="16" height="16" />
-                  </div>
-                ) : (
-                  <div
-                    className={`p-2 rounded-full  transition-colors ${
-                      chatId === chat.id
-                        ? "bg-blue-500 "
-                        : "bg-gray-700/50 hover:bg-gray-700"
-                    }`}
-                  >
-                    <Icon
-                      icon="solar:users-group-rounded-linear"
-                      width="16"
-                      height="16"
-                    />
-                  </div>
-                )}
-                <div>
-                  <div
-                    className={`text-sm capitalize truncate max-w-40 ${
-                      chatId === chat.id ? "font-semibold " : ""
-                    }`}
-                  >
-                    {getChatDisplayName(chat)}
-                  </div>
-                  <div className="text-xs capitalize text-gray-400 flex items-center gap-1">
-                    {chat.type}
-                    {/* Show last message preview */}
-                    {chat.lastMessage && (
-                      <div
-                        className={`text-xs  truncate w-20 ${
-                          formatTimestamp(chat.lastMessageTime) === "Just now"
-                            ? "font-bold text-white"
-                            : "text-gray-300"
-                        }`}
-                      >
-                        {chat.lastMessage}
-                      </div>
-                    )}
-                    {/* Show timestamp */}
-                    {chat.lastMessageTime && (
-                      <div
-                        className={`text-xs  max-w-20 truncate ${
-                          formatTimestamp(chat.lastMessageTime) === "Just now"
-                            ? "font-bold text-gray-200"
-                            : "text-gray-400"
-                        }`}
-                      >
-                        {formatTimestamp(chat.lastMessageTime)}
-                      </div>
-                    )}
+        {/* Chat List with Loading */}
+        {chatsLoading ? (
+          <ChatListLoading />
+        ) : (
+          <div className="space-y-2 mb-4 flex-1">
+            {chats.map((chat) => (
+              <div
+                key={chat.id}
+                onClick={() => handleSelectChat(chat)}
+                className={`cursor-pointer p-2 rounded transition-colors ${
+                  chatId === chat.id
+                    ? "bg-blue-500/30 hover:bg-blue-500/40"
+                    : "bg-gray-700/50 hover:bg-gray-700"
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  {chat.type === "direct" ? (
+                    <div
+                      className={`p-2 rounded-full  transition-colors ${
+                        chatId === chat.id
+                          ? "bg-blue-500 "
+                          : "bg-gray-700/50 hover:bg-gray-700"
+                      }`}
+                    >
+                      <Icon icon="solar:user-linear" width="16" height="16" />
+                    </div>
+                  ) : (
+                    <div
+                      className={`p-2 rounded-full  transition-colors ${
+                        chatId === chat.id
+                          ? "bg-blue-500 "
+                          : "bg-gray-700/50 hover:bg-gray-700"
+                      }`}
+                    >
+                      <Icon
+                        icon="solar:users-group-rounded-linear"
+                        width="16"
+                        height="16"
+                      />
+                    </div>
+                  )}
+                  <div>
+                    <div
+                      className={`text-sm capitalize truncate max-w-40 ${
+                        chatId === chat.id ? "font-semibold " : ""
+                      }`}
+                    >
+                      {getChatDisplayName(chat)}
+                    </div>
+                    <div className="text-xs capitalize text-gray-400 flex items-center gap-1">
+                      {chat.type}
+                      {/* Show last message preview */}
+                      {chat.lastMessage && (
+                        <div
+                          className={`text-xs  truncate w-20 ${
+                            formatTimestamp(chat.lastMessageTime) === "Just now"
+                              ? "font-bold text-white"
+                              : "text-gray-300"
+                          }`}
+                        >
+                          {chat.lastMessage}
+                        </div>
+                      )}
+                      {/* Show timestamp */}
+                      {chat.lastMessageTime && (
+                        <div
+                          className={`text-xs  max-w-20 truncate ${
+                            formatTimestamp(chat.lastMessageTime) === "Just now"
+                              ? "font-bold text-gray-200"
+                              : "text-gray-400"
+                          }`}
+                        >
+                          {formatTimestamp(chat.lastMessageTime)}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
       {/* Left Panel (Sidebar) End */}
 
