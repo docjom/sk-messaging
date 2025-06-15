@@ -19,6 +19,7 @@ import { Icon } from "@iconify/react";
 import { ChatListLoading } from "../components/ChatListLoading";
 import { MessagesLoading } from "../components/MessagesLoading";
 import MessageLogo3d from "../assets/robot.png";
+import NoConversation from "../assets/NoConversation.png";
 
 const sendMessage = async (chatId, senderId, message) => {
   try {
@@ -724,8 +725,19 @@ function Dashboard() {
                       </div>
                     ))
                   ) : (
-                    <div className="flex items-center justify-center h-full text-gray-500">
-                      No messages yet. Start the conversation!
+                    <div className="flex items-center justify-center h-full text-gray-800">
+                      <div>
+                        <div className="flex items-center justify-center">
+                          <img
+                            src={NoConversation}
+                            alt="3d chat icon"
+                            className="sm:size-30 size-20"
+                          />
+                        </div>
+                        <h1 className="sm:text-2xl text-lg font-semibold">
+                          No messages yet. Start the conversation!
+                        </h1>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -775,7 +787,7 @@ function Dashboard() {
                   />
                 </div>
                 <h1 className="sm:text-2xl text-lg font-semibold">
-                  Select a chat to start messaging
+                  Select a chat to start messaging...
                 </h1>
               </div>
             </div>
