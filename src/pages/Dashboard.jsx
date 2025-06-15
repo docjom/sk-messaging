@@ -487,7 +487,7 @@ function Dashboard() {
       {/* Menu End */}
 
       {/* Left Panel (Sidebar) */}
-      <div className="w-64 bg-gray-800 text-white fixed lg:sticky top-0 left-0 z-10 overflow-y-auto p-4 flex flex-col h-full">
+      <div className="w-64 bg-gray-800 text-white fixed lg:sticky top-0 left-0 z-10 overflow-y-auto p-2 flex flex-col h-full">
         <div className="flex items-center justify-start gap-2 mb-4">
           <div
             onClick={() => toggleMenu()}
@@ -552,15 +552,14 @@ function Dashboard() {
                         {chat.lastMessage}
                       </div>
                     )}
+                    {/* Show timestamp */}
+                    {chat.lastMessageTime && (
+                      <div className="text-xs text-gray-400 max-w-20 truncate">
+                        {formatTimestamp(chat.lastMessageTime)}
+                      </div>
+                    )}
                   </div>
                 </div>
-
-                {/* Show timestamp */}
-                {chat.lastMessageTime && (
-                  <div className="text-xs text-gray-400">
-                    {formatTimestamp(chat.lastMessageTime)}
-                  </div>
-                )}
               </div>
             </div>
           ))}
