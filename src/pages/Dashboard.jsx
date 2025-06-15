@@ -306,8 +306,7 @@ function Dashboard() {
 
   return (
     <div className="h-screen flex flex-col lg:flex-row">
-      {/* menu */}
-
+      {/* Menu */}
       {menu && (
         <div>
           {" "}
@@ -478,7 +477,7 @@ function Dashboard() {
           )}
         </div>
       )}
-      {/* menu end */}
+      {/* Menu End */}
 
       {/* Left Panel (Sidebar) */}
       <div className="w-64 bg-gray-800 text-white fixed lg:sticky top-0 left-0 z-10 overflow-y-auto p-4 flex flex-col h-full">
@@ -547,6 +546,7 @@ function Dashboard() {
           ))}
         </div>
       </div>
+      {/* Left Panel (Sidebar) End */}
 
       {/* Center Chat Area */}
       <div className="flex-1 bg-gray-100 ml-64 sm:ml-64 lg:ml-0 sticky top-0 left-0 z-20 overflow-y-auto flex flex-col h-full">
@@ -721,6 +721,7 @@ function Dashboard() {
           )}
         </div>
       </div>
+      {/* Center Chat Area End */}
     </div>
   );
 }
