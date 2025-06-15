@@ -301,6 +301,37 @@ function Dashboard() {
                 {user?.displayName}
               </h1>
             </div>
+            <hr className="border border-gray-700 m-1" />
+            <div>
+              <div className="flex items-center gap-4 cursor-pointer hover:bg-gray-700 p-2 rounded">
+                <div>
+                  <Icon
+                    icon="solar:users-group-rounded-linear"
+                    width="24"
+                    height="24"
+                  />
+                </div>
+                <span className="font-semibold">New Group</span>
+              </div>
+              <div className="flex items-center gap-4 cursor-pointer hover:bg-gray-700 p-2 rounded">
+                <div>
+                  <Icon icon="solar:user-linear" width="24" height="24" />
+                </div>
+                <span className="font-semibold">Contacts</span>
+              </div>
+              {/* Logout Button */}
+              <div className="absolute w-full bottom-0 left-0 p-2">
+                <div
+                  onClick={handleLogout}
+                  className="gap-4 flex justify-center items-center cursor-pointer bg-red-500 p-2 rounded"
+                >
+                  <div>
+                    <Icon icon="solar:logout-broken" width="24" height="24" />
+                  </div>
+                  <span className="font-semibold">Logout</span>
+                </div>
+              </div>
+            </div>
           </div>
           <div
             onClick={() => closeMenu()}
@@ -408,16 +439,6 @@ function Dashboard() {
             disabled={selectedUsers.length < 1 || !chatName.trim()}
           >
             Create Group ({selectedUsers.length} selected)
-          </button>
-        </div>
-
-        {/* Logout Button */}
-        <div className="mt-4 pt-4 border-t border-gray-700">
-          <button
-            onClick={handleLogout}
-            className="w-full bg-red-500 text-white px-4 py-2 rounded"
-          >
-            Logout
           </button>
         </div>
       </div>
