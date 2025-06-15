@@ -44,6 +44,7 @@ function Dashboard() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [currentChat, setCurrentChat] = useState(null);
   const [menu, setMenu] = useState(false);
+  const [createGroupModal, setCreateGroupModal] = useState(false);
 
   // Toggle menu visibility
   const toggleMenu = () => {
@@ -51,6 +52,13 @@ function Dashboard() {
   };
   const closeMenu = () => {
     setMenu(false);
+  };
+  // Toggle create group modal visibility
+  const toggleCreateGroupModal = () => {
+    setCreateGroupModal(!createGroupModal);
+  };
+  const closeCreateGroupModal = () => {
+    setCreateGroupModal(false);
   };
 
   // Fetch current user and user list
@@ -245,6 +253,8 @@ function Dashboard() {
         "Please select at least one user and provide a chat name for a group chat."
       );
     }
+    setCreateGroupModal(false);
+    setMenu(false);
   };
 
   // Toggle user selection for group chats
@@ -303,7 +313,10 @@ function Dashboard() {
             </div>
             <hr className="border border-gray-700 m-1" />
             <div>
-              <div className="flex items-center gap-4 cursor-pointer hover:bg-gray-700 p-2 rounded">
+              <div
+                onClick={toggleCreateGroupModal}
+                className="flex items-center gap-4 cursor-pointer hover:bg-gray-700 p-2 rounded"
+              >
                 <div>
                   <Icon
                     icon="solar:users-group-rounded-linear"
@@ -337,6 +350,75 @@ function Dashboard() {
             onClick={() => closeMenu()}
             className=" bg-gray-500/30 fixed top-0 left-0 z-40 w-screen h-screen backdrop-blur-sm"
           ></div>
+          {/* Create Group Modal */}
+          {createGroupModal && (
+            <div className=" bg-gray-500/30 fixed top-0 left-0 z-50 w-screen h-screen text-white">
+              <div className="flex h-screen justify-center items-center">
+                <div className="p-4 border rounded-lg bg-gray-800">
+                  <div>
+                    <div className="flex justify-between items-center">
+                      <h1 className="font-semibold text-lg w-80">
+                        {" "}
+                        Create New Group
+                      </h1>
+                      <div onClick={closeCreateGroupModal}>
+                        <Icon
+                          icon="solar:close-square-bold"
+                          width="24"
+                          height="24"
+                        />
+                      </div>
+                    </div>
+                    {/* Group Chat Name Input */}
+                    <div className="mt-4">
+                      <input
+                        type="text"
+                        value={chatName}
+                        onChange={(e) => setChatName(e.target.value)}
+                        placeholder="Group Chat Name"
+                        className="p-2 w-full rounded outline-none border border-gray-100 mb-2"
+                      />
+                    </div>
+                    <div>
+                      {/* User Selection for Group Chat */}
+                      <div className="max-h-96 overflow-y-auto mb-2">
+                        {users
+                          .filter((u) => u.id !== user?.uid)
+                          .map((u) => (
+                            <div
+                              key={u.id}
+                              onClick={() => toggleUserSelection(u.id)}
+                              className={`cursor-pointer p-1 flex justify-start items-center gap-2 rounded text-sm capitalize ${
+                                selectedUsers.includes(u.id)
+                                  ? "bg-blue-500"
+                                  : "hover:bg-gray-700"
+                              }`}
+                            >
+                              <img
+                                src={u?.photoURL}
+                                alt="User Profile"
+                                className="w-8 h-8 rounded-full"
+                              />
+                              {u.displayName}
+                            </div>
+                          ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <button
+                        onClick={createGroupChat}
+                        className="w-full bg-green-500 font-semibold text-white px-4 py-2 rounded text-lg hover:bg-green-600 disabled:bg-gray-500 disabled:cursor-not-allowed"
+                        disabled={selectedUsers.length < 1 || !chatName.trim()}
+                      >
+                        Create Group ({selectedUsers.length} selected)
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
       {/* menu end */}
@@ -394,52 +476,6 @@ function Dashboard() {
                 </div>
               ))}
           </div>
-        </div>
-
-        {/* Group Chat Section */}
-        <div className="border-t border-gray-700 pt-4 mt-4">
-          <h3 className="text-lg font-bold mb-2">Create Group Chat</h3>
-
-          {/* Group Chat Name Input */}
-          <input
-            type="text"
-            value={chatName}
-            onChange={(e) => setChatName(e.target.value)}
-            placeholder="Group Chat Name"
-            className="p-2 w-full rounded outline-none border border-gray-200 mb-2"
-          />
-
-          {/* User Selection for Group Chat */}
-          <div className="max-h-24 overflow-y-auto mb-2">
-            {users
-              .filter((u) => u.id !== user?.uid)
-              .map((u) => (
-                <div
-                  key={u.id}
-                  onClick={() => toggleUserSelection(u.id)}
-                  className={`cursor-pointer p-1 flex justify-start items-center gap-2 rounded text-sm capitalize ${
-                    selectedUsers.includes(u.id)
-                      ? "bg-blue-500"
-                      : "hover:bg-gray-700"
-                  }`}
-                >
-                  <img
-                    src={u?.photoURL}
-                    alt="User Profile"
-                    className="w-8 h-8 rounded-full"
-                  />
-                  {u.displayName}
-                </div>
-              ))}
-          </div>
-
-          <button
-            onClick={createGroupChat}
-            className="w-full bg-green-500 text-white px-4 py-2 rounded text-sm hover:bg-green-600 disabled:bg-gray-500 disabled:cursor-not-allowed"
-            disabled={selectedUsers.length < 1 || !chatName.trim()}
-          >
-            Create Group ({selectedUsers.length} selected)
-          </button>
         </div>
       </div>
 
