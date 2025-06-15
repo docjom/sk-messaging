@@ -14,11 +14,12 @@ import {
   updateDoc,
   onSnapshot,
   where,
+  getDoc,
 } from "firebase/firestore";
 import { Icon } from "@iconify/react";
 import { ChatListLoading } from "../components/ChatListLoading";
 import { MessagesLoading } from "../components/MessagesLoading";
-import MessageLogo3d from "../assets/robot.png";
+import MessageLogo3d from "../assets/message.svg";
 import NoConversation from "../assets/NoConversation.png";
 
 const sendMessage = async (chatId, senderId, message) => {
@@ -44,8 +45,8 @@ const sendMessage = async (chatId, senderId, message) => {
 function Dashboard() {
   const navigate = useNavigate();
   const auth = getAuth();
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null); // Firebase Auth user
+  const [userProfile, setUserProfile] = useState(null); // Firestore user profile
   const [messages, setMessages] = useState([]);
   const [message, setMessage] = useState("");
   const [chatId, setChatId] = useState("");
@@ -58,8 +59,14 @@ function Dashboard() {
   const [menu, setMenu] = useState(false);
   const [createGroupModal, setCreateGroupModal] = useState(false);
   const [contactsModal, setContactsModal] = useState(false);
+  const [editProfileModal, setEditProfileModal] = useState(false);
   const [chatsLoading, setChatsLoading] = useState(true);
   const [messagesLoading, setMessagesLoading] = useState(false);
+
+  // Profile editing states
+  const [editDisplayName, setEditDisplayName] = useState("");
+  const [editDepartment, setDepartment] = useState("");
+  const [editPhone, setEditPhone] = useState("");
 
   // Toggle menu visibility
   const toggleMenu = () => {
@@ -68,6 +75,7 @@ function Dashboard() {
   const closeMenu = () => {
     setMenu(false);
   };
+
   // Toggle create group modal visibility
   const toggleCreateGroupModal = () => {
     setCreateGroupModal(!createGroupModal);
@@ -75,12 +83,75 @@ function Dashboard() {
   const closeCreateGroupModal = () => {
     setCreateGroupModal(false);
   };
+
   // Toggle contacts modal visibility
   const toggleContactsModal = () => {
     setContactsModal(!contactsModal);
   };
   const closeContactsModal = () => {
     setContactsModal(false);
+  };
+
+  // Toggle edit profile modal visibility
+  const toggleEditProfileModal = () => {
+    setEditProfileModal(!editProfileModal);
+    if (!editProfileModal && userProfile) {
+      // Pre-fill the form with current profile data
+      setEditDisplayName(userProfile.displayName || "");
+      setDepartment(userProfile.department || "");
+      setEditPhone(userProfile.phone || "");
+    }
+  };
+  const closeEditProfileModal = () => {
+    setEditProfileModal(false);
+  };
+
+  // Fetch user profile from Firestore
+  const fetchUserProfile = async (uid) => {
+    try {
+      const userDocRef = doc(db, "users", uid);
+      const userDoc = await getDoc(userDocRef);
+      if (userDoc.exists()) {
+        const profileData = { id: userDoc.id, ...userDoc.data() };
+        setUserProfile(profileData);
+        return profileData;
+      } else {
+        console.log("No user profile found in Firestore");
+        return null;
+      }
+    } catch (error) {
+      console.error("Error fetching user profile:", error);
+      return null;
+    }
+  };
+
+  // Update user profile in Firestore
+  const updateUserProfile = async () => {
+    if (!user?.uid) return;
+
+    try {
+      const userDocRef = doc(db, "users", user.uid);
+      await updateDoc(userDocRef, {
+        displayName: editDisplayName,
+        department: editDepartment,
+        phone: editPhone,
+        updatedAt: serverTimestamp(),
+      });
+
+      // Update local state
+      setUserProfile((prev) => ({
+        ...prev,
+        displayName: editDisplayName,
+        department: editDepartment,
+        phone: editPhone,
+      }));
+
+      alert("Profile updated successfully!");
+      setEditProfileModal(false);
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      alert("Failed to update profile. Please try again.");
+    }
   };
 
   // Fetch current user and user list
@@ -98,14 +169,15 @@ function Dashboard() {
       }
     };
 
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
         setUser(currentUser);
+        // Fetch user profile from Firestore
+        await fetchUserProfile(currentUser.uid);
         fetchUsers();
       } else {
         navigate("/");
       }
-      setLoading(false);
     });
 
     return () => unsubscribe();
@@ -132,7 +204,7 @@ function Dashboard() {
   // Fetch messages for the selected chat
   useEffect(() => {
     if (chatId) {
-      setMessagesLoading(true); // Start loading
+      setMessagesLoading(true);
       const messagesRef = collection(db, "chats", chatId, "messages");
       const q = query(messagesRef, orderBy("timestamp"));
       const unsubscribe = onSnapshot(q, (querySnapshot) => {
@@ -169,7 +241,6 @@ function Dashboard() {
       );
       if (newChatId) {
         setChatId(newChatId);
-        // Find the newly created chat in the chats array
         const newChat = chats.find((chat) => chat.id === newChatId);
         setCurrentChat(newChat);
       }
@@ -188,7 +259,6 @@ function Dashboard() {
 
       for (const doc of querySnapshot.docs) {
         const chatData = doc.data();
-        // Check if both users are in this direct chat
         if (
           chatData.users.includes(user.uid) &&
           chatData.users.includes(selectedUserId)
@@ -208,7 +278,6 @@ function Dashboard() {
     setChatId(chat.id);
     setCurrentChat(chat);
 
-    // If it's a direct chat, set the selected user
     if (chat.type === "direct") {
       const otherUserId = chat.users.find((uid) => uid !== user.uid);
       const otherUser = users.find((u) => u.id === otherUserId);
@@ -315,13 +384,8 @@ function Dashboard() {
     return chat.name;
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        Loading...
-      </div>
-    );
-  }
+  // Use userProfile data if available, fallback to Firebase Auth user
+  const displayUser = userProfile || user;
 
   return (
     <div className="h-screen flex flex-col lg:flex-row">
@@ -332,15 +396,27 @@ function Dashboard() {
           <div className="w-64 bg-gray-800 text-white fixed top-0 left-0 z-50 overflow-y-auto p-4 flex flex-col h-full">
             <div className=" rounded mb-4 flex items-center gap-2 justify-start">
               <img
-                src={user?.photoURL}
+                src={displayUser?.photoURL || "/default-avatar.png"}
                 alt="User Profile"
                 className="w-12 h-12 rounded-full"
+                onError={(e) => {
+                  e.target.src = "/default-avatar.png";
+                }}
               />
               <h1 className="text-lg font-semibold capitalize">
-                {user?.displayName}
+                {displayUser?.displayName}
               </h1>
             </div>
             <hr className="border border-gray-700 m-1" />
+            <div
+              onClick={toggleEditProfileModal}
+              className="flex items-center gap-4 cursor-pointer hover:bg-gray-700 p-2 rounded"
+            >
+              <div>
+                <Icon icon="iconoir:profile-circle" width="24" height="24" />
+              </div>
+              <span className="font-semibold">My Profile</span>
+            </div>
             <div>
               <div
                 onClick={toggleCreateGroupModal}
@@ -355,6 +431,7 @@ function Dashboard() {
                 </div>
                 <span className="font-semibold">New Group</span>
               </div>
+
               <div
                 onClick={toggleContactsModal}
                 className="flex items-center gap-4 cursor-pointer hover:bg-gray-700 p-2 rounded"
@@ -382,6 +459,89 @@ function Dashboard() {
             onClick={() => closeMenu()}
             className=" bg-gray-500/30 fixed top-0 left-0 z-40 w-screen h-screen backdrop-blur-sm"
           ></div>
+          {/* Edit Profile Modal */}
+          {editProfileModal && (
+            <div className="bg-gray-500/30 fixed top-0 left-0 z-50 w-screen h-screen text-white">
+              <div className="flex h-screen justify-center items-center">
+                <div className="p-4 border rounded-lg bg-gray-800 max-w-md w-full">
+                  <div>
+                    <div className="flex justify-between items-center mb-4">
+                      <h1 className="font-semibold text-lg">Edit Profile</h1>
+                      <div
+                        onClick={closeEditProfileModal}
+                        className="cursor-pointer"
+                      >
+                        <Icon
+                          icon="solar:close-square-bold"
+                          width="24"
+                          height="24"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <div className="flex justify-center mb-4">
+                        <img
+                          src={displayUser?.photoURL || "/default-avatar.png"}
+                          alt="Profile"
+                          className="w-20 h-20 rounded-full"
+                          onError={(e) => {
+                            e.target.src = "/default-avatar.png";
+                          }}
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium mb-1">
+                          Display Name
+                        </label>
+                        <input
+                          type="text"
+                          value={editDisplayName}
+                          onChange={(e) => setEditDisplayName(e.target.value)}
+                          className="p-2 w-full rounded outline-none border border-gray-600 bg-gray-700 text-white"
+                          placeholder="Enter display name"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium mb-1">
+                          Department
+                        </label>
+                        <input
+                          type="text"
+                          value={editDepartment}
+                          onChange={(e) => setDepartment(e.target.value)}
+                          className="p-2 w-full rounded outline-none border border-gray-600 bg-gray-700 text-white"
+                          placeholder="Enter department"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium mb-1">
+                          Phone
+                        </label>
+                        <input
+                          type="tel"
+                          value={editPhone}
+                          onChange={(e) => setEditPhone(e.target.value)}
+                          className="p-2 w-full rounded outline-none border border-gray-600 bg-gray-700 text-white"
+                          placeholder="Enter phone number"
+                        />
+                      </div>
+
+                      <button
+                        onClick={updateUserProfile}
+                        className="w-full bg-blue-500 font-semibold text-white px-4 py-2 rounded text-lg hover:bg-blue-600"
+                      >
+                        Update Profile
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
           {/* Create Group Modal */}
           {createGroupModal && (
             <div className=" bg-gray-500/30 fixed top-0 left-0 z-50 w-screen h-screen text-white">
