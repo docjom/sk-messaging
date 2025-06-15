@@ -548,13 +548,25 @@ function Dashboard() {
                     {chat.type}
                     {/* Show last message preview */}
                     {chat.lastMessage && (
-                      <div className="text-xs text-gray-300 truncate w-20">
+                      <div
+                        className={`text-xs  truncate w-20 ${
+                          formatTimestamp(chat.lastMessageTime) === "Just now"
+                            ? "font-bold text-white"
+                            : "text-gray-300"
+                        }`}
+                      >
                         {chat.lastMessage}
                       </div>
                     )}
                     {/* Show timestamp */}
                     {chat.lastMessageTime && (
-                      <div className="text-xs text-gray-400 max-w-20 truncate">
+                      <div
+                        className={`text-xs  max-w-20 truncate ${
+                          formatTimestamp(chat.lastMessageTime) === "Just now"
+                            ? "font-bold text-gray-200"
+                            : "text-gray-400"
+                        }`}
+                      >
                         {formatTimestamp(chat.lastMessageTime)}
                       </div>
                     )}
