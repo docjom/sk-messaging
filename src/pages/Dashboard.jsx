@@ -498,17 +498,31 @@ function Dashboard() {
             <div
               key={chat.id}
               onClick={() => handleSelectChat(chat)}
-              className={`cursor-pointer hover:bg-gray-700 bg-gray-700/50 p-2 rounded ${
-                chatId === chat.id ? "bg-blue-600" : ""
+              className={`cursor-pointer p-2 rounded transition-colors ${
+                chatId === chat.id
+                  ? "bg-blue-500/30 hover:bg-blue-500/40"
+                  : "bg-gray-700/50 hover:bg-gray-700"
               }`}
             >
               <div className="flex items-center gap-2">
                 {chat.type === "direct" ? (
-                  <div className="p-2 rounded-full bg-gray-500/50">
+                  <div
+                    className={`p-2 rounded-full  transition-colors ${
+                      chatId === chat.id
+                        ? "bg-blue-500 "
+                        : "bg-gray-700/50 hover:bg-gray-700"
+                    }`}
+                  >
                     <Icon icon="solar:user-linear" width="16" height="16" />
                   </div>
                 ) : (
-                  <div className="p-2 rounded-full bg-gray-500/50">
+                  <div
+                    className={`p-2 rounded-full  transition-colors ${
+                      chatId === chat.id
+                        ? "bg-blue-500 "
+                        : "bg-gray-700/50 hover:bg-gray-700"
+                    }`}
+                  >
                     <Icon
                       icon="solar:users-group-rounded-linear"
                       width="16"
@@ -517,7 +531,11 @@ function Dashboard() {
                   </div>
                 )}
                 <div>
-                  <div className="font-semibold text-sm capitalize">
+                  <div
+                    className={`text-sm capitalize ${
+                      chatId === chat.id ? "font-semibold " : ""
+                    }`}
+                  >
                     {getChatDisplayName(chat)}
                   </div>
                   <div className="text-xs capitalize text-gray-400">
@@ -642,7 +660,7 @@ function Dashboard() {
                           <p className="text-xs capitalize font-semibold mb-1">
                             {getSenderDisplayName(msg.senderId)}
                           </p>
-                          <p className="text-base">{msg.message}</p>
+                          <p className="text-sm">{msg.message}</p>
                         </div>
                         {/* Timestamp below the message bubble */}
                         <p
