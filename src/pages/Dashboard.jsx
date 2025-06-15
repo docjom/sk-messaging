@@ -433,6 +433,7 @@ function Dashboard() {
               </div>
             </div>
           )}
+          {/* Contacts Modal */}
           {contactsModal && (
             <div className=" bg-gray-500/30 fixed top-0 left-0 z-50 w-screen h-screen text-white">
               <div className="flex h-screen justify-center items-center">
@@ -501,11 +502,28 @@ function Dashboard() {
                 chatId === chat.id ? "bg-blue-600" : ""
               }`}
             >
-              <div className="font-semibold capitalize">
-                {getChatDisplayName(chat)}
-              </div>
-              <div className="text-xs capitalize text-gray-400">
-                {chat.type}
+              <div className="flex items-center gap-2">
+                {chat.type === "direct" ? (
+                  <div className="p-2 rounded-full bg-gray-500/50">
+                    <Icon icon="solar:user-linear" width="16" height="16" />
+                  </div>
+                ) : (
+                  <div className="p-2 rounded-full bg-gray-500/50">
+                    <Icon
+                      icon="solar:users-group-rounded-linear"
+                      width="16"
+                      height="16"
+                    />
+                  </div>
+                )}
+                <div>
+                  <div className="font-semibold text-sm capitalize">
+                    {getChatDisplayName(chat)}
+                  </div>
+                  <div className="text-xs capitalize text-gray-400">
+                    {chat.type}
+                  </div>
+                </div>
               </div>
             </div>
           ))}
