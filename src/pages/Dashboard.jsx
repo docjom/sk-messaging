@@ -278,7 +278,12 @@ function Dashboard() {
     <div className="h-screen flex flex-col lg:flex-row">
       {/* Left Panel (Sidebar) */}
       <div className="w-64 bg-gray-800 text-white fixed lg:sticky top-0 left-0 z-50 overflow-y-auto p-4 flex flex-col h-full">
-        <h2 className="text-xl font-bold mb-4">Chats</h2>
+        <div className="flex items-center justify-start gap-2 mb-4">
+          <div className="rounded-full bg-gray-700/50 p-2">
+            <Icon icon="duo-icons:menu" width="24" height="24" />
+          </div>
+          <h2 className="text-xl font-bold">Chats</h2>
+        </div>
 
         {/* Chat List */}
         <div className="space-y-2 mb-4 flex-1">
