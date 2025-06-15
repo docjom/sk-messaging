@@ -10,19 +10,27 @@ import {
   query,
   orderBy,
   getDocs,
+  doc,
+  updateDoc,
   onSnapshot,
   where,
 } from "firebase/firestore";
 import { Icon } from "@iconify/react";
 
-// Function to send a message
 const sendMessage = async (chatId, senderId, message) => {
   try {
     const messagesRef = collection(db, "chats", chatId, "messages");
+    const chatRef = doc(db, "chats", chatId);
+
     await addDoc(messagesRef, {
       senderId,
       message,
       timestamp: serverTimestamp(),
+    });
+
+    await updateDoc(chatRef, {
+      lastMessage: message,
+      lastMessageTime: serverTimestamp(),
     });
   } catch (error) {
     console.error("Error sending message:", error);
@@ -257,7 +265,6 @@ function Dashboard() {
         setChatId(newChatId);
         setChatName("");
         setSelectedUsers([]);
-        // The chat will appear in the list due to the onSnapshot listener
       }
     } else {
       alert(
@@ -531,16 +538,29 @@ function Dashboard() {
                 )}
                 <div>
                   <div
-                    className={`text-sm capitalize ${
+                    className={`text-sm capitalize truncate max-w-40 ${
                       chatId === chat.id ? "font-semibold " : ""
                     }`}
                   >
                     {getChatDisplayName(chat)}
                   </div>
-                  <div className="text-xs capitalize text-gray-400">
+                  <div className="text-xs capitalize text-gray-400 flex items-center gap-1">
                     {chat.type}
+                    {/* Show last message preview */}
+                    {chat.lastMessage && (
+                      <div className="text-xs text-gray-300 truncate w-20">
+                        {chat.lastMessage}
+                      </div>
+                    )}
                   </div>
                 </div>
+
+                {/* Show timestamp */}
+                {chat.lastMessageTime && (
+                  <div className="text-xs text-gray-400">
+                    {formatTimestamp(chat.lastMessageTime)}
+                  </div>
+                )}
               </div>
             </div>
           ))}
