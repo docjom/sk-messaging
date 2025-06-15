@@ -453,37 +453,48 @@ function Dashboard() {
                 {/* Show group members if it's a group chat */}
                 {currentChat.type === "group" && (
                   <div className="flex justify-between items-center w-full">
-                    <div className="text-gray-800 font-semibold text-lg capitalize">
-                      {getChatDisplayName(currentChat)}
-                    </div>
+                    <div className="flex justify-start gap-3 items-center w-full">
+                      <div className="rounded-full bg-gray-200/50 p-2 text-blue-500 shadow">
+                        <Icon
+                          icon="solar:users-group-rounded-bold-duotone"
+                          width="24"
+                          height="24"
+                        />
+                      </div>
+                      <div className="text-gray-800 font-semibold text-lg capitalize">
+                        {getChatDisplayName(currentChat)}
+                      </div>
 
-                    {/* <div className="flex flex-wrap items-center gap-2">
-                      {currentChat.users
-                        .map((userId) =>
-                          users.find((u) => u.id === userId || u.uid === userId)
-                        )
-                        .filter(Boolean)
-                        .map((member) => (
-                          <div
-                            key={member.id || member.uid}
-                            className="flex items-center bg-gray-100 rounded-full px-2 py-1"
-                          >
-                            <img
-                              src={member.photoURL || "/default-avatar.png"}
-                              alt={member.displayName}
-                              className="w-6 h-6 rounded-full mr-2"
-                              onError={(e) => {
-                                e.target.src = "/default-avatar.png";
-                              }}
-                            />
-                            <span className="text-sm capitalize text-gray-800">
+                      <div className="flex flex-wrap items-center gap-2 border p-1 rounded-full border-gray-200 bg-gray-100">
+                        {currentChat.users
+                          .map((userId) =>
+                            users.find(
+                              (u) => u.id === userId || u.uid === userId
+                            )
+                          )
+                          .filter(Boolean)
+                          .map((member) => (
+                            <div
+                              key={member.id || member.uid}
+                              className="flex items-center"
+                            >
+                              <img
+                                src={member.photoURL || "/default-avatar.png"}
+                                alt={member.displayName}
+                                className="w-6 h-6 rounded-full"
+                                onError={(e) => {
+                                  e.target.src = "/default-avatar.png";
+                                }}
+                              />
+                              {/* <span className="text-sm capitalize text-gray-800">
                               {member.uid === user.uid
                                 ? "You"
                                 : member.displayName}
-                            </span>
-                          </div>
-                        ))}
-                    </div> */}
+                            </span> */}
+                            </div>
+                          ))}
+                      </div>
+                    </div>
                     <div className="bg-gray-200/50 p-1 rounded-full">
                       {" "}
                       <Icon
