@@ -39,10 +39,10 @@ function Dashboard() {
   const [chatId, setChatId] = useState("");
   const [chats, setChats] = useState([]);
   const [users, setUsers] = useState([]);
-  const [selectedUsers, setSelectedUsers] = useState([]); 
-  const [chatName, setChatName] = useState(""); 
-  const [selectedUser, setSelectedUser] = useState(null); 
-  const [currentChat, setCurrentChat] = useState(null); 
+  const [selectedUsers, setSelectedUsers] = useState([]);
+  const [chatName, setChatName] = useState("");
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [currentChat, setCurrentChat] = useState(null);
 
   // Fetch current user and user list
   useEffect(() => {
@@ -222,7 +222,7 @@ function Dashboard() {
   // Create a group chat
   const createGroupChat = async () => {
     if (selectedUsers.length >= 1 && chatName.trim()) {
-      const allUsers = [...selectedUsers, user.uid]; 
+      const allUsers = [...selectedUsers, user.uid];
       const newChatId = await createChat("group", allUsers, chatName);
       if (newChatId) {
         console.log("Group chat created with ID:", newChatId);
@@ -381,39 +381,30 @@ function Dashboard() {
       </div>
 
       {/* Center Chat Area */}
-      <div className="flex-1 bg-gray-100 p-4 ml-64 sm:ml-64 lg:ml-0 flex flex-col">
+      <div className="flex-1 bg-gray-100 ml-64 sm:ml-64 lg:ml-0 sticky top-0 left-0 z-50 overflow-y-auto flex flex-col h-full">
         {/* Header */}
-        <div className="bg-white p-4 rounded shadow mb-4 flex items-center justify-between">
-          <h1 className="text-2xl font-semibold capitalize">
-            Welcome, {user?.displayName}
-          </h1>
-          <img
-            src={user?.photoURL}
-            alt="User Profile"
-            className="w-12 h-12 rounded-full"
-          />
-        </div>
-        <div className="bg-white p-4 rounded shadow mb-4 flex items-center justify-between">
-          <div>
+        <div className="fixed top-0 left-0 right-0 bg-white shadow ml-64 z-50">
+          {/* <div className="bg-white p-2 rounded shadow mb-4 flex items-center justify-between">
+            <h1 className="text-2xl font-semibold capitalize">
+              Welcome, {user?.displayName}
+            </h1>
+            <img
+              src={user?.photoURL}
+              alt="User Profile"
+              className="w-12 h-12 rounded-full"
+            />
+          </div> */}
+          <div className="bg-white px-4 py-2 rounded shadow w-full flex items-center">
             {currentChat && (
-              <div className="">
-                <p className="text-gray-800 font-semibold text-lg capitalize">
-                  {getChatDisplayName(currentChat)}
-                </p>
-
+              <div className="w-full flex justify-start items-center  gap-2">
                 {/* Show group members if it's a group chat */}
                 {currentChat.type === "group" && (
-                  <div className="flex flex-col">
-                    <p className="text-sm text-gray-500 mb-1">Members:</p>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <div className="bg-gray-200/50 p-1 rounded-full">
-                        {" "}
-                        <Icon
-                          icon="material-symbols:add-rounded"
-                          width="24"
-                          height="24"
-                        />
-                      </div>
+                  <div className="flex justify-between items-center w-full">
+                    <div className="text-gray-800 font-semibold text-lg capitalize">
+                      {getChatDisplayName(currentChat)}
+                    </div>
+
+                    {/* <div className="flex flex-wrap items-center gap-2">
                       {currentChat.users
                         .map((userId) =>
                           users.find((u) => u.id === userId || u.uid === userId)
@@ -432,29 +423,37 @@ function Dashboard() {
                                 e.target.src = "/default-avatar.png";
                               }}
                             />
-                            <span className="text-sm capitalize text-gray-700">
+                            <span className="text-sm capitalize text-gray-800">
                               {member.uid === user.uid
                                 ? "You"
                                 : member.displayName}
                             </span>
                           </div>
                         ))}
+                    </div> */}
+                    <div className="bg-gray-200/50 p-1 rounded-full">
+                      {" "}
+                      <Icon
+                        icon="material-symbols:add-rounded"
+                        width="24"
+                        height="24"
+                      />
                     </div>
                   </div>
                 )}
 
                 {/* Show direct chat user info */}
                 {currentChat.type === "direct" && selectedUser && (
-                  <div className="flex items-center mt-2">
+                  <div className="flex items-center">
                     <img
                       src={selectedUser.photoURL || "/default-avatar.png"}
                       alt={selectedUser.displayName}
-                      className="w-8 h-8 rounded-full mr-2"
+                      className="w-10 h-10 rounded-full mr-2"
                       onError={(e) => {
                         e.target.src = "/default-avatar.png";
                       }}
                     />
-                    <span className="text-sm text-gray-600">
+                    <span className="text-lg text-gray-800 font-semibold">
                       {selectedUser.displayName}
                     </span>
                   </div>
@@ -465,11 +464,11 @@ function Dashboard() {
         </div>
 
         {/* Chat Messages */}
-        <div className="bg-white rounded shadow flex-1 flex flex-col">
+        <div className="bg-white rounded shadow flex-1 pt-12 pb-9 flex flex-col">
           {chatId ? (
             <>
               {/* Messages Area */}
-              <div className="flex-1 overflow-y-auto p-4">
+              <div className="flex-1 overflow-y-auto h-96 p-4">
                 {messages.length > 0 ? (
                   messages.map((msg) => (
                     <div
@@ -515,28 +514,34 @@ function Dashboard() {
               </div>
 
               {/* Message Input */}
-              <div className="p-4 border-t border-gray-300">
-                <div className="flex">
-                  <input
-                    type="text"
-                    className="flex-1 p-2 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    value={message}
-                    required
-                    onChange={(e) => setMessage(e.target.value)}
-                    onKeyPress={handleKeyPress}
-                    placeholder="Type your message..."
-                  />
-                  <button
-                    onClick={handleSendMessage}
-                    className="bg-blue-500 text-white px-4 py-2 rounded-r-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    disabled={!message.trim()}
-                  >
-                    <Icon
-                      icon="material-symbols:send-rounded"
-                      width="24"
-                      height="24"
+              <div className="fixed bottom-0 left-0 right-0 bg-gray-50 shadow-lg ml-64 z-50">
+                <div className="px-4 py-2  border-t border-gray-300 ">
+                  <div className="flex">
+                    <input
+                      type="text"
+                      className="flex-1 p-2 outline-none rounded-l-lg "
+                      value={message}
+                      required
+                      onChange={(e) => setMessage(e.target.value)}
+                      onKeyPress={handleKeyPress}
+                      placeholder="Write a message..."
                     />
-                  </button>
+                    <button
+                      onClick={handleSendMessage}
+                      className={` p-2 rounded-full ${
+                        !message.trim()
+                          ? "bg-gray-400 text-white cursor-not-allowed"
+                          : "bg-blue-500 text-white "
+                      }`}
+                      disabled={!message.trim()}
+                    >
+                      <Icon
+                        icon="material-symbols:send-rounded"
+                        width="30"
+                        height="30"
+                      />
+                    </button>
+                  </div>
                 </div>
               </div>
             </>
