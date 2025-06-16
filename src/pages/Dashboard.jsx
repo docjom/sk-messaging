@@ -67,6 +67,7 @@ function Dashboard() {
   const [editDisplayName, setEditDisplayName] = useState("");
   const [editDepartment, setDepartment] = useState("");
   const [editPhone, setEditPhone] = useState("");
+  const [editPosition, setEditPosition] = useState("");
 
   // Toggle menu visibility
   const toggleMenu = () => {
@@ -135,6 +136,7 @@ function Dashboard() {
         displayName: editDisplayName,
         department: editDepartment,
         phone: editPhone,
+        position: editPosition,
         updatedAt: serverTimestamp(),
       });
 
@@ -143,6 +145,7 @@ function Dashboard() {
         ...prev,
         displayName: editDisplayName,
         department: editDepartment,
+        position: editPosition,
         phone: editPhone,
       }));
 
@@ -373,6 +376,11 @@ function Dashboard() {
     const sender = users.find((u) => u.id === senderId);
     return sender?.displayName || "Unknown User";
   };
+  const getSenderData = (senderId) => {
+    if (!senderId) return null;
+    const sender = users.find((u) => u.id === senderId);
+    return sender || null;
+  };
 
   // Get chat display name
   const getChatDisplayName = (chat) => {
@@ -517,17 +525,31 @@ function Dashboard() {
                         />
                       </div>
 
-                      <div>
-                        <label className="block text-sm font-medium mb-1">
-                          Phone
-                        </label>
-                        <input
-                          type="tel"
-                          value={editPhone}
-                          onChange={(e) => setEditPhone(e.target.value)}
-                          className="p-2 w-full rounded outline-none border border-gray-600 bg-gray-700 text-white"
-                          placeholder="Enter phone number"
-                        />
+                      <div className="flex  gap-4">
+                        <div>
+                          <label className="block text-sm font-medium mb-1">
+                            Phone
+                          </label>
+                          <input
+                            type="tel"
+                            value={editPhone}
+                            onChange={(e) => setEditPhone(e.target.value)}
+                            className="p-2 w-full rounded outline-none border border-gray-600 bg-gray-700 text-white"
+                            placeholder="Enter phone number"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-1">
+                            Position
+                          </label>
+                          <input
+                            type="text"
+                            value={editPosition}
+                            onChange={(e) => setEditPosition(e.target.value)}
+                            className="p-2 w-full rounded outline-none border border-gray-600 bg-gray-700 text-white"
+                            placeholder="Enter position"
+                          />
+                        </div>
                       </div>
 
                       <button
@@ -859,28 +881,47 @@ function Dashboard() {
                       >
                         <div>
                           {" "}
-                          <div
-                            className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-                              msg.senderId === user.uid
-                                ? "bg-blue-500 text-white"
-                                : "bg-gray-200/50  text-gray-800"
-                            }`}
-                          >
-                            <p className="text-xs capitalize font-semibold mb-1">
-                              {getSenderDisplayName(msg.senderId)}
-                            </p>
-                            <p className="text-sm">{msg.message}</p>
+                          <div className="flex items-end gap-2">
+                            <img
+                              src={getSenderData(msg.senderId)?.photoURL}
+                              alt={getSenderDisplayName(msg.senderId)}
+                              className="w-8 h-8 rounded-full"
+                            />
+                            <div>
+                              <div
+                                className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                                  msg.senderId === user.uid
+                                    ? "bg-blue-500 text-white"
+                                    : "bg-gray-200/50  text-gray-800"
+                                }`}
+                              >
+                                <p className="text-xs capitalize font-semibold flex gap-1">
+                                  {getSenderDisplayName(msg.senderId)}{" "}
+                                  <span 
+                                    className={` font-normal rounded-full px-1.5 py-0.5 ${
+                                  msg.senderId === user.uid
+                                    ? "bg-white text-blue-500"
+                                    : "bg-blue-500 text-white"
+                                }`}
+                               >
+                                    {getSenderData(msg.senderId)?.department}
+                                  </span>
+                                </p>
+
+                                <p className="text-sm">{msg.message}</p>
+                              </div>
+                              {/* Timestamp below the message bubble */}
+                              <p
+                                className={`text-xs text-gray-500 ${
+                                  msg.senderId === user.uid
+                                    ? "text-right"
+                                    : "text-left"
+                                }`}
+                              >
+                                {formatTimestamp(msg.timestamp)}
+                              </p>
+                            </div>
                           </div>
-                          {/* Timestamp below the message bubble */}
-                          <p
-                            className={`text-xs text-gray-500 ${
-                              msg.senderId === user.uid
-                                ? "text-right"
-                                : "text-left"
-                            }`}
-                          >
-                            {formatTimestamp(msg.timestamp)}
-                          </p>
                         </div>
                       </div>
                     ))
