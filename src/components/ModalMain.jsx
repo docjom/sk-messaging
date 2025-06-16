@@ -7,6 +7,7 @@ export const Modal = ({
   onSubmit,
   isSubmitDisabled,
   submitText,
+  isLoading = false,
 }) => {
   if (!isOpen) return null;
 
@@ -29,9 +30,16 @@ export const Modal = ({
             {onSubmit && (
               <button
                 onClick={onSubmit}
-                className="w-full bg-green-500 font-semibold text-white px-4 py-2 rounded text-lg hover:bg-green-600 disabled:bg-gray-500 disabled:cursor-not-allowed"
+                className="w-full bg-green-500 flex font-semibold justify-center gap-2 items-center text-white px-4 py-2 rounded text-lg hover:bg-green-600 disabled:bg-gray-500 disabled:cursor-not-allowed"
                 disabled={isSubmitDisabled}
               >
+                {isLoading && (
+                  <Icon
+                    icon="line-md:loading-alt-loop"
+                    width="24"
+                    height="24"
+                  />
+                )}
                 {submitText}
               </button>
             )}

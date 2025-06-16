@@ -64,6 +64,9 @@ function Dashboard() {
   // Loading states
   const [chatsLoading, setChatsLoading] = useState(true);
   const [messagesLoading, setMessagesLoading] = useState(false);
+  const [isAddingUsers, setIsAddingUsers] = useState(false);
+  const [isCreatingGroup, setIsCreatingGroup] = useState(false);
+  const [isUpdateProfileLoading, setIsUpdateProfileLoading] = useState(false);
 
   // Modal states
   const [createGroupModal, setCreateGroupModal] = useState(false);
@@ -116,6 +119,7 @@ function Dashboard() {
   const addUsersToGroup = async () => {
     if (!currentChat || !currentChat.id || selectedUsersToAdd.length === 0)
       return;
+    setIsAddingUsers(true);
 
     try {
       const chatRef = doc(db, "chats", currentChat.id);
@@ -157,6 +161,8 @@ function Dashboard() {
     } catch (error) {
       console.error("Error adding users to group:", error);
       alert("Failed to add users to group. Please try again.");
+    } finally {
+      setIsAddingUsers(false);
     }
 
     setAddUserToGroupModal(false);
@@ -200,6 +206,7 @@ function Dashboard() {
   // Update user profile in Firestore
   const updateUserProfile = async () => {
     if (!user?.uid) return;
+    setIsUpdateProfileLoading(true);
 
     try {
       const userDocRef = doc(db, "users", user.uid);
@@ -225,6 +232,8 @@ function Dashboard() {
     } catch (error) {
       console.error("Error updating profile:", error);
       alert("Failed to update profile. Please try again.");
+    } finally {
+      setIsUpdateProfileLoading(false);
     }
   };
 
@@ -432,19 +441,27 @@ function Dashboard() {
 
   // Create a group chat
   const createGroupChat = async () => {
-    if (selectedUsers.length >= 1 && chatName.trim()) {
-      const allUsers = [...selectedUsers, user.uid];
-      const newChatId = await createChat("group", allUsers, chatName);
-      if (newChatId) {
-        console.log("Group chat created with ID:", newChatId);
-        setChatId(newChatId);
-        setChatName("");
-        setSelectedUsers([]);
+    setIsCreatingGroup(true);
+    try {
+      if (selectedUsers.length >= 1 && chatName.trim()) {
+        const allUsers = [...selectedUsers, user.uid];
+        const newChatId = await createChat("group", allUsers, chatName);
+        if (newChatId) {
+          console.log("Group chat created with ID:", newChatId);
+          setChatId(newChatId);
+          setChatName("");
+          setSelectedUsers([]);
+        }
+      } else {
+        alert(
+          "Please select at least one user and provide a chat name for a group chat."
+        );
       }
-    } else {
-      alert(
-        "Please select at least one user and provide a chat name for a group chat."
-      );
+    } catch (error) {
+      console.error("Error creating group chat:", error);
+      alert("Failed to create group chat. Please try again.");
+    } finally {
+      setIsCreatingGroup(false);
     }
     setCreateGroupModal(false);
     setMenu(false);
@@ -654,9 +671,19 @@ function Dashboard() {
 
                       <button
                         onClick={updateUserProfile}
-                        className="w-full bg-blue-500 font-semibold text-white px-4 py-2 rounded text-lg hover:bg-blue-600"
+                        disabled={isUpdateProfileLoading}
+                        className="w-full bg-blue-500 flex disabled:bg-gray-500 disabled:cursor-not-allowed justify-center items-center gap-2 font-semibold text-white px-4 py-2 rounded text-lg hover:bg-blue-600"
                       >
-                        Update Profile
+                        {isUpdateProfileLoading && (
+                          <Icon
+                            icon="line-md:loading-alt-loop"
+                            width="24"
+                            height="24"
+                          />
+                        )}
+                        {isUpdateProfileLoading
+                          ? "Updating..."
+                          : `Update Profile`}
                       </button>
                     </div>
                   </div>
@@ -666,12 +693,19 @@ function Dashboard() {
           )}
           {/* Create Group Modal */}
           <Modal
+            isLoading={isCreatingGroup}
             isOpen={createGroupModal}
             onClose={closeCreateGroupModal}
             title="Create New Group"
             onSubmit={createGroupChat}
-            isSubmitDisabled={selectedUsers.length < 1 || !chatName.trim()}
-            submitText={`Create Group (${selectedUsers.length} selected)`}
+            isSubmitDisabled={
+              selectedUsers.length === 0 || isCreatingGroup || !chatName.trim()
+            }
+            submitText={
+              isCreatingGroup
+                ? "Creating..."
+                : `Create Group (${selectedUsers.length} selected)`
+            }
           >
             <div>
               <input
@@ -744,10 +778,15 @@ function Dashboard() {
       <Modal
         isOpen={addUserToGroupModal}
         onClose={() => setAddUserToGroupModal(false)}
+        isLoading={isAddingUsers}
         title="Add User to Group"
         onSubmit={addUsersToGroup}
-        isSubmitDisabled={selectedUsersToAdd.length === 0}
-        submitText={`Add Users (${selectedUsersToAdd.length} selected)`}
+        isSubmitDisabled={selectedUsersToAdd.length === 0 || isAddingUsers}
+        submitText={
+          isAddingUsers
+            ? "Adding..."
+            : `Add Users (${selectedUsersToAdd.length} selected)`
+        }
       >
         <div className="max-h-96 overflow-y-auto mb-4">
           {users
