@@ -58,13 +58,17 @@ function Dashboard() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [currentChat, setCurrentChat] = useState(null);
   const [menu, setMenu] = useState(false);
+  const [selectedUsersToAdd, setSelectedUsersToAdd] = useState([]);
+
+  // Loading states
+  const [chatsLoading, setChatsLoading] = useState(true);
+  const [messagesLoading, setMessagesLoading] = useState(false);
+
+  // Modal states
   const [createGroupModal, setCreateGroupModal] = useState(false);
   const [contactsModal, setContactsModal] = useState(false);
   const [editProfileModal, setEditProfileModal] = useState(false);
-  const [chatsLoading, setChatsLoading] = useState(true);
-  const [messagesLoading, setMessagesLoading] = useState(false);
   const [addUserToGroupModal, setAddUserToGroupModal] = useState(false);
-  const [selectedUsersToAdd, setSelectedUsersToAdd] = useState([]);
 
   // Profile editing states
   const [editDisplayName, setEditDisplayName] = useState("");
