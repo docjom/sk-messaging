@@ -21,6 +21,7 @@ import { ChatListLoading } from "../components/ChatListLoading";
 import { MessagesLoading } from "../components/MessagesLoading";
 import MessageLogo3d from "../assets/message.svg";
 import NoConversation from "../assets/NoConversation.png";
+import ErrorProfileImage from "../assets/error.png";
 import { Modal } from "../components/ModalMain";
 
 const sendMessage = async (chatId, senderId, message) => {
@@ -490,7 +491,7 @@ function Dashboard() {
                 alt="User Profile"
                 className="w-12 h-12 rounded-full"
                 onError={(e) => {
-                  e.target.src = "/default-avatar.png";
+                  e.target.src = ErrorProfileImage;
                 }}
               />
               <h1 className="text-lg font-semibold capitalize">
@@ -576,7 +577,7 @@ function Dashboard() {
                           alt="Profile"
                           className="w-20 h-20 rounded-full"
                           onError={(e) => {
-                            e.target.src = "/default-avatar.png";
+                            e.target.src = ErrorProfileImage;
                           }}
                         />
                       </div>
@@ -680,6 +681,9 @@ function Dashboard() {
                         src={u?.photoURL}
                         alt="User Profile"
                         className="w-8 h-8 rounded-full"
+                        onError={(e) => {
+                          e.target.src = ErrorProfileImage;
+                        }}
                       />
                       {u.displayName}
                     </div>
@@ -706,6 +710,9 @@ function Dashboard() {
                       src={u?.photoURL}
                       alt="User Profile"
                       className="w-8 h-8 rounded-full"
+                      onError={(e) => {
+                        e.target.src = ErrorProfileImage;
+                      }}
                     />
                     {u.displayName}
                   </div>
@@ -744,6 +751,9 @@ function Dashboard() {
                   src={u?.photoURL}
                   alt="User Profile"
                   className="w-8 h-8 rounded-full"
+                  onError={(e) => {
+                    e.target.src = ErrorProfileImage;
+                  }}
                 />
                 <div>
                   <div className="font-medium">{u.displayName}</div>
@@ -898,7 +908,7 @@ function Dashboard() {
                                 alt={member.displayName}
                                 className="w-6 h-6 rounded-full"
                                 onError={(e) => {
-                                  e.target.src = "/default-avatar.png";
+                                  e.target.src = ErrorProfileImage;
                                 }}
                               />
                             </div>
@@ -928,7 +938,7 @@ function Dashboard() {
                       alt={selectedUser.displayName}
                       className="w-10 h-10 rounded-full mr-2"
                       onError={(e) => {
-                        e.target.src = "/default-avatar.png";
+                        e.target.src = ErrorProfileImage;
                       }}
                     />
                     <span className="text-lg text-gray-800 font-semibold">
@@ -968,6 +978,9 @@ function Dashboard() {
                                 src={getSenderData(msg.senderId)?.photoURL}
                                 alt={getSenderDisplayName(msg.senderId)}
                                 className="w-8 h-8 rounded-full"
+                                onError={(e) => {
+                                  e.target.src = ErrorProfileImage;
+                                }}
                               />
                             )}
                             <div>
