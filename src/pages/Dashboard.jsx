@@ -123,14 +123,21 @@ function Dashboard() {
       if (chatDoc.exists()) {
         const chatData = chatDoc.data();
         const currentUsers = chatData.users || [];
+        const currentUserRoles = chatData.userRoles || {};
         const newUsers = selectedUsersToAdd.filter(
           (userId) => !currentUsers.includes(userId)
         );
 
         if (newUsers.length > 0) {
           const updatedUsers = [...currentUsers, ...newUsers];
+          // Add new users with "member" role
+          const updatedUserRoles = { ...currentUserRoles };
+          newUsers.forEach((userId) => {
+            updatedUserRoles[userId] = "member";
+          });
           await updateDoc(chatRef, {
             users: updatedUsers,
+            userRoles: updatedUserRoles,
             updatedAt: serverTimestamp(),
           });
 
@@ -138,6 +145,7 @@ function Dashboard() {
           setCurrentChat((prev) => ({
             ...prev,
             users: updatedUsers,
+            userRoles: updatedUserRoles,
           }));
 
           alert(`${newUsers.length} user(s) added to group successfully!`);
@@ -377,14 +385,26 @@ function Dashboard() {
   const createChat = async (type, userIds, name = "") => {
     try {
       const chatsRef = collection(db, "chats");
-      const chatDoc = await addDoc(chatsRef, {
+
+      const chatData = {
         type,
         name: name || (type === "direct" ? "Direct Chat" : "Group Chat"),
         users: userIds,
         createdAt: serverTimestamp(),
         lastMessage: null,
         lastMessageTime: null,
-      });
+      };
+
+      if (type === "group") {
+        chatData.admin = user.uid;
+        chatData.userRoles = {};
+
+        userIds.forEach((userId) => {
+          chatData.userRoles[userId] = userId === user.uid ? "admin" : "member";
+        });
+      }
+
+      const chatDoc = await addDoc(chatsRef, chatData);
       console.log(`${type} chat created successfully with ID:`, chatDoc.id);
       return chatDoc.id;
     } catch (error) {
