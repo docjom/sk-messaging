@@ -101,6 +101,7 @@ function Dashboard() {
       setEditDisplayName(userProfile.displayName || "");
       setDepartment(userProfile.department || "");
       setEditPhone(userProfile.phone || "");
+      setEditPosition(userProfile.position || "");
     }
   };
   const closeEditProfileModal = () => {
