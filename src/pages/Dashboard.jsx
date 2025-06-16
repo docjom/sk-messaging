@@ -62,6 +62,8 @@ function Dashboard() {
   const [editProfileModal, setEditProfileModal] = useState(false);
   const [chatsLoading, setChatsLoading] = useState(true);
   const [messagesLoading, setMessagesLoading] = useState(false);
+  const [addUserToGroupModal, setAddUserToGroupModal] = useState(false);
+  const [selectedUsersToAdd, setSelectedUsersToAdd] = useState([]);
 
   // Profile editing states
   const [editDisplayName, setEditDisplayName] = useState("");
@@ -91,6 +93,60 @@ function Dashboard() {
   };
   const closeContactsModal = () => {
     setContactsModal(false);
+  };
+
+  const toggleAddUserToGroupModal = () => {
+    setAddUserToGroupModal(!addUserToGroupModal);
+    setSelectedUsersToAdd([]);
+  };
+  const toggleUserSelectionForGroup = (userId) => {
+    setSelectedUsersToAdd((prev) =>
+      prev.includes(userId)
+        ? prev.filter((id) => id !== userId)
+        : [...prev, userId]
+    );
+  };
+
+  const addUsersToGroup = async () => {
+    if (!currentChat || !currentChat.id || selectedUsersToAdd.length === 0)
+      return;
+
+    try {
+      const chatRef = doc(db, "chats", currentChat.id);
+      const chatDoc = await getDoc(chatRef);
+
+      if (chatDoc.exists()) {
+        const chatData = chatDoc.data();
+        const currentUsers = chatData.users || [];
+        const newUsers = selectedUsersToAdd.filter(
+          (userId) => !currentUsers.includes(userId)
+        );
+
+        if (newUsers.length > 0) {
+          const updatedUsers = [...currentUsers, ...newUsers];
+          await updateDoc(chatRef, {
+            users: updatedUsers,
+            updatedAt: serverTimestamp(),
+          });
+
+          // Update local state
+          setCurrentChat((prev) => ({
+            ...prev,
+            users: updatedUsers,
+          }));
+
+          alert(`${newUsers.length} user(s) added to group successfully!`);
+        } else {
+          alert("Selected users are already in the group!");
+        }
+      }
+    } catch (error) {
+      console.error("Error adding users to group:", error);
+      alert("Failed to add users to group. Please try again.");
+    }
+
+    setAddUserToGroupModal(false);
+    setSelectedUsersToAdd([]);
   };
 
   // Toggle edit profile modal visibility
@@ -405,7 +461,7 @@ function Dashboard() {
           <div className="w-64 bg-gray-800 text-white fixed top-0 left-0 z-50 overflow-y-auto p-4 flex flex-col h-full">
             <div className=" rounded mb-4 flex items-center gap-2 justify-start">
               <img
-                src={displayUser?.photoURL || "/default-avatar.png"}
+                src={displayUser?.photoURL}
                 alt="User Profile"
                 className="w-12 h-12 rounded-full"
                 onError={(e) => {
@@ -491,7 +547,7 @@ function Dashboard() {
                     <div className="space-y-4">
                       <div className="flex justify-center mb-4">
                         <img
-                          src={displayUser?.photoURL || "/default-avatar.png"}
+                          src={displayUser?.photoURL}
                           alt="Profile"
                           className="w-20 h-20 rounded-full"
                           onError={(e) => {
@@ -679,7 +735,88 @@ function Dashboard() {
           )}
         </div>
       )}
+
       {/* Menu End */}
+
+      {/* Add User to Group Modal */}
+      {addUserToGroupModal && (
+        <div className="bg-gray-500/30 fixed top-0 left-0 z-50 w-screen h-screen text-white">
+          <div className="flex h-screen justify-center items-center">
+            <div className="p-4 border rounded-lg bg-gray-800">
+              <div>
+                <div className="flex justify-between items-center mb-4">
+                  <h1 className="font-semibold text-lg w-80">
+                    Add User to Group
+                  </h1>
+                  <div
+                    onClick={() => setAddUserToGroupModal(false)}
+                    className="cursor-pointer"
+                  >
+                    <Icon
+                      icon="solar:close-square-bold"
+                      width="24"
+                      height="24"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  {/* Available Users List */}
+                  <div className="max-h-96 overflow-y-auto mb-4">
+                    {users
+                      .filter(
+                        (u) =>
+                          u.id !== user?.uid &&
+                          !currentChat?.users?.includes(u.id)
+                      )
+                      .map((u) => (
+                        <div
+                          key={u.id}
+                          onClick={() => toggleUserSelectionForGroup(u.id)}
+                          className={`cursor-pointer capitalize p-2 flex justify-start items-center gap-2 rounded text-sm ${
+                            selectedUsersToAdd.includes(u.id)
+                              ? "bg-blue-500"
+                              : "hover:bg-gray-700"
+                          }`}
+                        >
+                          <img
+                            src={u?.photoURL}
+                            alt="User Profile"
+                            className="w-8 h-8 rounded-full"
+                          />
+                          <div>
+                            <div className="font-medium">{u.displayName}</div>
+                            <div className="text-xs text-gray-400">
+                              {u.department}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    {users.filter(
+                      (u) =>
+                        u.id !== user?.uid &&
+                        !currentChat?.users?.includes(u.id)
+                    ).length === 0 && (
+                      <div className="text-center text-gray-400 py-4">
+                        No users available to add
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Add Users Button */}
+                  <button
+                    onClick={addUsersToGroup}
+                    className="w-full bg-green-500 font-semibold text-white px-4 py-2 rounded text-lg hover:bg-green-600 disabled:bg-gray-500 disabled:cursor-not-allowed"
+                    disabled={selectedUsersToAdd.length === 0}
+                  >
+                    Add Users ({selectedUsersToAdd.length} selected)
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Left Panel (Sidebar) */}
       <div className="w-64 bg-gray-800 text-white fixed lg:sticky top-0 left-0 z-10 overflow-y-auto p-2 flex flex-col h-full">
@@ -813,7 +950,7 @@ function Dashboard() {
                               className="flex items-center"
                             >
                               <img
-                                src={member.photoURL || "/default-avatar.png"}
+                                src={member.photoURL}
                                 alt={member.displayName}
                                 className="w-6 h-6 rounded-full"
                                 onError={(e) => {
@@ -829,7 +966,11 @@ function Dashboard() {
                           ))}
                       </div>
                     </div>
-                    <div className="bg-gray-200/50 p-1 rounded-full">
+                    {/* Add new user to group button */}
+                    <div
+                      onClick={toggleAddUserToGroupModal}
+                      className="bg-gray-200/50 p-1 rounded-full"
+                    >
                       {" "}
                       <Icon
                         icon="material-symbols:add-rounded"
@@ -844,7 +985,7 @@ function Dashboard() {
                 {currentChat.type === "direct" && selectedUser && (
                   <div className="flex items-center">
                     <img
-                      src={selectedUser.photoURL || "/default-avatar.png"}
+                      src={selectedUser.photoURL}
                       alt={selectedUser.displayName}
                       className="w-10 h-10 rounded-full mr-2"
                       onError={(e) => {
