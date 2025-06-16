@@ -690,9 +690,8 @@ function Dashboard() {
           </Modal>
         </div>
       )}
-
       {/* Menu End */}
-
+      
       {/* Add User to Group Modal */}
       <Modal
         isOpen={addUserToGroupModal}
