@@ -870,6 +870,7 @@ function Dashboard() {
                               className="flex items-center"
                             >
                               <img
+                                title={member.displayName}
                                 src={member.photoURL}
                                 alt={member.displayName}
                                 className="w-6 h-6 rounded-full"
@@ -877,11 +878,6 @@ function Dashboard() {
                                   e.target.src = "/default-avatar.png";
                                 }}
                               />
-                              {/* <span className="text-sm capitalize text-gray-800">
-                              {member.uid === user.uid
-                                ? "You"
-                                : member.displayName}
-                            </span> */}
                             </div>
                           ))}
                       </div>
