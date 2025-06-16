@@ -46,8 +46,8 @@ const sendMessage = async (chatId, senderId, message) => {
 function Dashboard() {
   const navigate = useNavigate();
   const auth = getAuth();
-  const [user, setUser] = useState(null); // Firebase Auth user
-  const [userProfile, setUserProfile] = useState(null); // Firestore user profile
+  const [user, setUser] = useState(null);
+  const [userProfile, setUserProfile] = useState(null);
   const [messages, setMessages] = useState([]);
   const [message, setMessage] = useState("");
   const [chatId, setChatId] = useState("");
