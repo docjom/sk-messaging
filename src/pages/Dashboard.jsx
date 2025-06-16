@@ -396,7 +396,15 @@ function Dashboard() {
         lastMessageTime: null,
       };
 
-      if (type === "group") {
+      // Add profile picture logic
+      if (type === "direct") {
+        // For direct chats, use the other user's profile picture
+        const otherUserId = userIds.find((id) => id !== user.uid);
+        const otherUser = users.find((u) => u.id === otherUserId);
+        chatData.photoURL = otherUser?.photoURL || ErrorProfileImage;
+      } else if (type === "group") {
+        // For group chats, use a default group image that can be changed later
+        chatData.photoURL = ""; // Temp group image
         chatData.admin = user.uid;
         chatData.userRoles = {};
 
@@ -473,6 +481,15 @@ function Dashboard() {
       return otherUser?.displayName || "Unknown User";
     }
     return chat.name;
+  };
+  // Get chat photo
+  const getChatPhoto = (chat) => {
+    if (chat.type === "direct") {
+      const otherUserId = chat.users.find((uid) => uid !== user.uid);
+      const otherUser = users.find((u) => u.id === otherUserId);
+      return otherUser?.photoURL || ErrorProfileImage;
+    }
+    return chat.photoURL || ErrorProfileImage;
   };
 
   // Use userProfile data if available, fallback to Firebase Auth user
@@ -798,31 +815,15 @@ function Dashboard() {
                 }`}
               >
                 <div className="flex items-center gap-2">
-                  {chat.type === "direct" ? (
-                    <div
-                      className={`p-2 rounded-full  transition-colors ${
-                        chatId === chat.id
-                          ? "bg-blue-500 "
-                          : "bg-gray-700/50 hover:bg-gray-700"
-                      }`}
-                    >
-                      <Icon icon="solar:user-linear" width="16" height="16" />
-                    </div>
-                  ) : (
-                    <div
-                      className={`p-2 rounded-full  transition-colors ${
-                        chatId === chat.id
-                          ? "bg-blue-500 "
-                          : "bg-gray-700/50 hover:bg-gray-700"
-                      }`}
-                    >
-                      <Icon
-                        icon="solar:users-group-rounded-linear"
-                        width="16"
-                        height="16"
-                      />
-                    </div>
-                  )}
+                  <img
+                    src={getChatPhoto(chat)}
+                    alt={getChatDisplayName(chat)}
+                    className="w-10 h-10 rounded-full"
+                    onError={(e) => {
+                      e.target.src = ErrorProfileImage;
+                    }}
+                  />
+
                   <div>
                     <div
                       className={`text-sm capitalize truncate max-w-40 ${
@@ -941,7 +942,7 @@ function Dashboard() {
                         e.target.src = ErrorProfileImage;
                       }}
                     />
-                    <span className="text-lg text-gray-800 font-semibold">
+                    <span className="text-lg text-gray-800 font-semibold capitalize">
                       {selectedUser.displayName}
                     </span>
                   </div>
@@ -998,7 +999,7 @@ function Dashboard() {
                                     </p>
                                   )}
                                   <span
-                                    className={` hidden text-[9px] sm:flex font-normal border border-gray-300 rounded-full px-1.5 py-0.5 ${
+                                    className={` hidden text-[9px] sm:flex font-normal border border-gray-300 rounded-sm px-1.5 py-0.5 ${
                                       msg.senderId === user.uid
                                         ? "bg-white text-blue-500"
                                         : "bg-blue-500 text-white"
@@ -1007,7 +1008,7 @@ function Dashboard() {
                                     {getSenderData(msg.senderId)?.department}
                                   </span>
                                   <span
-                                    className={` hidden text-[9px] sm:flex font-normal border border-gray-300 rounded-full px-1.5 py-0.5 ${
+                                    className={` hidden text-[9px] sm:flex font-normal border border-gray-300 rounded-sm px-1.5 py-0.5 ${
                                       msg.senderId === user.uid
                                         ? "bg-white text-gray-800"
                                         : "bg-white text-gray-800 "
