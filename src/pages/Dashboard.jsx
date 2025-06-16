@@ -371,7 +371,7 @@ function Dashboard() {
   // Get display name for sender
   const getSenderDisplayName = (senderId) => {
     if (senderId === user?.uid) {
-      return "You";
+      return "";
     }
     const sender = users.find((u) => u.id === senderId);
     return sender?.displayName || "Unknown User";
@@ -881,32 +881,47 @@ function Dashboard() {
                       >
                         <div>
                           {" "}
-                          <div className="flex items-end gap-2">
-                            <img
-                              src={getSenderData(msg.senderId)?.photoURL}
-                              alt={getSenderDisplayName(msg.senderId)}
-                              className="w-8 h-8 rounded-full"
-                            />
+                          <div className="flex items-end gap-1.5">
+                            {msg.senderId !== user.uid && (
+                              <img
+                                src={getSenderData(msg.senderId)?.photoURL}
+                                alt={getSenderDisplayName(msg.senderId)}
+                                className="w-8 h-8 rounded-full"
+                              />
+                            )}
                             <div>
                               <div
-                                className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                                className={`max-w-md lg:max-w-lg px-4 py-2 rounded-lg ${
                                   msg.senderId === user.uid
                                     ? "bg-blue-500 text-white"
                                     : "bg-gray-200/50  text-gray-800"
                                 }`}
                               >
-                                <p className="text-xs capitalize font-semibold flex gap-1">
-                                  {getSenderDisplayName(msg.senderId)}{" "}
-                                  <span 
-                                    className={` font-normal rounded-full px-1.5 py-0.5 ${
-                                  msg.senderId === user.uid
-                                    ? "bg-white text-blue-500"
-                                    : "bg-blue-500 text-white"
-                                }`}
-                               >
+                                <div className="flex gap-1 text-xs items-center">
+                                  {getSenderDisplayName(msg.senderId) && (
+                                    <p className=" capitalize font-semibold">
+                                      {getSenderDisplayName(msg.senderId)}{" "}
+                                    </p>
+                                  )}
+                                  <span
+                                    className={` hidden text-[9px] sm:flex font-normal border border-gray-300 rounded-full px-1.5 py-0.5 ${
+                                      msg.senderId === user.uid
+                                        ? "bg-white text-blue-500"
+                                        : "bg-blue-500 text-white"
+                                    }`}
+                                  >
                                     {getSenderData(msg.senderId)?.department}
                                   </span>
-                                </p>
+                                  <span
+                                    className={` hidden text-[9px] sm:flex font-normal border border-gray-300 rounded-full px-1.5 py-0.5 ${
+                                      msg.senderId === user.uid
+                                        ? "bg-white text-gray-800"
+                                        : "bg-white text-gray-800 "
+                                    }`}
+                                  >
+                                    {getSenderData(msg.senderId)?.position}
+                                  </span>
+                                </div>
 
                                 <p className="text-sm">{msg.message}</p>
                               </div>
