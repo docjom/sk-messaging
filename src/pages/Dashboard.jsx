@@ -21,6 +21,7 @@ import { ChatListLoading } from "../components/ChatListLoading";
 import { MessagesLoading } from "../components/MessagesLoading";
 import MessageLogo3d from "../assets/message.svg";
 import NoConversation from "../assets/NoConversation.png";
+import { Modal } from "../components/ModalMain";
 
 const sendMessage = async (chatId, senderId, message) => {
   try {
@@ -622,201 +623,120 @@ function Dashboard() {
             </div>
           )}
           {/* Create Group Modal */}
-          {createGroupModal && (
-            <div className=" bg-gray-500/30 fixed top-0 left-0 z-50 w-screen h-screen text-white">
-              <div className="flex h-screen justify-center items-center">
-                <div className="p-4 border rounded-lg bg-gray-800">
-                  <div>
-                    <div className="flex justify-between items-center">
-                      <h1 className="font-semibold text-lg w-80">
-                        {" "}
-                        Create New Group
-                      </h1>
-                      <div onClick={closeCreateGroupModal}>
-                        <Icon
-                          icon="solar:close-square-bold"
-                          width="24"
-                          height="24"
-                        />
-                      </div>
-                    </div>
-                    {/* Group Chat Name Input */}
-                    <div className="mt-4">
-                      <input
-                        type="text"
-                        value={chatName}
-                        onChange={(e) => setChatName(e.target.value)}
-                        placeholder="Group Chat Name"
-                        className="p-2 w-full rounded outline-none border border-gray-100 mb-2"
+          <Modal
+            isOpen={createGroupModal}
+            onClose={closeCreateGroupModal}
+            title="Create New Group"
+            onSubmit={createGroupChat}
+            isSubmitDisabled={selectedUsers.length < 1 || !chatName.trim()}
+            submitText={`Create Group (${selectedUsers.length} selected)`}
+          >
+            <div>
+              <input
+                type="text"
+                value={chatName}
+                onChange={(e) => setChatName(e.target.value)}
+                placeholder="Group Chat Name"
+                className="p-2 w-full rounded outline-none border border-gray-100 mb-2"
+              />
+              <div className="max-h-96 overflow-y-auto mb-2">
+                {users
+                  .filter((u) => u.id !== user?.uid)
+                  .map((u) => (
+                    <div
+                      key={u.id}
+                      onClick={() => toggleUserSelection(u.id)}
+                      className={`cursor-pointer p-1 flex justify-start items-center gap-2 rounded text-sm capitalize ${
+                        selectedUsers.includes(u.id)
+                          ? "bg-blue-500"
+                          : "hover:bg-gray-700"
+                      }`}
+                    >
+                      <img
+                        src={u?.photoURL}
+                        alt="User Profile"
+                        className="w-8 h-8 rounded-full"
                       />
+                      {u.displayName}
                     </div>
-                    <div>
-                      {/* User Selection for Group Chat */}
-                      <div className="max-h-96 overflow-y-auto mb-2">
-                        {users
-                          .filter((u) => u.id !== user?.uid)
-                          .map((u) => (
-                            <div
-                              key={u.id}
-                              onClick={() => toggleUserSelection(u.id)}
-                              className={`cursor-pointer p-1 flex justify-start items-center gap-2 rounded text-sm capitalize ${
-                                selectedUsers.includes(u.id)
-                                  ? "bg-blue-500"
-                                  : "hover:bg-gray-700"
-                              }`}
-                            >
-                              <img
-                                src={u?.photoURL}
-                                alt="User Profile"
-                                className="w-8 h-8 rounded-full"
-                              />
-                              {u.displayName}
-                            </div>
-                          ))}
-                      </div>
-                    </div>
-
-                    <div>
-                      <button
-                        onClick={createGroupChat}
-                        className="w-full bg-green-500 font-semibold text-white px-4 py-2 rounded text-lg hover:bg-green-600 disabled:bg-gray-500 disabled:cursor-not-allowed"
-                        disabled={selectedUsers.length < 1 || !chatName.trim()}
-                      >
-                        Create Group ({selectedUsers.length} selected)
-                      </button>
-                    </div>
-                  </div>
-                </div>
+                  ))}
               </div>
             </div>
-          )}
+          </Modal>
           {/* Contacts Modal */}
-          {contactsModal && (
-            <div className=" bg-gray-500/30 fixed top-0 left-0 z-50 w-screen h-screen text-white">
-              <div className="flex h-screen justify-center items-center">
-                <div className="p-4 border rounded-lg bg-gray-800">
-                  <div>
-                    <div className="flex justify-between items-center">
-                      <h1 className="font-semibold text-lg w-80"> Contacts</h1>
-                      <div onClick={closeContactsModal}>
-                        <Icon
-                          icon="solar:close-square-bold"
-                          width="24"
-                          height="24"
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      {/* Users List for Direct Chat */}
-                      <div className="max-h-96 overflow-y-auto mb-2">
-                        {users
-                          .filter((u) => u.id !== user?.uid)
-                          .map((u) => (
-                            <div
-                              key={u.id}
-                              onClick={() => handleSelectUser(u)}
-                              className="cursor-pointer capitalize p-2 flex justify-start items-center gap-2 rounded hover:bg-gray-700 text-sm"
-                            >
-                              <img
-                                src={u?.photoURL}
-                                alt="User Profile"
-                                className="w-8 h-8 rounded-full"
-                              />
-                              {u.displayName}
-                            </div>
-                          ))}
-                      </div>
-                    </div>
+          <Modal
+            isOpen={contactsModal}
+            onClose={closeContactsModal}
+            title="Contacts"
+          >
+            <div className="max-h-96 overflow-y-auto mb-2">
+              {users
+                .filter((u) => u.id !== user?.uid)
+                .map((u) => (
+                  <div
+                    key={u.id}
+                    onClick={() => handleSelectUser(u)}
+                    className="cursor-pointer capitalize p-2 flex justify-start items-center gap-2 rounded hover:bg-gray-700 text-sm"
+                  >
+                    <img
+                      src={u?.photoURL}
+                      alt="User Profile"
+                      className="w-8 h-8 rounded-full"
+                    />
+                    {u.displayName}
                   </div>
-                </div>
-              </div>
+                ))}
             </div>
-          )}
+          </Modal>
         </div>
       )}
 
       {/* Menu End */}
 
       {/* Add User to Group Modal */}
-      {addUserToGroupModal && (
-        <div className="bg-gray-500/30 fixed top-0 left-0 z-50 w-screen h-screen text-white">
-          <div className="flex h-screen justify-center items-center">
-            <div className="p-4 border rounded-lg bg-gray-800">
-              <div>
-                <div className="flex justify-between items-center mb-4">
-                  <h1 className="font-semibold text-lg w-80">
-                    Add User to Group
-                  </h1>
-                  <div
-                    onClick={() => setAddUserToGroupModal(false)}
-                    className="cursor-pointer"
-                  >
-                    <Icon
-                      icon="solar:close-square-bold"
-                      width="24"
-                      height="24"
-                    />
-                  </div>
-                </div>
-
+      <Modal
+        isOpen={addUserToGroupModal}
+        onClose={() => setAddUserToGroupModal(false)}
+        title="Add User to Group"
+        onSubmit={addUsersToGroup}
+        isSubmitDisabled={selectedUsersToAdd.length === 0}
+        submitText={`Add Users (${selectedUsersToAdd.length} selected)`}
+      >
+        <div className="max-h-96 overflow-y-auto mb-4">
+          {users
+            .filter(
+              (u) => u.id !== user?.uid && !currentChat?.users?.includes(u.id)
+            )
+            .map((u) => (
+              <div
+                key={u.id}
+                onClick={() => toggleUserSelectionForGroup(u.id)}
+                className={`cursor-pointer capitalize p-2 flex justify-start items-center gap-2 rounded text-sm ${
+                  selectedUsersToAdd.includes(u.id)
+                    ? "bg-blue-500"
+                    : "hover:bg-gray-700"
+                }`}
+              >
+                <img
+                  src={u?.photoURL}
+                  alt="User Profile"
+                  className="w-8 h-8 rounded-full"
+                />
                 <div>
-                  {/* Available Users List */}
-                  <div className="max-h-96 overflow-y-auto mb-4">
-                    {users
-                      .filter(
-                        (u) =>
-                          u.id !== user?.uid &&
-                          !currentChat?.users?.includes(u.id)
-                      )
-                      .map((u) => (
-                        <div
-                          key={u.id}
-                          onClick={() => toggleUserSelectionForGroup(u.id)}
-                          className={`cursor-pointer capitalize p-2 flex justify-start items-center gap-2 rounded text-sm ${
-                            selectedUsersToAdd.includes(u.id)
-                              ? "bg-blue-500"
-                              : "hover:bg-gray-700"
-                          }`}
-                        >
-                          <img
-                            src={u?.photoURL}
-                            alt="User Profile"
-                            className="w-8 h-8 rounded-full"
-                          />
-                          <div>
-                            <div className="font-medium">{u.displayName}</div>
-                            <div className="text-xs text-gray-400">
-                              {u.department}
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    {users.filter(
-                      (u) =>
-                        u.id !== user?.uid &&
-                        !currentChat?.users?.includes(u.id)
-                    ).length === 0 && (
-                      <div className="text-center text-gray-400 py-4">
-                        No users available to add
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Add Users Button */}
-                  <button
-                    onClick={addUsersToGroup}
-                    className="w-full bg-green-500 font-semibold text-white px-4 py-2 rounded text-lg hover:bg-green-600 disabled:bg-gray-500 disabled:cursor-not-allowed"
-                    disabled={selectedUsersToAdd.length === 0}
-                  >
-                    Add Users ({selectedUsersToAdd.length} selected)
-                  </button>
+                  <div className="font-medium">{u.displayName}</div>
+                  <div className="text-xs text-gray-400">{u.department}</div>
                 </div>
               </div>
+            ))}
+          {users.filter(
+            (u) => u.id !== user?.uid && !currentChat?.users?.includes(u.id)
+          ).length === 0 && (
+            <div className="text-center text-gray-400 py-4">
+              No users available to add
             </div>
-          </div>
+          )}
         </div>
-      )}
+      </Modal>
 
       {/* Left Panel (Sidebar) */}
       <div className="w-64 bg-gray-800 text-white fixed lg:sticky top-0 left-0 z-10 overflow-y-auto p-2 flex flex-col h-full">
