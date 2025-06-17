@@ -600,7 +600,7 @@ function Dashboard() {
           {editProfileModal && (
             <div className="bg-gray-500/30 fixed top-0 left-0 z-50 w-screen h-screen text-white">
               <div className="flex h-screen justify-center items-center">
-                <div className="p-4 border rounded-lg bg-gray-800 max-w-md w-full">
+                <div className="p-4 border rounded-lg bg-gray-800 max-w-90 sm:max-w-md w-full">
                   <div>
                     <div className="flex justify-between items-center mb-4">
                       <h1 className="font-semibold text-lg">Edit Profile</h1>
@@ -848,14 +848,22 @@ function Dashboard() {
           >
             <Icon icon="duo-icons:menu" width="24" height="24" />
           </div>
-          <h2 className="text-xl font-bold">Chats</h2>
+          <div className="w-full">
+            <Input
+              type="search"
+              placeholder="Search..."
+              className="w-full rounded-full border border-gray-600"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
         </div>
         {/* Chat List with Loading */}
         {chatsLoading ? (
           <ChatListLoading />
         ) : (
           <div className="space-y-2 mb-4 flex-1">
-            {chats.map((chat) => (
+            {filteredChats.map((chat) => (
               <div
                 key={chat.id}
                 onClick={() => handleSelectChat(chat)}
@@ -929,7 +937,7 @@ function Dashboard() {
             >
               <Icon icon="duo-icons:menu" width="24" height="24" />
             </div>
-            <h2 className="text-xl hidden sm:flex font-bold">Chats</h2>
+
             <div className="w-full">
               <Input
                 type="search"
