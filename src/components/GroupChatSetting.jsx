@@ -10,7 +10,11 @@ import { Icon } from "@iconify/react";
 import { EditGroup } from "@/components/EditGroup";
 import { LeaveGroup } from "@/components/LeaveGroup";
 
-export default function ManageGroupChat({ chatId, currentUserId }) {
+export default function ManageGroupChat({
+  chatId,
+  currentUserId,
+  clearCurrentChat,
+}) {
   return (
     <>
       <DropdownMenu>
@@ -21,7 +25,11 @@ export default function ManageGroupChat({ chatId, currentUserId }) {
           <DropdownMenuLabel>Group Settings</DropdownMenuLabel>
           <DropdownMenuSeparator />
           <EditGroup chatId={chatId} currentUserId={currentUserId} />
-          <LeaveGroup chatId={chatId} currentUserId={currentUserId} />
+          <LeaveGroup
+            chatId={chatId}
+            currentUserId={currentUserId}
+            onLeaveSuccess={clearCurrentChat}
+          />
         </DropdownMenuContent>
       </DropdownMenu>
     </>

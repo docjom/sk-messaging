@@ -1077,6 +1077,7 @@ function Dashboard() {
                         <ManageGroupChat
                           chatId={currentChat.id}
                           currentUserId={user.uid}
+                          clearCurrentChat={clearChatId}
                         />
                       </div>
                     </div>
@@ -1151,7 +1152,7 @@ function Dashboard() {
                                     </p>
                                   )}
                                   <span
-                                    className={` hidden text-[9px] sm:flex font-normal border border-gray-300 rounded-sm px-1.5 py-0.5 ${
+                                    className={`  text-[9px] flex font-normal border border-gray-300 rounded-sm px-1.5 py-0.5 ${
                                       msg.senderId === user.uid
                                         ? "bg-white text-blue-500"
                                         : "bg-blue-500 text-white"
@@ -1160,7 +1161,7 @@ function Dashboard() {
                                     {getSenderData(msg.senderId)?.department}
                                   </span>
                                   <span
-                                    className={` hidden text-[9px] sm:flex font-normal border border-gray-300 rounded-sm px-1.5 py-0.5 ${
+                                    className={`  text-[9px] flex font-normal border border-gray-300 rounded-sm px-1.5 py-0.5 ${
                                       msg.senderId === user.uid
                                         ? "bg-white text-gray-800"
                                         : "bg-white text-gray-800 "
