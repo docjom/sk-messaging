@@ -14,6 +14,8 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Toaster } from "@/components/ui/sonner";
+import { toast } from "sonner";
 
 function Login() {
   const navigate = useNavigate();
@@ -36,19 +38,20 @@ function Login() {
           photoURL: user.photoURL,
           createdAt: new Date(),
         });
-        console.log("User document created in Firestore.");
+        //console.log("User document created in Firestore.");
       } else {
-        console.log("User already exists in Firestore.");
+        // console.log("User already exists in Firestore.");
       }
 
       navigate("/dashboard");
     } catch (error) {
-      console.error("Login error", error);
+      toast("Login error", error);
     }
   };
 
   return (
     <>
+      <Toaster />
       <div className="flex items-center justify-center min-h-screen ">
         <Card className="w-full max-w-sm">
           <CardHeader>
