@@ -971,7 +971,10 @@ function Dashboard() {
                         />
                       </div>
                       <div>
-                        <ManageGroupChat />
+                        <ManageGroupChat
+                          chatId={currentChat.id}
+                          currentUserId={user.uid}
+                        />
                       </div>
                     </div>
                   </div>

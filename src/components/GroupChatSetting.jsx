@@ -8,8 +8,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Icon } from "@iconify/react";
 import { EditGroup } from "@/components/EditGroup";
+import { LeaveGroup } from "@/components/LeaveGroup";
 
-export default function ManageGroupChat() {
+export default function ManageGroupChat({ chatId, currentUserId }) {
   return (
     <>
       <DropdownMenu>
@@ -19,8 +20,8 @@ export default function ManageGroupChat() {
         <DropdownMenuContent>
           <DropdownMenuLabel>Group Settings</DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <EditGroup />
-          <DropdownMenuItem>Leave</DropdownMenuItem>
+          <EditGroup chatId={chatId} currentUserId={currentUserId} />
+          <LeaveGroup chatId={chatId} currentUserId={currentUserId} />
         </DropdownMenuContent>
       </DropdownMenu>
     </>
