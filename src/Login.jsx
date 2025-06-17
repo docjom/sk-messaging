@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
+import { Icon } from "@iconify/react";
 
 function Login() {
   const navigate = useNavigate();
@@ -100,7 +101,7 @@ function Login() {
               className="w-full"
               onClick={handleGoogleLogin}
             >
-              Login with Google
+             <Icon icon="flat-color-icons:google" width="48" height="48" /> Login with Google
             </Button>
           </CardFooter>
         </Card>
