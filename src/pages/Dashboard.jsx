@@ -3,6 +3,7 @@ import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 import { db } from "../firebase";
 import { formatTimestamp } from "../composables/scripts";
+import { Input } from "@/components/ui/input";
 import {
   addDoc,
   collection,
@@ -61,6 +62,7 @@ function Dashboard() {
   const [currentChat, setCurrentChat] = useState(null);
   const [menu, setMenu] = useState(false);
   const [selectedUsersToAdd, setSelectedUsersToAdd] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
 
   // Loading states
   const [chatsLoading, setChatsLoading] = useState(true);
@@ -87,6 +89,10 @@ function Dashboard() {
   };
   const closeMenu = () => {
     setMenu(false);
+  };
+
+  const clearChatId = () => {
+    setChatId("");
   };
 
   // Toggle create group modal visibility
@@ -510,6 +516,11 @@ function Dashboard() {
     return chat.photoURL || ErrorProfileImage;
   };
 
+  const filteredChats = chats.filter((chat) => {
+    const name = getChatDisplayName(chat).toLowerCase();
+    return name.includes(searchTerm.toLowerCase());
+  });
+
   // Use userProfile data if available, fallback to Firebase Auth user
   const displayUser = userProfile || user;
 
@@ -908,13 +919,120 @@ function Dashboard() {
       </div>
       {/* Left Panel (Sidebar) End */}
 
+      {/* mobile */}
+      {!chatId && (
+        <div className="w-screen bg-gray-800 sm:hidden text-white fixed lg:sticky top-0 left-0 z-30 overflow-y-auto p-2 flex flex-col h-full">
+          <div className="flex items-center justify-start gap-2 mb-4">
+            <div
+              onClick={() => toggleMenu()}
+              className="rounded-full bg-gray-700/50 p-2"
+            >
+              <Icon icon="duo-icons:menu" width="24" height="24" />
+            </div>
+            <h2 className="text-xl hidden sm:flex font-bold">Chats</h2>
+            <div className="w-full">
+              <Input
+                type="search"
+                placeholder="Search..."
+                className="w-full rounded-full border border-gray-600"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+          </div>
+          {/* Chat List with Loading */}
+          {chatsLoading ? (
+            <ChatListLoading />
+          ) : (
+            <div className="space-y-2 mb-4 flex-1">
+              {filteredChats.map((chat) => (
+                <div
+                  key={chat.id}
+                  onClick={() => handleSelectChat(chat)}
+                  className={`cursor-pointer p-2 rounded transition-colors ${
+                    chatId === chat.id
+                      ? "bg-blue-500/30 hover:bg-blue-500/40"
+                      : "bg-gray-700/50 hover:bg-gray-700"
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <img
+                      src={getChatPhoto(chat)}
+                      alt={getChatDisplayName(chat)}
+                      className="w-10 h-10 rounded-full"
+                      onError={(e) => {
+                        e.target.src = ErrorProfileImage;
+                      }}
+                    />
+
+                    <div>
+                      <div
+                        className={`text-sm capitalize truncate max-w-40 ${
+                          chatId === chat.id ? "font-semibold " : ""
+                        }`}
+                      >
+                        {getChatDisplayName(chat)}
+                      </div>
+                      <div className="text-xs capitalize text-gray-400 flex items-center gap-1">
+                        {chat.type}
+                        {/* Show last message preview */}
+                        {chat.lastMessage && (
+                          <div
+                            className={`text-xs  truncate w-20 ${
+                              formatTimestamp(chat.lastMessageTime) ===
+                              "Just now"
+                                ? "font-bold text-white"
+                                : "text-gray-300"
+                            }`}
+                          >
+                            {chat.lastMessage}
+                          </div>
+                        )}
+                        {/* Show timestamp */}
+                        {chat.lastMessageTime && (
+                          <div
+                            className={`text-xs  max-w-20 truncate ${
+                              formatTimestamp(chat.lastMessageTime) ===
+                              "Just now"
+                                ? "font-bold text-gray-200"
+                                : "text-gray-400"
+                            }`}
+                          >
+                            {formatTimestamp(chat.lastMessageTime)}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* mobile end */}
+
       {/* Center Chat Area */}
-      <div className="flex-1 bg-gray-100 ml-64 sm:ml-64 lg:ml-0 sticky top-0 left-0 z-20 overflow-y-auto flex flex-col h-full">
+      <div className="flex-1 bg-gray-100  sm:ml-64 lg:ml-0 sticky top-0 left-0 z-20 overflow-y-auto flex flex-col h-full">
         {/* Header */}
         {currentChat && (
-          <div className="fixed top-0 left-0 right-0 bg-white shadow ml-64 z-30">
+          <div className="fixed top-0 left-0 right-0 bg-white shadow sm:ml-64 z-30">
             <div className="bg-white px-4 py-2 rounded shadow w-full flex items-center">
               <div className="w-full flex justify-start items-center  gap-2">
+                {/* Back button */}
+                <div
+                  onClick={clearChatId}
+                  className="rounded-full sm:hidden bg-gray-200/50 p-2 text-gray-800 shadow"
+                >
+                  <Icon
+                    icon="solar:rewind-back-bold-duotone"
+                    width="24"
+                    height="24"
+                  />
+                </div>
+
+                {/* back button */}
                 {/* Show group members if it's a group chat */}
                 {currentChat.type === "group" && (
                   <div className="flex justify-between items-center w-full">
@@ -926,11 +1044,11 @@ function Dashboard() {
                           height="24"
                         />
                       </div>
-                      <div className="text-gray-800 font-semibold text-lg capitalize">
+                      <div className="text-gray-800 font-semibold text-sm sm:text-lg capitalize">
                         {getChatDisplayName(currentChat)}
                       </div>
 
-                      <div className="flex flex-wrap items-center gap-2 border p-1 rounded-full border-gray-200 bg-gray-100">
+                      <div className="sm:flex flex-wrap hidden items-center gap-2 border p-1 rounded-full border-gray-200 bg-gray-100">
                         {currentChat.users
                           .map((userId) =>
                             users.find(
@@ -1085,7 +1203,7 @@ function Dashboard() {
                       </div>
                     ))
                   ) : (
-                    <div className="flex items-center justify-center h-full text-gray-800">
+                    <div className=" flex items-center justify-center h-full text-gray-800">
                       <div>
                         <div className="flex items-center justify-center">
                           <img
@@ -1104,7 +1222,7 @@ function Dashboard() {
               )}
 
               {/* Message Input */}
-              <div className="fixed bottom-0 left-0 right-0 bg-gray-50 shadow-lg ml-64 z-30">
+              <div className="fixed bottom-0 left-0 right-0 bg-gray-50 shadow-lg sm:ml-64 z-30">
                 <div className="px-4 py-2  border-t border-gray-300 ">
                   <div className="flex">
                     <input
@@ -1137,7 +1255,7 @@ function Dashboard() {
               </div>
             </>
           ) : (
-            <div className="flex items-center justify-center h-full text-gray-800 ">
+            <div className="hidden sm:flex items-center justify-center h-full text-gray-800 ">
               <div>
                 <div className="flex items-center justify-center">
                   <img
