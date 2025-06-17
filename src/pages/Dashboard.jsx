@@ -23,6 +23,7 @@ import MessageLogo3d from "../assets/message.svg";
 import NoConversation from "../assets/NoConversation.png";
 import ErrorProfileImage from "../assets/error.png";
 import { Modal } from "../components/ModalMain";
+import ManageGroupChat from "../components/GroupChatSetting";
 
 const sendMessage = async (chatId, senderId, message) => {
   try {
@@ -955,17 +956,23 @@ function Dashboard() {
                           ))}
                       </div>
                     </div>
+
                     {/* Add new user to group button */}
-                    <div
-                      onClick={toggleAddUserToGroupModal}
-                      className="bg-gray-200/50 p-1 rounded-full"
-                    >
-                      {" "}
-                      <Icon
-                        icon="material-symbols:add-rounded"
-                        width="24"
-                        height="24"
-                      />
+                    <div className="flex items-center gap-2">
+                      <div
+                        onClick={toggleAddUserToGroupModal}
+                        className="bg-gray-200/50 p-1 rounded-full"
+                      >
+                        {" "}
+                        <Icon
+                          icon="material-symbols:add-rounded"
+                          width="24"
+                          height="24"
+                        />
+                      </div>
+                      <div>
+                        <ManageGroupChat />
+                      </div>
                     </div>
                   </div>
                 )}
