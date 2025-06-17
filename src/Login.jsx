@@ -25,7 +25,7 @@ function Login() {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
 
-      console.log("User info:", user);
+      //console.log("User info:", user);
 
       const userDocRef = doc(db, "users", user.uid);
       const docSnap = await getDoc(userDocRef);
