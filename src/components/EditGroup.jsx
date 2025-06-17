@@ -16,31 +16,31 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { GroupMembers } from "./GroupMembers";
+import { ManageGroupMembers } from "./ManageGroup";
 
-export function EditGroup({ chatId }) {
+export function EditGroup({ chatId, currentUserId }) {
   const [name, setName] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    // load existing group data
     async function load() {
       const snap = await getDoc(doc(db, "chats", chatId));
-      if (snap.exists()) {
-        const data = snap.data();
-        setName(data.name || "");
-      }
+      if (!snap.exists()) return;
+      const data = snap.data();
+      setName(data.name || "");
+      setIsAdmin(data.userRoles?.[currentUserId] === "admin");
     }
     load();
-  }, [chatId]);
+  }, [chatId, currentUserId]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     try {
-      await updateDoc(doc(db, "chats", chatId), {
-        name,
-      });
+      await updateDoc(doc(db, "chats", chatId), { name });
       setIsOpen(false);
     } finally {
       setIsLoading(false);
@@ -83,6 +83,21 @@ export function EditGroup({ chatId }) {
               value={name}
               onChange={(e) => setName(e.target.value)}
             />
+          </div>
+
+          <hr className="my-4" />
+          <div className=" b mb-1">
+            {" "}
+            <GroupMembers chatId={chatId} className="w-full" />
+          </div>
+
+          <div className="mb-5">
+            {isAdmin && (
+              <ManageGroupMembers
+                chatId={chatId}
+                currentUserId={currentUserId}
+              />
+            )}
           </div>
 
           <DialogFooter>

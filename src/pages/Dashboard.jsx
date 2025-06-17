@@ -4,6 +4,8 @@ import { useNavigate } from "react-router-dom";
 import { db } from "../firebase";
 import { formatTimestamp } from "../composables/scripts";
 import { Input } from "@/components/ui/input";
+import { Toaster } from "@/components/ui/sonner";
+import { toast } from "sonner";
 import {
   addDoc,
   collection,
@@ -160,14 +162,14 @@ function Dashboard() {
             userRoles: updatedUserRoles,
           }));
 
-          alert(`${newUsers.length} user(s) added to group successfully!`);
+          toast(`${newUsers.length} user(s) added to group successfully!`);
         } else {
-          alert("Selected users are already in the group!");
+          toast("Selected users are already in the group!");
         }
       }
     } catch (error) {
       console.error("Error adding users to group:", error);
-      alert("Failed to add users to group. Please try again.");
+      toast("Failed to add users to group. Please try again.");
     } finally {
       setIsAddingUsers(false);
     }
@@ -234,11 +236,11 @@ function Dashboard() {
         phone: editPhone,
       }));
 
-      alert("Profile updated successfully!");
+      toast("Profile updated successfully!");
       setEditProfileModal(false);
     } catch (error) {
       console.error("Error updating profile:", error);
-      alert("Failed to update profile. Please try again.");
+      toast("Failed to update profile. Please try again.");
     } finally {
       setIsUpdateProfileLoading(false);
     }
@@ -434,7 +436,7 @@ function Dashboard() {
       return chatDoc.id;
     } catch (error) {
       console.error("Error creating chat:", error);
-      alert("Failed to create chat. Please try again.");
+      toast("Failed to create chat. Please try again.");
       return null;
     }
   };
@@ -460,13 +462,13 @@ function Dashboard() {
           setSelectedUsers([]);
         }
       } else {
-        alert(
+        toast(
           "Please select at least one user and provide a chat name for a group chat."
         );
       }
     } catch (error) {
       console.error("Error creating group chat:", error);
-      alert("Failed to create group chat. Please try again.");
+      toast("Failed to create group chat. Please try again.");
     } finally {
       setIsCreatingGroup(false);
     }
@@ -526,6 +528,7 @@ function Dashboard() {
 
   return (
     <div className="h-screen flex flex-col lg:flex-row">
+      <Toaster />
       {/* Menu */}
       {menu && (
         <div>
@@ -1054,32 +1057,6 @@ function Dashboard() {
                       </div>
                       <div className="text-gray-800 font-semibold text-sm sm:text-lg capitalize">
                         {getChatDisplayName(currentChat)}
-                      </div>
-
-                      <div className="sm:flex flex-wrap hidden items-center gap-2 border p-1 rounded-full border-gray-200 bg-gray-100">
-                        {currentChat.users
-                          .map((userId) =>
-                            users.find(
-                              (u) => u.id === userId || u.uid === userId
-                            )
-                          )
-                          .filter(Boolean)
-                          .map((member) => (
-                            <div
-                              key={member.id || member.uid}
-                              className="flex items-center"
-                            >
-                              <img
-                                title={member.displayName}
-                                src={member.photoURL}
-                                alt={member.displayName}
-                                className="w-6 h-6 rounded-full"
-                                onError={(e) => {
-                                  e.target.src = ErrorProfileImage;
-                                }}
-                              />
-                            </div>
-                          ))}
                       </div>
                     </div>
 
