@@ -8,6 +8,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { EditProfile } from "@/components/EditProfile";
+import { Contacts } from "@/components/Contacts";
 import {
   addDoc,
   collection,
@@ -76,7 +77,6 @@ function Dashboard() {
 
   // Modal states
   const [createGroupModal, setCreateGroupModal] = useState(false);
-  const [contactsModal, setContactsModal] = useState(false);
   const [addUserToGroupModal, setAddUserToGroupModal] = useState(false);
 
   const displayUser = userProfile || user;
@@ -99,14 +99,6 @@ function Dashboard() {
   };
   const closeCreateGroupModal = () => {
     setCreateGroupModal(false);
-  };
-
-  // Toggle contacts modal visibility
-  const toggleContactsModal = () => {
-    setContactsModal(!contactsModal);
-  };
-  const closeContactsModal = () => {
-    setContactsModal(false);
   };
 
   const toggleAddUserToGroupModal = () => {
@@ -338,7 +330,6 @@ function Dashboard() {
         setCurrentChat(newChat);
       }
     }
-    setContactsModal(false);
     setCreateGroupModal(false);
     setMenu(false);
   };
@@ -601,15 +592,12 @@ function Dashboard() {
                 <span className="font-semibold">New Group</span>
               </div>
 
-              <div
-                onClick={toggleContactsModal}
-                className="flex items-center gap-4 cursor-pointer hover:bg-gray-700 p-2 rounded"
-              >
-                <div>
-                  <Icon icon="solar:user-linear" width="24" height="24" />
-                </div>
-                <span className="font-semibold">Contacts</span>
-              </div>
+              <Contacts
+                users={users}
+                currentUserId={user?.uid}
+                handleSelectUser={handleSelectUser}
+              />
+
               {/* Logout Button */}
               <div className="absolute w-full bottom-0 left-0 p-2">
                 <div
@@ -677,34 +665,6 @@ function Dashboard() {
                     </div>
                   ))}
               </div>
-            </div>
-          </Modal>
-          {/* Contacts Modal */}
-          <Modal
-            isOpen={contactsModal}
-            onClose={closeContactsModal}
-            title="Contacts"
-          >
-            <div className="max-h-96 overflow-y-auto mb-2">
-              {users
-                .filter((u) => u.id !== user?.uid)
-                .map((u) => (
-                  <div
-                    key={u.id}
-                    onClick={() => handleSelectUser(u)}
-                    className="cursor-pointer capitalize p-2 flex justify-start items-center gap-2 rounded hover:bg-gray-700 text-sm"
-                  >
-                    <img
-                      src={u?.photoURL}
-                      alt="User Profile"
-                      className="w-8 h-8 rounded-full"
-                      onError={(e) => {
-                        e.target.src = ErrorProfileImage;
-                      }}
-                    />
-                    {u.displayName}
-                  </div>
-                ))}
             </div>
           </Modal>
         </div>
