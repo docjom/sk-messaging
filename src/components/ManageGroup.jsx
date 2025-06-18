@@ -10,6 +10,8 @@ import {
   updateDoc,
   arrayRemove,
   deleteField,
+  addDoc,
+  serverTimestamp,
 } from "firebase/firestore";
 import { db } from "../firebase";
 import { Button } from "@/components/ui/button";
@@ -36,7 +38,7 @@ import {
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { toast } from "sonner";
 
-export function ManageGroupMembers({ chatId }) {
+export function ManageGroupMembers({ chatId, currentUserId }) {
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -83,11 +85,31 @@ export function ManageGroupMembers({ chatId }) {
 
   const handleRemoveMember = async (memberId, memberName) => {
     try {
+      // Get admin name (current user)
+      const adminDoc = await getDoc(doc(db, "users", currentUserId));
+      const adminName = adminDoc.exists()
+        ? adminDoc.data().displayName
+        : "Admin";
+
+      // Remove user from the group
       await updateDoc(doc(db, "chats", chatId), {
         users: arrayRemove(memberId),
         [`userRoles.${memberId}`]: deleteField(),
       });
+
+      // Send system message notifying the group
+      const messagesRef = collection(db, "chats", chatId, "messages");
+      await addDoc(messagesRef, {
+        senderId: currentUserId,
+        message: `${memberName} has been removed from the group by ${adminName}`,
+        timestamp: serverTimestamp(),
+        type: "system",
+      });
+
+      // Update local state
       setMembers((prev) => prev.filter((m) => m.id !== memberId));
+
+      // Show success toast
       toast(`${memberName} removed from the group`);
     } catch (e) {
       console.error("Error removing member:", e);

@@ -85,6 +85,7 @@ function Dashboard() {
   const [editPhone, setEditPhone] = useState("");
   const [editPosition, setEditPosition] = useState("");
 
+  const displayUser = userProfile || user;
   // Toggle menu visibility
   const toggleMenu = () => {
     setMenu(true);
@@ -95,6 +96,7 @@ function Dashboard() {
 
   const clearChatId = () => {
     setChatId("");
+    setCurrentChat("");
   };
 
   // Toggle create group modal visibility
@@ -149,6 +151,8 @@ function Dashboard() {
           newUsers.forEach((userId) => {
             updatedUserRoles[userId] = "member";
           });
+
+          // Update the chat document with new users and roles
           await updateDoc(chatRef, {
             users: updatedUsers,
             userRoles: updatedUserRoles,
@@ -162,14 +166,41 @@ function Dashboard() {
             userRoles: updatedUserRoles,
           }));
 
-          toast(`${newUsers.length} user(s) added to group successfully!`);
+          // Get user names for new users
+          const usersRef = collection(db, "users");
+          const newUsersNames = await Promise.all(
+            newUsers.map(async (userId) => {
+              const userDoc = await getDoc(doc(usersRef, userId));
+              return userDoc.exists()
+                ? userDoc.data().displayName
+                : "Unknown User";
+            })
+          );
+
+          // Send a system message about the new users
+          const messagesRef = collection(
+            db,
+            "chats",
+            currentChat.id,
+            "messages"
+          );
+          for (let i = 0; i < newUsersNames.length; i++) {
+            await addDoc(messagesRef, {
+              senderId: user.uid,
+              message: `${newUsersNames[i]} has been added to the group by ${displayUser.displayName}`,
+              timestamp: serverTimestamp(),
+              type: "system",
+            });
+          }
+
+          toast(`${newUsers.length} user(s) added to the group successfully!`);
         } else {
           toast("Selected users are already in the group!");
         }
       }
     } catch (error) {
       console.error("Error adding users to group:", error);
-      toast("Failed to add users to group. Please try again.");
+      toast("Failed to add users to the group. Please try again.");
     } finally {
       setIsAddingUsers(false);
     }
@@ -386,6 +417,19 @@ function Dashboard() {
       return;
     }
 
+    const chatRef = doc(db, "chats", chatId);
+    const chatDoc = await getDoc(chatRef);
+
+    if (chatDoc.exists()) {
+      const chatData = chatDoc.data();
+      const users = chatData.users || [];
+
+      if (!users.includes(user.uid)) {
+        toast.error("You can't message in this group.");
+        return;
+      }
+    }
+
     if (message.trim() !== "") {
       await sendMessage(chatId, user.uid, message);
       setMessage("");
@@ -523,8 +567,35 @@ function Dashboard() {
     return name.includes(searchTerm.toLowerCase());
   });
 
-  // Use userProfile data if available, fallback to Firebase Auth user
-  const displayUser = userProfile || user;
+  useEffect(() => {
+    if (!chatId || !user?.uid) return;
+
+    const chatRef = doc(db, "chats", chatId);
+
+    const unsubscribe = onSnapshot(
+      chatRef,
+      (doc) => {
+        if (doc.exists()) {
+          const chatData = doc.data();
+          const users = chatData.users || [];
+
+          if (!users.includes(user.uid)) {
+            toast.error("You have been removed from this group.");
+            clearChatId();
+          }
+        } else {
+          toast.error("This chat no longer exists.");
+          clearChatId();
+        }
+      },
+      (error) => {
+        console.error("Error listening to chat:", error);
+        toast.error("Connection error. Please refresh.");
+      }
+    );
+
+    return () => unsubscribe();
+  }, [chatId, user?.uid]);
 
   return (
     <div className="h-screen flex flex-col lg:flex-row">
@@ -1106,20 +1177,22 @@ function Dashboard() {
         )}
 
         {/* Chat Messages */}
-        <div className="bg-white rounded shadow flex-1 pt-12 pb-9 flex flex-col">
+        <div className="bg-white rounded shadow flex-1 pt-12 pb-12 flex flex-col">
           {chatId ? (
             <>
               {/* Messages Area with Loading */}
               {messagesLoading ? (
                 <MessagesLoading />
               ) : (
-                <div className="flex-1 overflow-y-auto h-96 p-4">
+                <div className="flex-1 overflow-y-auto h-96 p-4 bg-gray-50">
                   {messages.length > 0 ? (
                     messages.map((msg) => (
                       <div
                         key={msg.id}
-                        className={`flex mb-4 ${
-                          msg.senderId === user.uid
+                        className={`flex mb-2 ${
+                          msg.type === "system"
+                            ? "justify-center"
+                            : msg.senderId === user.uid
                             ? "justify-end"
                             : "justify-start"
                         }`}
@@ -1127,69 +1200,121 @@ function Dashboard() {
                         <div>
                           {" "}
                           <div className="flex items-end gap-1.5">
-                            {msg.senderId !== user.uid && (
-                              <img
-                                src={getSenderData(msg.senderId)?.photoURL}
-                                alt={getSenderDisplayName(msg.senderId)}
-                                className="w-8 h-8 rounded-full"
-                                onError={(e) => {
-                                  e.target.src = ErrorProfileImage;
-                                }}
-                              />
-                            )}
-                            <div>
-                              <div
-                                className={`max-w-md lg:max-w-lg px-4 py-2 rounded-lg ${
-                                  msg.senderId === user.uid
-                                    ? "bg-blue-500 text-white"
-                                    : "bg-gray-200/50  text-gray-800"
-                                }`}
-                              >
-                                <div className="flex gap-1 text-xs items-center">
-                                  {getSenderDisplayName(msg.senderId) && (
-                                    <p className=" capitalize font-semibold">
-                                      {getSenderDisplayName(msg.senderId)}{" "}
-                                    </p>
+                            {msg.senderId !== user.uid &&
+                              msg.type !== "system" && (
+                                <img
+                                  src={getSenderData(msg.senderId)?.photoURL}
+                                  alt={getSenderDisplayName(msg.senderId)}
+                                  className="w-8 h-8 rounded-full"
+                                  onError={(e) => {
+                                    e.target.src = ErrorProfileImage;
+                                  }}
+                                />
+                              )}
+                            <div
+                              className={`relative max-w-md lg:max-w-lg ${
+                                msg.type === "system"
+                                  ? "bg-white/80 text-gray-600 text-center px-3 py-1.5 rounded-full shadow-sm text-xs"
+                                  : msg.senderId === user.uid
+                                  ? `bg-blue-500 text-white px-3 py-2 shadow-sm ${
+                                      // Telegram-style rounded corners - more rounded on top-left, less on bottom-right
+                                      "rounded-tl-2xl rounded-tr-2xl rounded-bl-2xl rounded-br-md"
+                                    }`
+                                  : `bg-white text-gray-800 px-3 py-2 shadow-sm border border-gray-100 ${
+                                      // Opposite rounding for received messages
+                                      "rounded-tl-md rounded-tr-2xl rounded-bl-2xl rounded-br-2xl"
+                                    }`
+                              }`}
+                            >
+                              {msg.type === "system" ? (
+                                <p className="text-xs font-medium">
+                                  {msg.message}
+                                </p>
+                              ) : (
+                                <>
+                                  {/* Header with sender info */}
+                                  {msg.senderId !== user.uid && (
+                                    <div className="flex gap-1.5 text-xs items-center mb-1">
+                                      {getSenderDisplayName(msg.senderId) && (
+                                        <p className="capitalize font-semibold text-blue-600">
+                                          {getSenderDisplayName(msg.senderId)}
+                                        </p>
+                                      )}
+                                      <span className="text-[10px] bg-blue-100 text-blue-700 rounded-full px-2 py-0.5 font-medium">
+                                        {
+                                          getSenderData(msg.senderId)
+                                            ?.department
+                                        }
+                                      </span>
+                                      <span className="text-[10px] bg-gray-100 text-gray-600 rounded-full px-2 py-0.5 font-medium">
+                                        {getSenderData(msg.senderId)?.position}
+                                      </span>
+                                    </div>
                                   )}
-                                  <span
-                                    className={`  text-[9px] flex font-normal border border-gray-300 rounded-sm px-1.5 py-0.5 ${
-                                      msg.senderId === user.uid
-                                        ? "bg-white text-blue-500"
-                                        : "bg-blue-500 text-white"
-                                    }`}
-                                  >
-                                    {getSenderData(msg.senderId)?.department}
-                                  </span>
-                                  <span
-                                    className={`  text-[9px] flex font-normal border border-gray-300 rounded-sm px-1.5 py-0.5 ${
-                                      msg.senderId === user.uid
-                                        ? "bg-white text-gray-800"
-                                        : "bg-white text-gray-800 "
-                                    }`}
-                                  >
-                                    {getSenderData(msg.senderId)?.position}
-                                  </span>
-                                </div>
 
-                                <p className="text-sm">{msg.message}</p>
-                              </div>
-                              {/* Timestamp below the message bubble */}
-                              <p
-                                className={`text-xs text-gray-500 ${
-                                  msg.senderId === user.uid
-                                    ? "text-right"
-                                    : "text-left"
-                                }`}
-                              >
-                                {formatTimestamp(msg.timestamp)}
-                              </p>
+                                  {/* For sent messages, show department/position differently */}
+                                  {msg.senderId === user.uid && (
+                                    <div className="flex gap-1.5 text-xs items-center mb-1 justify-end">
+                                      <span className="text-[10px] bg-white/20 text-white rounded-full px-2 py-0.5 font-medium">
+                                        {
+                                          getSenderData(msg.senderId)
+                                            ?.department
+                                        }
+                                      </span>
+                                      <span className="text-[10px] bg-white/20 text-white rounded-full px-2 py-0.5 font-medium">
+                                        {getSenderData(msg.senderId)?.position}
+                                      </span>
+                                    </div>
+                                  )}
+
+                                  {/* Message content */}
+                                  <p className="text-sm leading-relaxed mb-1">
+                                    {msg.message}
+                                  </p>
+
+                                  {/* Timestamp - Telegram style */}
+                                  <div
+                                    className={`flex items-center gap-1 ${
+                                      msg.senderId === user.uid
+                                        ? "justify-end"
+                                        : "justify-start"
+                                    }`}
+                                  >
+                                    <p
+                                      className={`text-[10px] ${
+                                        msg.senderId === user.uid
+                                          ? "text-white/70"
+                                          : "text-gray-400"
+                                      }`}
+                                    >
+                                      {formatTimestamp(msg.timestamp)}
+                                    </p>
+                                    {/* Read status indicators for sent messages (optional) */}
+                                    {msg.senderId === user.uid && (
+                                      <div className="flex">
+                                        <svg
+                                          className="w-3 h-3 text-white/70"
+                                          fill="currentColor"
+                                          viewBox="0 0 20 20"
+                                        >
+                                          <path
+                                            fillRule="evenodd"
+                                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                            clipRule="evenodd"
+                                          />
+                                        </svg>
+                                      </div>
+                                    )}
+                                  </div>
+                                </>
+                              )}
                             </div>
                           </div>
                         </div>
                       </div>
                     ))
                   ) : (
-                    <div className=" flex items-center justify-center h-full text-gray-800">
+                    <div className="flex items-center justify-center h-full text-gray-800">
                       <div>
                         <div className="flex items-center justify-center">
                           <img
