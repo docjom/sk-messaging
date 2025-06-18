@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { EditProfile } from "@/components/EditProfile";
 import { Contacts } from "@/components/Contacts";
+import { CreateGroupChat } from "@/components/CreateGroupChat";
 import {
   addDoc,
   collection,
@@ -61,8 +62,6 @@ function Dashboard() {
   const [chatId, setChatId] = useState("");
   const [chats, setChats] = useState([]);
   const [users, setUsers] = useState([]);
-  const [selectedUsers, setSelectedUsers] = useState([]);
-  const [chatName, setChatName] = useState("");
   const [selectedUser, setSelectedUser] = useState(null);
   const [currentChat, setCurrentChat] = useState(null);
   const [menu, setMenu] = useState(false);
@@ -76,7 +75,6 @@ function Dashboard() {
   const [isCreatingGroup, setIsCreatingGroup] = useState(false);
 
   // Modal states
-  const [createGroupModal, setCreateGroupModal] = useState(false);
   const [addUserToGroupModal, setAddUserToGroupModal] = useState(false);
 
   const displayUser = userProfile || user;
@@ -91,14 +89,6 @@ function Dashboard() {
   const clearChatId = () => {
     setChatId("");
     setCurrentChat("");
-  };
-
-  // Toggle create group modal visibility
-  const toggleCreateGroupModal = () => {
-    setCreateGroupModal(!createGroupModal);
-  };
-  const closeCreateGroupModal = () => {
-    setCreateGroupModal(false);
   };
 
   const toggleAddUserToGroupModal = () => {
@@ -330,7 +320,6 @@ function Dashboard() {
         setCurrentChat(newChat);
       }
     }
-    setCreateGroupModal(false);
     setMenu(false);
   };
 
@@ -454,40 +443,39 @@ function Dashboard() {
   };
 
   // Create a group chat
-  const createGroupChat = async () => {
+  const createGroupChat = async (groupName, selectedUsers) => {
     setIsCreatingGroup(true);
+
     try {
-      if (selectedUsers.length >= 1 && chatName.trim()) {
-        const allUsers = [...selectedUsers, user.uid];
-        const newChatId = await createChat("group", allUsers, chatName);
-        if (newChatId) {
-          console.log("Group chat created with ID:", newChatId);
-          setChatId(newChatId);
-          setChatName("");
-          setSelectedUsers([]);
-        }
+      // Validate inputs
+      if (!groupName.trim()) {
+        toast.error("Please provide a group name.");
+        return;
+      }
+
+      if (selectedUsers.length === 0) {
+        toast.error("Please select at least one user.");
+        return;
+      }
+
+      const allUsers = [...selectedUsers, user.uid]; // Include the current user
+      const newChatId = await createChat("group", allUsers, groupName.trim());
+
+      if (newChatId) {
+        console.log("Group chat created with ID:", newChatId);
+        setChatId(newChatId);
+        toast.success(`Group "${groupName}" created successfully!`);
+
+        setMenu(false);
       } else {
-        toast(
-          "Please select at least one user and provide a chat name for a group chat."
-        );
+        throw new Error("Failed to create chat");
       }
     } catch (error) {
       console.error("Error creating group chat:", error);
-      toast("Failed to create group chat. Please try again.");
+      toast.error("Failed to create group chat. Please try again.");
     } finally {
       setIsCreatingGroup(false);
     }
-    setCreateGroupModal(false);
-    setMenu(false);
-  };
-
-  // Toggle user selection for group chats
-  const toggleUserSelection = (userId) => {
-    setSelectedUsers((prev) =>
-      prev.includes(userId)
-        ? prev.filter((id) => id !== userId)
-        : [...prev, userId]
-    );
   };
 
   // Get display name for sender
@@ -578,19 +566,13 @@ function Dashboard() {
             <hr className="border border-gray-700 m-1" />
             <EditProfile currentUserId={displayUser.uid} />
             <div>
-              <div
-                onClick={toggleCreateGroupModal}
-                className="flex items-center gap-4 cursor-pointer hover:bg-gray-700 p-2 rounded"
-              >
-                <div>
-                  <Icon
-                    icon="solar:users-group-rounded-linear"
-                    width="24"
-                    height="24"
-                  />
-                </div>
-                <span className="font-semibold">New Group</span>
-              </div>
+              <CreateGroupChat
+                users={users}
+                currentUserId={user.uid}
+                submitText="Create Group"
+                isLoading={isCreatingGroup}
+                onSubmit={createGroupChat}
+              />
 
               <Contacts
                 users={users}
@@ -616,57 +598,6 @@ function Dashboard() {
             onClick={() => closeMenu()}
             className=" bg-gray-500/30 fixed top-0 left-0 z-40 w-screen h-screen backdrop-blur-sm"
           ></div>
-          {/* Create Group Modal */}
-          <Modal
-            isLoading={isCreatingGroup}
-            isOpen={createGroupModal}
-            onClose={closeCreateGroupModal}
-            title="Create New Group"
-            onSubmit={createGroupChat}
-            isSubmitDisabled={
-              selectedUsers.length === 0 || isCreatingGroup || !chatName.trim()
-            }
-            submitText={
-              isCreatingGroup
-                ? "Creating..."
-                : `Create Group (${selectedUsers.length} selected)`
-            }
-          >
-            <div>
-              <input
-                type="text"
-                value={chatName}
-                onChange={(e) => setChatName(e.target.value)}
-                placeholder="Group Chat Name"
-                className="p-2 w-full rounded outline-none border border-gray-100 mb-2"
-              />
-              <div className="max-h-96 overflow-y-auto mb-2">
-                {users
-                  .filter((u) => u.id !== user?.uid)
-                  .map((u) => (
-                    <div
-                      key={u.id}
-                      onClick={() => toggleUserSelection(u.id)}
-                      className={`cursor-pointer p-1 flex justify-start items-center gap-2 rounded text-sm capitalize ${
-                        selectedUsers.includes(u.id)
-                          ? "bg-blue-500"
-                          : "hover:bg-gray-700"
-                      }`}
-                    >
-                      <img
-                        src={u?.photoURL}
-                        alt="User Profile"
-                        className="w-8 h-8 rounded-full"
-                        onError={(e) => {
-                          e.target.src = ErrorProfileImage;
-                        }}
-                      />
-                      {u.displayName}
-                    </div>
-                  ))}
-              </div>
-            </div>
-          </Modal>
         </div>
       )}
       {/* Menu End */}

@@ -19,7 +19,7 @@ export function Contacts({ users, currentUserId, handleSelectUser }) {
           variant="ghost"
           className=" w-full mb-1 flex justify-start gap-4 items-center"
         >
-          <Icon icon="iconoir:profile-circle" width="30" height="30" />
+          <Icon icon="solar:user-linear" width="24" height="24" />
           Contacts
         </Button>
       </DialogTrigger>
