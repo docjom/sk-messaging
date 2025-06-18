@@ -44,7 +44,7 @@ const sendMessage = async (chatId, senderId, message) => {
       lastMessageTime: serverTimestamp(),
     });
   } catch (error) {
-    console.error("Error sending message:", error);
+    toast.error("Error sending message:", error);
   }
 };
 
@@ -195,12 +195,12 @@ function Dashboard() {
 
           toast(`${newUsers.length} user(s) added to the group successfully!`);
         } else {
-          toast("Selected users are already in the group!");
+          toast.info("Selected users are already in the group!");
         }
       }
     } catch (error) {
       console.error("Error adding users to group:", error);
-      toast("Failed to add users to the group. Please try again.");
+      toast.error("Failed to add users to the group. Please try again.");
     } finally {
       setIsAddingUsers(false);
     }
@@ -271,7 +271,7 @@ function Dashboard() {
       setEditProfileModal(false);
     } catch (error) {
       console.error("Error updating profile:", error);
-      toast("Failed to update profile. Please try again.");
+      toast.error("Failed to update profile. Please try again.");
     } finally {
       setIsUpdateProfileLoading(false);
     }
@@ -480,7 +480,7 @@ function Dashboard() {
       return chatDoc.id;
     } catch (error) {
       console.error("Error creating chat:", error);
-      toast("Failed to create chat. Please try again.");
+      toast.error("Failed to create chat. Please try again.");
       return null;
     }
   };

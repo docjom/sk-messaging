@@ -113,7 +113,7 @@ export function ManageGroupMembers({ chatId, currentUserId }) {
       toast(`${memberName} removed from the group`);
     } catch (e) {
       console.error("Error removing member:", e);
-      toast(`Failed to remove ${memberName}`, { type: "error" });
+      toast.error(`Failed to remove ${memberName}`, { type: "error" });
     }
   };
 

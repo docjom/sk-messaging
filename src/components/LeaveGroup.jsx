@@ -67,7 +67,7 @@ export function LeaveGroup({ chatId, currentUserId, onLeaveSuccess }) {
       }
     } catch (error) {
       console.error("Error leaving group: ", error);
-      toast("Something went wrong. Please try again.");
+      toast.error("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
