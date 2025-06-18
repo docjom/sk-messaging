@@ -3,6 +3,7 @@ import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { db } from "../firebase";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@iconify/react";
+import { toast } from "sonner";
 import {
   Dialog,
   DialogClose,
@@ -18,12 +19,21 @@ import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { GroupMembers } from "./GroupMembers";
 import { ManageGroupMembers } from "./ManageGroup";
+import {
+  getStorage,
+  ref,
+  uploadBytesResumable,
+  getDownloadURL,
+} from "firebase/storage";
 
 export function EditGroup({ chatId, currentUserId }) {
   const [name, setName] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [newProfilePhoto, setNewProfilePhoto] = useState(null);
+  const [profilePhotoURL, setProfilePhotoURL] = useState("");
+  const [imagePreview, setImagePreview] = useState("");
 
   useEffect(() => {
     async function load() {
@@ -31,17 +41,53 @@ export function EditGroup({ chatId, currentUserId }) {
       if (!snap.exists()) return;
       const data = snap.data();
       setName(data.name || "");
+      setProfilePhotoURL(data.photoURL || "");
       setIsAdmin(data.userRoles?.[currentUserId] === "admin");
     }
     load();
   }, [chatId, currentUserId]);
 
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setNewProfilePhoto(file);
+      const fileUrl = URL.createObjectURL(file);
+      setImagePreview(fileUrl);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
+
+    let photoURL = profilePhotoURL;
+
+    if (newProfilePhoto) {
+      try {
+        const storage = getStorage();
+        const storageRef = ref(storage, `groupPhotos/${chatId}`);
+        const uploadTask = uploadBytesResumable(storageRef, newProfilePhoto);
+
+        await uploadTask;
+
+        photoURL = await getDownloadURL(storageRef);
+      } catch (error) {
+        console.error("Error uploading profile photo:", error);
+        toast("Failed to upload profile photo.");
+        setIsLoading(false);
+        return;
+      }
+    }
+
     try {
-      await updateDoc(doc(db, "chats", chatId), { name });
+      await updateDoc(doc(db, "chats", chatId), {
+        name,
+        photoURL,
+      });
       setIsOpen(false);
+    } catch (error) {
+      console.error("Error updating group:", error);
+      toast("Failed to update group.");
     } finally {
       setIsLoading(false);
     }
@@ -65,13 +111,23 @@ export function EditGroup({ chatId, currentUserId }) {
           </DialogHeader>
 
           <div className="flex items-center gap-4 mb-4">
+            {/* Display current or selected image */}
             <Avatar className="w-20 h-20">
-              <AvatarImage src="https://github.com/shadcn.png" />
+              <AvatarImage src={imagePreview || profilePhotoURL} />
               <AvatarFallback>GP</AvatarFallback>
             </Avatar>
             <Button variant="ghost" type="button" className="border">
-              Change
+              <label htmlFor="profile-photo" className="cursor-pointer">
+                Change
+              </label>
             </Button>
+            <input
+              type="file"
+              id="profile-photo"
+              accept="image/*"
+              className="hidden"
+              onChange={handleImageChange}
+            />
           </div>
 
           <div className="mb-4">
@@ -86,8 +142,7 @@ export function EditGroup({ chatId, currentUserId }) {
           </div>
 
           <hr className="my-4" />
-          <div className=" b mb-1">
-            {" "}
+          <div className="mb-1">
             <GroupMembers chatId={chatId} className="w-full" />
           </div>
 
@@ -107,7 +162,6 @@ export function EditGroup({ chatId, currentUserId }) {
               </Button>
             </DialogClose>
             <Button type="submit" disabled={isLoading}>
-              {" "}
               {isLoading && (
                 <Icon
                   icon="line-md:loading-alt-loop"

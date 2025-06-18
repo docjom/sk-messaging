@@ -6,6 +6,7 @@ import { formatTimestamp } from "../composables/scripts";
 import { Input } from "@/components/ui/input";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   addDoc,
   collection,
@@ -1038,14 +1039,13 @@ function Dashboard() {
                   }`}
                 >
                   <div className="flex items-center gap-2">
-                    <img
-                      src={getChatPhoto(chat)}
+                    <Avatar
+                      className="h-10 w-10"
                       alt={getChatDisplayName(chat)}
-                      className="w-10 h-10 rounded-full"
-                      onError={(e) => {
-                        e.target.src = ErrorProfileImage;
-                      }}
-                    />
+                    >
+                      <AvatarImage src={getChatPhoto(chat)} />
+                      <AvatarFallback>CI</AvatarFallback>
+                    </Avatar>
 
                     <div>
                       <div
@@ -1119,13 +1119,11 @@ function Dashboard() {
                 {currentChat.type === "group" && (
                   <div className="flex justify-between items-center w-full">
                     <div className="flex justify-start gap-3 items-center w-full">
-                      <div className="rounded-full bg-gray-200/50 p-2 text-blue-500 shadow">
-                        <Icon
-                          icon="solar:users-group-rounded-bold-duotone"
-                          width="24"
-                          height="24"
-                        />
-                      </div>
+                      <Avatar className="h-10 w-10">
+                        <AvatarImage src={currentChat.photoURL} />
+                        <AvatarFallback>GP</AvatarFallback>
+                      </Avatar>
+
                       <div className="text-gray-800 font-semibold text-sm sm:text-lg capitalize">
                         {getChatDisplayName(currentChat)}
                       </div>
@@ -1202,14 +1200,12 @@ function Dashboard() {
                           <div className="flex items-end gap-1.5">
                             {msg.senderId !== user.uid &&
                               msg.type !== "system" && (
-                                <img
-                                  src={getSenderData(msg.senderId)?.photoURL}
-                                  alt={getSenderDisplayName(msg.senderId)}
-                                  className="w-8 h-8 rounded-full"
-                                  onError={(e) => {
-                                    e.target.src = ErrorProfileImage;
-                                  }}
-                                />
+                                <Avatar className="h-8 w-8">
+                                  <AvatarImage
+                                    src={getSenderData(msg.senderId)?.photoURL}
+                                  />
+                                  <AvatarFallback>P</AvatarFallback>
+                                </Avatar>
                               )}
                             <div
                               className={`relative max-w-md lg:max-w-lg ${
