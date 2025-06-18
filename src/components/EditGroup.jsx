@@ -24,6 +24,7 @@ import {
   ref,
   uploadBytesResumable,
   getDownloadURL,
+  deleteObject,
 } from "firebase/storage";
 
 export function EditGroup({ chatId, currentUserId }) {
@@ -64,30 +65,41 @@ export function EditGroup({ chatId, currentUserId }) {
 
     if (newProfilePhoto) {
       try {
+        // Delete the old image if it exists
+        if (profilePhotoURL) {
+          const storage = getStorage();
+          const oldImageRef = ref(storage, `groupPhotos/${chatId}`);
+          await deleteObject(oldImageRef); // Delete the old image from storage
+        }
+
+        // Upload the new image
         const storage = getStorage();
         const storageRef = ref(storage, `groupPhotos/${chatId}`);
         const uploadTask = uploadBytesResumable(storageRef, newProfilePhoto);
 
         await uploadTask;
 
+        // Get the download URL of the uploaded image
         photoURL = await getDownloadURL(storageRef);
+        toast(" Upload profile successful!");
       } catch (error) {
         console.error("Error uploading profile photo:", error);
-        toast("Failed to upload profile photo.");
+        toast.error("Failed to upload profile photo.");
         setIsLoading(false);
         return;
       }
     }
 
     try {
+      // Update Firestore with the new name and photo URL
       await updateDoc(doc(db, "chats", chatId), {
         name,
-        photoURL,
+        photoURL, // Update the photo URL in Firestore
       });
-      setIsOpen(false);
+      setIsOpen(false); // Close the dialog
     } catch (error) {
       console.error("Error updating group:", error);
-      toast("Failed to update group.");
+      toast.error("Failed to update group.");
     } finally {
       setIsLoading(false);
     }
