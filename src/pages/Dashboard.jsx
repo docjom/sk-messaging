@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { EditProfile } from "@/components/EditProfile";
 import {
   addDoc,
   collection,
@@ -72,19 +73,11 @@ function Dashboard() {
   const [messagesLoading, setMessagesLoading] = useState(false);
   const [isAddingUsers, setIsAddingUsers] = useState(false);
   const [isCreatingGroup, setIsCreatingGroup] = useState(false);
-  const [isUpdateProfileLoading, setIsUpdateProfileLoading] = useState(false);
 
   // Modal states
   const [createGroupModal, setCreateGroupModal] = useState(false);
   const [contactsModal, setContactsModal] = useState(false);
-  const [editProfileModal, setEditProfileModal] = useState(false);
   const [addUserToGroupModal, setAddUserToGroupModal] = useState(false);
-
-  // Profile editing states
-  const [editDisplayName, setEditDisplayName] = useState("");
-  const [editDepartment, setDepartment] = useState("");
-  const [editPhone, setEditPhone] = useState("");
-  const [editPosition, setEditPosition] = useState("");
 
   const displayUser = userProfile || user;
   // Toggle menu visibility
@@ -210,71 +203,47 @@ function Dashboard() {
     setSelectedUsersToAdd([]);
   };
 
-  // Toggle edit profile modal visibility
-  const toggleEditProfileModal = () => {
-    setEditProfileModal(!editProfileModal);
-    if (!editProfileModal && userProfile) {
-      // Pre-fill the form with current profile data
-      setEditDisplayName(userProfile.displayName || "");
-      setDepartment(userProfile.department || "");
-      setEditPhone(userProfile.phone || "");
-      setEditPosition(userProfile.position || "");
-    }
-  };
-  const closeEditProfileModal = () => {
-    setEditProfileModal(false);
-  };
+  useEffect(() => {
+    const currentUserId = user?.uid;
 
-  // Fetch user profile from Firestore
+    if (!currentUserId) {
+      setUserProfile(null);
+      return;
+    }
+
+    let unsubscribe;
+
+    const setupListener = async () => {
+      unsubscribe = await fetchUserProfile(currentUserId);
+    };
+
+    setupListener();
+
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
+  }, [user?.uid]);
+
   const fetchUserProfile = async (uid) => {
     try {
       const userDocRef = doc(db, "users", uid);
-      const userDoc = await getDoc(userDocRef);
-      if (userDoc.exists()) {
-        const profileData = { id: userDoc.id, ...userDoc.data() };
-        setUserProfile(profileData);
-        return profileData;
-      } else {
-        console.log("No user profile found in Firestore");
-        return null;
-      }
+      const unsubscribe = onSnapshot(userDocRef, (userDoc) => {
+        if (userDoc.exists()) {
+          const profileData = { id: userDoc.id, ...userDoc.data() };
+          setUserProfile(profileData);
+          //console.log("User profile updated:", profileData);
+        } else {
+          // console.log("No user profile found in Firestore");
+          setUserProfile(null);
+        }
+      });
+
+      return unsubscribe;
     } catch (error) {
       console.error("Error fetching user profile:", error);
       return null;
-    }
-  };
-
-  // Update user profile in Firestore
-  const updateUserProfile = async () => {
-    if (!user?.uid) return;
-    setIsUpdateProfileLoading(true);
-
-    try {
-      const userDocRef = doc(db, "users", user.uid);
-      await updateDoc(userDocRef, {
-        displayName: editDisplayName,
-        department: editDepartment,
-        phone: editPhone,
-        position: editPosition,
-        updatedAt: serverTimestamp(),
-      });
-
-      // Update local state
-      setUserProfile((prev) => ({
-        ...prev,
-        displayName: editDisplayName,
-        department: editDepartment,
-        position: editPosition,
-        phone: editPhone,
-      }));
-
-      toast("Profile updated successfully!");
-      setEditProfileModal(false);
-    } catch (error) {
-      console.error("Error updating profile:", error);
-      toast.error("Failed to update profile. Please try again.");
-    } finally {
-      setIsUpdateProfileLoading(false);
     }
   };
 
@@ -607,28 +576,16 @@ function Dashboard() {
           {" "}
           <div className="w-64 bg-gray-800 text-white fixed top-0 left-0 z-50 overflow-y-auto p-4 flex flex-col h-full">
             <div className=" rounded mb-4 flex items-center gap-2 justify-start">
-              <img
-                src={displayUser?.photoURL}
-                alt="User Profile"
-                className="w-12 h-12 rounded-full"
-                onError={(e) => {
-                  e.target.src = ErrorProfileImage;
-                }}
-              />
+              <Avatar className="w-12 h-12">
+                <AvatarImage src={displayUser?.photoURL} />
+                <AvatarFallback>P</AvatarFallback>
+              </Avatar>
               <h1 className="text-lg font-semibold capitalize">
                 {displayUser?.displayName}
               </h1>
             </div>
             <hr className="border border-gray-700 m-1" />
-            <div
-              onClick={toggleEditProfileModal}
-              className="flex items-center gap-4 cursor-pointer hover:bg-gray-700 p-2 rounded"
-            >
-              <div>
-                <Icon icon="iconoir:profile-circle" width="24" height="24" />
-              </div>
-              <span className="font-semibold">My Profile</span>
-            </div>
+            <EditProfile currentUserId={displayUser.uid} />
             <div>
               <div
                 onClick={toggleCreateGroupModal}
@@ -671,113 +628,6 @@ function Dashboard() {
             onClick={() => closeMenu()}
             className=" bg-gray-500/30 fixed top-0 left-0 z-40 w-screen h-screen backdrop-blur-sm"
           ></div>
-          {/* Edit Profile Modal */}
-          {editProfileModal && (
-            <div className="bg-gray-500/30 fixed top-0 left-0 z-50 w-screen h-screen text-white">
-              <div className="flex h-screen justify-center items-center">
-                <div className="p-4 border rounded-lg bg-gray-800 max-w-90 sm:max-w-md w-full">
-                  <div>
-                    <div className="flex justify-between items-center mb-4">
-                      <h1 className="font-semibold text-lg">Edit Profile</h1>
-                      <div
-                        onClick={closeEditProfileModal}
-                        className="cursor-pointer"
-                      >
-                        <Icon
-                          icon="solar:close-square-bold"
-                          width="24"
-                          height="24"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-4">
-                      <div className="flex justify-center mb-4">
-                        <img
-                          src={displayUser?.photoURL}
-                          alt="Profile"
-                          className="w-20 h-20 rounded-full"
-                          onError={(e) => {
-                            e.target.src = ErrorProfileImage;
-                          }}
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium mb-1">
-                          Display Name
-                        </label>
-                        <input
-                          type="text"
-                          value={editDisplayName}
-                          onChange={(e) => setEditDisplayName(e.target.value)}
-                          className="p-2 w-full rounded outline-none border border-gray-600 bg-gray-700 text-white"
-                          placeholder="Enter display name"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium mb-1">
-                          Department
-                        </label>
-                        <input
-                          type="text"
-                          value={editDepartment}
-                          onChange={(e) => setDepartment(e.target.value)}
-                          className="p-2 w-full rounded outline-none border border-gray-600 bg-gray-700 text-white"
-                          placeholder="Enter department"
-                        />
-                      </div>
-
-                      <div className="flex  gap-4">
-                        <div>
-                          <label className="block text-sm font-medium mb-1">
-                            Phone
-                          </label>
-                          <input
-                            type="tel"
-                            value={editPhone}
-                            onChange={(e) => setEditPhone(e.target.value)}
-                            className="p-2 w-full rounded outline-none border border-gray-600 bg-gray-700 text-white"
-                            placeholder="Enter phone number"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium mb-1">
-                            Position
-                          </label>
-                          <input
-                            type="text"
-                            value={editPosition}
-                            onChange={(e) => setEditPosition(e.target.value)}
-                            className="p-2 w-full rounded outline-none border border-gray-600 bg-gray-700 text-white"
-                            placeholder="Enter position"
-                          />
-                        </div>
-                      </div>
-
-                      <button
-                        onClick={updateUserProfile}
-                        disabled={isUpdateProfileLoading}
-                        className="w-full bg-blue-500 flex disabled:bg-gray-500 disabled:cursor-not-allowed justify-center items-center gap-2 font-semibold text-white px-4 py-2 rounded text-lg hover:bg-blue-600"
-                      >
-                        {isUpdateProfileLoading && (
-                          <Icon
-                            icon="line-md:loading-alt-loop"
-                            width="24"
-                            height="24"
-                          />
-                        )}
-                        {isUpdateProfileLoading
-                          ? "Updating..."
-                          : `Update Profile`}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
           {/* Create Group Modal */}
           <Modal
             isLoading={isCreatingGroup}

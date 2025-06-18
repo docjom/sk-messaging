@@ -118,7 +118,7 @@ export function EditGroup({ chatId, currentUserId }) {
           <DialogHeader>
             <DialogTitle>Edit Group</DialogTitle>
             <DialogDescription>
-              To make changes, click Save when you're done.
+              To make changes, click save when you're done.
             </DialogDescription>
           </DialogHeader>
 
