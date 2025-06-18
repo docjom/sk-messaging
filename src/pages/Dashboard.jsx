@@ -11,7 +11,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { EditProfile } from "@/components/EditProfile";
 import { Contacts } from "@/components/Contacts";
 import { CreateGroupChat } from "@/components/CreateGroupChat";
-import { Modal } from "../components/ModalMain";
 import ManageGroupChat from "../components/GroupChatSetting";
 import { ChatListLoading } from "../components/ChatListLoading";
 import { MessagesLoading } from "../components/MessagesLoading";
