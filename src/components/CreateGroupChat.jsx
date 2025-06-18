@@ -94,7 +94,7 @@ export function CreateGroupChat({
 
         {/* Selected Users Count */}
         {selectedUsers.length > 0 && (
-          <div className="mb-3 p-2 bg-blue-50 rounded-md">
+          <div className=" p-2 bg-blue-50 rounded-md">
             <p className="text-sm text-blue-700">
               {selectedUsers.length} user(s) selected
             </p>

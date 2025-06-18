@@ -15,6 +15,7 @@ import ManageGroupChat from "../components/GroupChatSetting";
 import { ChatListLoading } from "../components/ChatListLoading";
 import { MessagesLoading } from "../components/MessagesLoading";
 import { AddUsersToGroup } from "@/components/AddUserToGroup";
+import { Logout } from "@/components/Logout";
 import MessageLogo3d from "../assets/message.svg";
 import NoConversation from "../assets/NoConversation.png";
 import ErrorProfileImage from "../assets/error.png";
@@ -93,46 +94,37 @@ function Dashboard() {
       toast.error("Please select users to add.");
       return;
     }
-
     setIsAddingUsers(true);
-
     try {
       const chatRef = doc(db, "chats", currentChat.id);
       const chatDoc = await getDoc(chatRef);
-
       if (chatDoc.exists()) {
         const chatData = chatDoc.data();
         const currentUsers = chatData.users || [];
         const currentUserRoles = chatData.userRoles || {};
-
         // Filter out users already in the group
         const newUsers = selectedUsersToAdd.filter(
           (userId) => !currentUsers.includes(userId)
         );
-
         if (newUsers.length > 0) {
           const updatedUsers = [...currentUsers, ...newUsers];
-
           // Add new users with "member" role
           const updatedUserRoles = { ...currentUserRoles };
           newUsers.forEach((userId) => {
             updatedUserRoles[userId] = "member";
           });
-
           // Update the chat document
           await updateDoc(chatRef, {
             users: updatedUsers,
             userRoles: updatedUserRoles,
             updatedAt: serverTimestamp(),
           });
-
           // Update local state
           setCurrentChat((prev) => ({
             ...prev,
             users: updatedUsers,
             userRoles: updatedUserRoles,
           }));
-
           // Get user names for system messages
           const usersRef = collection(db, "users");
           const newUsersData = await Promise.all(
@@ -146,7 +138,6 @@ function Dashboard() {
               };
             })
           );
-
           // Send system messages
           const messagesRef = collection(
             db,
@@ -154,7 +145,6 @@ function Dashboard() {
             currentChat.id,
             "messages"
           );
-
           // Create a single system message for all added users
           if (newUsersData.length === 1) {
             await addDoc(messagesRef, {
@@ -176,7 +166,6 @@ function Dashboard() {
               type: "system",
             });
           }
-
           toast.success(
             `${newUsers.length} user(s) added to the group successfully!`
           );
@@ -424,12 +413,6 @@ function Dashboard() {
     }
   };
 
-  // Handle logout
-  const handleLogout = () => {
-    auth.signOut().then(() => {
-      navigate("/");
-    });
-  };
   // Create a group chat
   const createGroupChat = async (groupName, selectedUsers) => {
     setIsCreatingGroup(true);
@@ -555,15 +538,7 @@ function Dashboard() {
             />
             {/* Logout Button */}
             <div className="absolute w-full bottom-0 left-0 p-2">
-              <div
-                onClick={handleLogout}
-                className="gap-4 flex justify-center items-center cursor-pointer bg-red-500 p-2 rounded"
-              >
-                <div>
-                  <Icon icon="solar:logout-broken" width="24" height="24" />
-                </div>
-                <span className="font-semibold">Logout</span>
-              </div>
+              <Logout />
             </div>
           </div>
           <div
@@ -609,14 +584,10 @@ function Dashboard() {
                 }`}
               >
                 <div className="flex items-center gap-2">
-                  <img
-                    src={getChatPhoto(chat)}
-                    alt={getChatDisplayName(chat)}
-                    className="w-10 h-10 rounded-full"
-                    onError={(e) => {
-                      e.target.src = ErrorProfileImage;
-                    }}
-                  />
+                  <Avatar className="w-12 h-12">
+                    <AvatarImage src={getChatPhoto(chat)} />
+                    <AvatarFallback>P</AvatarFallback>
+                  </Avatar>
 
                   <div>
                     <div
