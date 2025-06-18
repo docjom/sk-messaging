@@ -15,6 +15,7 @@ import { Modal } from "../components/ModalMain";
 import ManageGroupChat from "../components/GroupChatSetting";
 import { ChatListLoading } from "../components/ChatListLoading";
 import { MessagesLoading } from "../components/MessagesLoading";
+import { AddUsersToGroup } from "@/components/AddUserToGroup";
 import MessageLogo3d from "../assets/message.svg";
 import NoConversation from "../assets/NoConversation.png";
 import ErrorProfileImage from "../assets/error.png";
@@ -65,7 +66,6 @@ function Dashboard() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [currentChat, setCurrentChat] = useState(null);
   const [menu, setMenu] = useState(false);
-  const [selectedUsersToAdd, setSelectedUsersToAdd] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
 
   // Loading states
@@ -73,9 +73,6 @@ function Dashboard() {
   const [messagesLoading, setMessagesLoading] = useState(false);
   const [isAddingUsers, setIsAddingUsers] = useState(false);
   const [isCreatingGroup, setIsCreatingGroup] = useState(false);
-
-  // Modal states
-  const [addUserToGroupModal, setAddUserToGroupModal] = useState(false);
 
   const displayUser = userProfile || user;
   // Toggle menu visibility
@@ -91,21 +88,13 @@ function Dashboard() {
     setCurrentChat("");
   };
 
-  const toggleAddUserToGroupModal = () => {
-    setAddUserToGroupModal(!addUserToGroupModal);
-    setSelectedUsersToAdd([]);
-  };
-  const toggleUserSelectionForGroup = (userId) => {
-    setSelectedUsersToAdd((prev) =>
-      prev.includes(userId)
-        ? prev.filter((id) => id !== userId)
-        : [...prev, userId]
-    );
-  };
-
-  const addUsersToGroup = async () => {
-    if (!currentChat || !currentChat.id || selectedUsersToAdd.length === 0)
+  // Updated parent component function
+  const addUsersToGroup = async (selectedUsersToAdd) => {
+    if (!currentChat || !currentChat.id || selectedUsersToAdd.length === 0) {
+      toast.error("Please select users to add.");
       return;
+    }
+
     setIsAddingUsers(true);
 
     try {
@@ -116,19 +105,22 @@ function Dashboard() {
         const chatData = chatDoc.data();
         const currentUsers = chatData.users || [];
         const currentUserRoles = chatData.userRoles || {};
+
+        // Filter out users already in the group
         const newUsers = selectedUsersToAdd.filter(
           (userId) => !currentUsers.includes(userId)
         );
 
         if (newUsers.length > 0) {
           const updatedUsers = [...currentUsers, ...newUsers];
+
           // Add new users with "member" role
           const updatedUserRoles = { ...currentUserRoles };
           newUsers.forEach((userId) => {
             updatedUserRoles[userId] = "member";
           });
 
-          // Update the chat document with new users and roles
+          // Update the chat document
           await updateDoc(chatRef, {
             users: updatedUsers,
             userRoles: updatedUserRoles,
@@ -142,37 +134,58 @@ function Dashboard() {
             userRoles: updatedUserRoles,
           }));
 
-          // Get user names for new users
+          // Get user names for system messages
           const usersRef = collection(db, "users");
-          const newUsersNames = await Promise.all(
+          const newUsersData = await Promise.all(
             newUsers.map(async (userId) => {
               const userDoc = await getDoc(doc(usersRef, userId));
-              return userDoc.exists()
-                ? userDoc.data().displayName
-                : "Unknown User";
+              return {
+                id: userId,
+                name: userDoc.exists()
+                  ? userDoc.data().displayName
+                  : "Unknown User",
+              };
             })
           );
 
-          // Send a system message about the new users
+          // Send system messages
           const messagesRef = collection(
             db,
             "chats",
             currentChat.id,
             "messages"
           );
-          for (let i = 0; i < newUsersNames.length; i++) {
+
+          // Create a single system message for all added users
+          if (newUsersData.length === 1) {
             await addDoc(messagesRef, {
-              senderId: user.uid,
-              message: `${newUsersNames[i]} has been added to the group by ${displayUser.displayName}`,
+              senderId: "system",
+              message: `${newUsersData[0].name} was added to the group by ${
+                userProfile?.displayName || "Admin"
+              }`,
+              timestamp: serverTimestamp(),
+              type: "system",
+            });
+          } else {
+            const userNames = newUsersData.map((u) => u.name).join(", ");
+            await addDoc(messagesRef, {
+              senderId: "system",
+              message: `${userNames} were added to the group by ${
+                userProfile?.displayName || "Admin"
+              }`,
               timestamp: serverTimestamp(),
               type: "system",
             });
           }
 
-          toast(`${newUsers.length} user(s) added to the group successfully!`);
+          toast.success(
+            `${newUsers.length} user(s) added to the group successfully!`
+          );
         } else {
           toast.info("Selected users are already in the group!");
         }
+      } else {
+        toast.error("Group not found!");
       }
     } catch (error) {
       console.error("Error adding users to group:", error);
@@ -180,27 +193,19 @@ function Dashboard() {
     } finally {
       setIsAddingUsers(false);
     }
-
-    setAddUserToGroupModal(false);
-    setSelectedUsersToAdd([]);
   };
 
   useEffect(() => {
     const currentUserId = user?.uid;
-
     if (!currentUserId) {
       setUserProfile(null);
       return;
     }
-
     let unsubscribe;
-
     const setupListener = async () => {
       unsubscribe = await fetchUserProfile(currentUserId);
     };
-
     setupListener();
-
     return () => {
       if (unsubscribe) {
         unsubscribe();
@@ -221,7 +226,6 @@ function Dashboard() {
           setUserProfile(null);
         }
       });
-
       return unsubscribe;
     } catch (error) {
       console.error("Error fetching user profile:", error);
@@ -271,7 +275,6 @@ function Dashboard() {
         setChats(chatsArray);
         setChatsLoading(false);
       });
-
       return () => unsubscribe();
     }
   }, [user]);
@@ -290,7 +293,6 @@ function Dashboard() {
         setMessages(messagesArray);
         setMessagesLoading(false);
       });
-
       return () => unsubscribe();
     } else {
       setMessages([]);
@@ -301,7 +303,6 @@ function Dashboard() {
   // Handle selecting a user for direct messaging
   const handleSelectUser = async (selectedUserData) => {
     setSelectedUser(selectedUserData);
-
     // Check if a direct chat already exists with this user
     const existingChat = await checkExistingDirectChat(selectedUserData.id);
     if (existingChat) {
@@ -350,7 +351,6 @@ function Dashboard() {
   const handleSelectChat = (chat) => {
     setChatId(chat.id);
     setCurrentChat(chat);
-
     if (chat.type === "direct") {
       const otherUserId = chat.users.find((uid) => uid !== user.uid);
       const otherUser = users.find((u) => u.id === otherUserId);
@@ -366,20 +366,17 @@ function Dashboard() {
       console.error("Chat ID is not set.");
       return;
     }
-
     const chatRef = doc(db, "chats", chatId);
     const chatDoc = await getDoc(chatRef);
 
     if (chatDoc.exists()) {
       const chatData = chatDoc.data();
       const users = chatData.users || [];
-
       if (!users.includes(user.uid)) {
         toast.error("You can't message in this group.");
         return;
       }
     }
-
     if (message.trim() !== "") {
       await sendMessage(chatId, user.uid, message);
       setMessage("");
@@ -398,7 +395,6 @@ function Dashboard() {
   const createChat = async (type, userIds, name = "") => {
     try {
       const chatsRef = collection(db, "chats");
-
       const chatData = {
         type,
         name: name || (type === "direct" ? "Direct Chat" : "Group Chat"),
@@ -407,7 +403,6 @@ function Dashboard() {
         lastMessage: null,
         lastMessageTime: null,
       };
-
       if (type === "direct") {
         const otherUserId = userIds.find((id) => id !== user.uid);
         const otherUser = users.find((u) => u.id === otherUserId);
@@ -416,18 +411,16 @@ function Dashboard() {
         chatData.photoURL = "";
         chatData.admin = user.uid;
         chatData.userRoles = {};
-
         userIds.forEach((userId) => {
           chatData.userRoles[userId] = userId === user.uid ? "admin" : "member";
         });
       }
-
       const chatDoc = await addDoc(chatsRef, chatData);
-      console.log(`${type} chat created successfully with ID:`, chatDoc.id);
+      //console.log(`${type} chat created successfully with ID:`, chatDoc.id);
       return chatDoc.id;
-    } catch (error) {
-      console.error("Error creating chat:", error);
-      toast.error("Failed to create chat. Please try again.");
+    } catch (e) {
+      // console.error("Error creating chat:", error);
+      toast.error("Failed to create chat. Please try again.", e);
       return null;
     }
   };
@@ -438,31 +431,24 @@ function Dashboard() {
       navigate("/");
     });
   };
-
   // Create a group chat
   const createGroupChat = async (groupName, selectedUsers) => {
     setIsCreatingGroup(true);
-
     try {
-      // Validate inputs
       if (!groupName.trim()) {
         toast.error("Please provide a group name.");
         return;
       }
-
       if (selectedUsers.length === 0) {
         toast.error("Please select at least one user.");
         return;
       }
-
       const allUsers = [...selectedUsers, user.uid];
       const newChatId = await createChat("group", allUsers, groupName.trim());
-
       if (newChatId) {
         console.log("Group chat created with ID:", newChatId);
         setChatId(newChatId);
         toast.success(`Group "${groupName}" created successfully!`);
-
         setMenu(false);
       } else {
         throw new Error("Failed to create chat");
@@ -507,24 +493,19 @@ function Dashboard() {
     }
     return chat.photoURL || ErrorProfileImage;
   };
-
   const filteredChats = chats.filter((chat) => {
     const name = getChatDisplayName(chat).toLowerCase();
     return name.includes(searchTerm.toLowerCase());
   });
-
   useEffect(() => {
     if (!chatId || !user?.uid) return;
-
     const chatRef = doc(db, "chats", chatId);
-
     const unsubscribe = onSnapshot(
       chatRef,
       (doc) => {
         if (doc.exists()) {
           const chatData = doc.data();
           const users = chatData.users || [];
-
           if (!users.includes(user.uid)) {
             toast.error("You have been removed from this group.");
             clearChatId();
@@ -539,7 +520,6 @@ function Dashboard() {
         toast.error("Connection error. Please refresh.");
       }
     );
-
     return () => unsubscribe();
   }, [chatId, user?.uid]);
 
@@ -562,32 +542,28 @@ function Dashboard() {
             </div>
             <hr className="border border-gray-700 m-1" />
             <EditProfile currentUserId={displayUser.uid} />
-            <div>
-              <CreateGroupChat
-                users={users}
-                currentUserId={user.uid}
-                submitText="Create Group"
-                isLoading={isCreatingGroup}
-                onSubmit={createGroupChat}
-              />
-
-              <Contacts
-                users={users}
-                currentUserId={user?.uid}
-                handleSelectUser={handleSelectUser}
-              />
-
-              {/* Logout Button */}
-              <div className="absolute w-full bottom-0 left-0 p-2">
-                <div
-                  onClick={handleLogout}
-                  className="gap-4 flex justify-center items-center cursor-pointer bg-red-500 p-2 rounded"
-                >
-                  <div>
-                    <Icon icon="solar:logout-broken" width="24" height="24" />
-                  </div>
-                  <span className="font-semibold">Logout</span>
+            <CreateGroupChat
+              users={users}
+              currentUserId={user.uid}
+              submitText="Create Group"
+              isLoading={isCreatingGroup}
+              onSubmit={createGroupChat}
+            />
+            <Contacts
+              users={users}
+              currentUserId={user?.uid}
+              handleSelectUser={handleSelectUser}
+            />
+            {/* Logout Button */}
+            <div className="absolute w-full bottom-0 left-0 p-2">
+              <div
+                onClick={handleLogout}
+                className="gap-4 flex justify-center items-center cursor-pointer bg-red-500 p-2 rounded"
+              >
+                <div>
+                  <Icon icon="solar:logout-broken" width="24" height="24" />
                 </div>
+                <span className="font-semibold">Logout</span>
               </div>
             </div>
           </div>
@@ -598,59 +574,6 @@ function Dashboard() {
         </div>
       )}
       {/* Menu End */}
-
-      {/* Add User to Group Modal */}
-      <Modal
-        isOpen={addUserToGroupModal}
-        onClose={() => setAddUserToGroupModal(false)}
-        isLoading={isAddingUsers}
-        title="Add User to Group"
-        onSubmit={addUsersToGroup}
-        isSubmitDisabled={selectedUsersToAdd.length === 0 || isAddingUsers}
-        submitText={
-          isAddingUsers
-            ? "Adding..."
-            : `Add Users (${selectedUsersToAdd.length} selected)`
-        }
-      >
-        <div className="max-h-96 overflow-y-auto mb-4">
-          {users
-            .filter(
-              (u) => u.id !== user?.uid && !currentChat?.users?.includes(u.id)
-            )
-            .map((u) => (
-              <div
-                key={u.id}
-                onClick={() => toggleUserSelectionForGroup(u.id)}
-                className={`cursor-pointer capitalize p-2 flex justify-start items-center gap-2 rounded text-sm ${
-                  selectedUsersToAdd.includes(u.id)
-                    ? "bg-blue-500"
-                    : "hover:bg-gray-700"
-                }`}
-              >
-                <img
-                  src={u?.photoURL}
-                  alt="User Profile"
-                  className="w-8 h-8 rounded-full"
-                  onError={(e) => {
-                    e.target.src = ErrorProfileImage;
-                  }}
-                />
-                <div>
-                  <div className="font-medium">{u.displayName}</div>
-                  <div className="text-xs text-gray-400">{u.department}</div>
-                </div>
-              </div>
-            ))}
-          {users.filter(
-            (u) => u.id !== user?.uid && !currentChat?.users?.includes(u.id)
-          ).length === 0 && (
-            <div className="text-center text-gray-400 py-4">
-              No users available to add
-            </div>
-          )}
-        </div>
-      </Modal>
 
       {/* Left Panel (Sidebar) */}
       <div className="w-64 bg-gray-800 text-white fixed lg:sticky top-0 left-0 z-10 overflow-y-auto p-2 flex flex-col h-full">
@@ -869,17 +792,15 @@ function Dashboard() {
 
                     {/* Add new user to group button */}
                     <div className="flex items-center gap-2">
-                      <div
-                        onClick={toggleAddUserToGroupModal}
-                        className="bg-gray-200/50 p-1 rounded-full"
-                      >
-                        {" "}
-                        <Icon
-                          icon="material-symbols:add-rounded"
-                          width="24"
-                          height="24"
-                        />
-                      </div>
+                      <AddUsersToGroup
+                        users={users}
+                        currentUserId={user.uid}
+                        currentChat={currentChat}
+                        submitText="Add Members"
+                        onSubmit={addUsersToGroup}
+                        isLoading={isAddingUsers}
+                      />
+
                       <div>
                         <ManageGroupChat
                           chatId={currentChat.id}

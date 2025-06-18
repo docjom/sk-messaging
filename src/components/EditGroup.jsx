@@ -173,7 +173,7 @@ export function EditGroup({ chatId, currentUserId }) {
                 Cancel
               </Button>
             </DialogClose>
-            <Button type="submit" disabled={isLoading}>
+            <Button type="submit" disabled={isLoading || !name.trim()}>
               {isLoading && (
                 <Icon
                   icon="line-md:loading-alt-loop"
