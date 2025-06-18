@@ -2,14 +2,22 @@ import { useState, useEffect } from "react";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 import { db } from "../firebase";
+import { toast } from "sonner";
+import { Icon } from "@iconify/react";
 import { formatTimestamp } from "../composables/scripts";
 import { Input } from "@/components/ui/input";
 import { Toaster } from "@/components/ui/sonner";
-import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { EditProfile } from "@/components/EditProfile";
 import { Contacts } from "@/components/Contacts";
 import { CreateGroupChat } from "@/components/CreateGroupChat";
+import { Modal } from "../components/ModalMain";
+import ManageGroupChat from "../components/GroupChatSetting";
+import { ChatListLoading } from "../components/ChatListLoading";
+import { MessagesLoading } from "../components/MessagesLoading";
+import MessageLogo3d from "../assets/message.svg";
+import NoConversation from "../assets/NoConversation.png";
+import ErrorProfileImage from "../assets/error.png";
 import {
   addDoc,
   collection,
@@ -23,14 +31,6 @@ import {
   where,
   getDoc,
 } from "firebase/firestore";
-import { Icon } from "@iconify/react";
-import { ChatListLoading } from "../components/ChatListLoading";
-import { MessagesLoading } from "../components/MessagesLoading";
-import MessageLogo3d from "../assets/message.svg";
-import NoConversation from "../assets/NoConversation.png";
-import ErrorProfileImage from "../assets/error.png";
-import { Modal } from "../components/ModalMain";
-import ManageGroupChat from "../components/GroupChatSetting";
 
 const sendMessage = async (chatId, senderId, message) => {
   try {
@@ -408,15 +408,12 @@ function Dashboard() {
         lastMessageTime: null,
       };
 
-      // Add profile picture logic
       if (type === "direct") {
-        // For direct chats, use the other user's profile picture
         const otherUserId = userIds.find((id) => id !== user.uid);
         const otherUser = users.find((u) => u.id === otherUserId);
         chatData.photoURL = otherUser?.photoURL || ErrorProfileImage;
       } else if (type === "group") {
-        // For group chats, use a default group image that can be changed later
-        chatData.photoURL = ""; // Temp group image
+        chatData.photoURL = "";
         chatData.admin = user.uid;
         chatData.userRoles = {};
 
@@ -458,7 +455,7 @@ function Dashboard() {
         return;
       }
 
-      const allUsers = [...selectedUsers, user.uid]; // Include the current user
+      const allUsers = [...selectedUsers, user.uid];
       const newChatId = await createChat("group", allUsers, groupName.trim());
 
       if (newChatId) {
