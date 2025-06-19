@@ -590,10 +590,10 @@ function Dashboard() {
               <div
                 key={chat.id}
                 onClick={() => handleSelectChat(chat)}
-                className={`cursor-pointer p-2 rounded transition-colors ${
+                className={`cursor-pointer px-2 py-1 rounded transition-colors ${
                   chatId === chat.id
                     ? "bg-blue-500/30 hover:bg-blue-500/40"
-                    : "bg-gray-700/50 hover:bg-gray-700"
+                    : " hover:bg-gray-700"
                 }`}
               >
                 <div className="flex items-center gap-2">
@@ -679,7 +679,7 @@ function Dashboard() {
                   className={`cursor-pointer p-2 rounded transition-colors ${
                     chatId === chat.id
                       ? "bg-blue-500/30 hover:bg-blue-500/40"
-                      : "bg-gray-700/50 hover:bg-gray-700"
+                      : " hover:bg-gray-700"
                   }`}
                 >
                   <div className="flex items-center gap-2">
