@@ -30,6 +30,7 @@ import {
   updateDoc,
   onSnapshot,
   where,
+  writeBatch,
   getDoc,
 } from "firebase/firestore";
 
@@ -42,6 +43,7 @@ const sendMessage = async (chatId, senderId, message) => {
       senderId,
       message,
       timestamp: serverTimestamp(),
+      seen: false,
     });
 
     await updateDoc(chatRef, {
@@ -287,6 +289,17 @@ function Dashboard() {
       setMessagesLoading(false);
     }
   }, [chatId]);
+  useEffect(() => {
+    if (!chatId || !messages.length) return;
+    const batch = writeBatch(db);
+    messages
+      .filter((m) => m.senderId !== user.uid && !m.seen)
+      .forEach((m) => {
+        const msgRef = doc(db, "chats", chatId, "messages", m.id);
+        batch.update(msgRef, { seen: true });
+      });
+    batch.commit();
+  }, [chatId, messages]);
 
   // Handle selecting a user for direct messaging
   const handleSelectUser = async (selectedUserData) => {
@@ -917,17 +930,23 @@ function Dashboard() {
                                     {/* Read status indicators for sent messages (optional) */}
                                     {msg.senderId === user.uid && (
                                       <div className="flex">
-                                        <svg
-                                          className="w-3 h-3 text-white/70"
-                                          fill="currentColor"
-                                          viewBox="0 0 20 20"
-                                        >
-                                          <path
-                                            fillRule="evenodd"
-                                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                            clipRule="evenodd"
-                                          />
-                                        </svg>
+                                        {msg.senderId === user.uid && (
+                                          <div className="flex">
+                                            {msg.seen ? (
+                                              <Icon
+                                                icon="solar:check-read-linear"
+                                                width="20"
+                                                height="20"
+                                              />
+                                            ) : (
+                                              <Icon
+                                                icon="ic:round-check"
+                                                width="16"
+                                                height="16"
+                                              />
+                                            )}
+                                          </div>
+                                        )}
                                       </div>
                                     )}
                                   </div>
