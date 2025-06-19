@@ -38,7 +38,6 @@ export function LeaveGroup({ chatId, currentUserId, onLeaveSuccess }) {
   const [availableUsers, setAvailableUsers] = useState([]);
   const [selectedNewAdmin, setSelectedNewAdmin] = useState("");
 
-  // when dialog opens, check if I'm the only admin
   useEffect(() => {
     if (!isOpen) return;
     (async () => {
@@ -55,7 +54,6 @@ export function LeaveGroup({ chatId, currentUserId, onLeaveSuccess }) {
       setIsOnlyAdmin(only);
 
       if (only) {
-        // prepare dropdown of other non-admins
         const others = users.filter((uid) => uid !== currentUserId);
         const details = await Promise.all(
           others.map(async (uid) => {
@@ -72,7 +70,6 @@ export function LeaveGroup({ chatId, currentUserId, onLeaveSuccess }) {
   }, [isOpen, chatId, currentUserId]);
 
   const proceedWithLeaving = async () => {
-    // send system message + remove user
     const chatRef = doc(db, "chats", chatId);
     const userRef = doc(db, "users", currentUserId);
     const userSnap = await getDoc(userRef);
@@ -81,7 +78,7 @@ export function LeaveGroup({ chatId, currentUserId, onLeaveSuccess }) {
     const batch = writeBatch(db);
     batch.update(chatRef, {
       users: arrayRemove(currentUserId),
-      [`userRoles.${currentUserId}`]: null, // Remove user role
+      [`userRoles.${currentUserId}`]: null,
       lastMessage: `${name} left`,
       lastMessageTime: serverTimestamp(),
     });
@@ -102,7 +99,6 @@ export function LeaveGroup({ chatId, currentUserId, onLeaveSuccess }) {
   const handleLeave = async (e) => {
     e.preventDefault();
 
-    // Prevent leaving if user is the only admin
     if (isOnlyAdmin) {
       toast.error("You must transfer admin rights before leaving");
       return;
@@ -153,7 +149,6 @@ export function LeaveGroup({ chatId, currentUserId, onLeaveSuccess }) {
       open={isOpen}
       onOpenChange={(open) => {
         if (!open) {
-          // reset on close
           setShowTransfer(false);
           setSelectedNewAdmin("");
           setAvailableUsers([]);
