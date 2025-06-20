@@ -16,6 +16,7 @@ import { ChatListLoading } from "../components/ChatListLoading";
 import { MessagesLoading } from "../components/MessagesLoading";
 import { AddUsersToGroup } from "@/components/AddUserToGroup";
 import { MessageList } from "@/components/MessageList";
+import { ChatList } from "@/components/ChatList";
 import { Logout } from "@/components/Logout";
 import MessageLogo3d from "../assets/message.svg";
 import NoConversation from "../assets/NoConversation.png";
@@ -604,78 +605,15 @@ function Dashboard() {
         {chatsLoading ? (
           <ChatListLoading />
         ) : (
-          <div className="space-y-2 mb-4 flex-1">
-            {filteredChats.map((chat) => (
-              <div
-                key={chat.id}
-                onClick={() => handleSelectChat(chat)}
-                className={`cursor-pointer px-2 py-1 rounded transition-colors ${
-                  chatId === chat.id
-                    ? "bg-blue-500/30 hover:bg-blue-500/40"
-                    : " hover:bg-gray-700"
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <div className="relative">
-                    {chat.type === "direct" && (
-                      <Icon
-                        icon="pajamas:status-active"
-                        width="12"
-                        height="12"
-                        className={`absolute top-0 right-0 z-50  border-2 rounded-full border-gray-800 ${
-                          getOtherUserInDirectChat(chat)?.active
-                            ? "text-green-500"
-                            : " text-gray-500"
-                        }`}
-                      />
-                    )}
-
-                    <Avatar className="w-12 h-12">
-                      <AvatarImage src={getChatPhoto(chat)} />
-                      <AvatarFallback>P</AvatarFallback>
-                    </Avatar>
-                  </div>
-
-                  <div>
-                    <div
-                      className={`text-sm capitalize truncate max-w-40 ${
-                        chatId === chat.id ? "font-semibold " : ""
-                      }`}
-                    >
-                      {getChatDisplayName(chat)}
-                    </div>
-                    <div className="text-xs capitalize text-gray-400 flex items-center gap-1">
-                      {chat.type}
-                      {/* Show last message preview */}
-                      {chat.lastMessage && (
-                        <div
-                          className={`text-xs  truncate w-20 ${
-                            formatTimestamp(chat.lastMessageTime) === "Just now"
-                              ? "font-bold text-white"
-                              : "text-gray-300"
-                          }`}
-                        >
-                          {chat.lastMessage}
-                        </div>
-                      )}
-                      {/* Show timestamp */}
-                      {chat.lastMessageTime && (
-                        <div
-                          className={`text-xs  max-w-20 truncate ${
-                            formatTimestamp(chat.lastMessageTime) === "Just now"
-                              ? "font-bold text-gray-200"
-                              : "text-gray-400"
-                          }`}
-                        >
-                          {formatTimestamp(chat.lastMessageTime)}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+          <ChatList
+            filteredChats={filteredChats}
+            chatId={chatId}
+            handleSelectChat={handleSelectChat}
+            getOtherUserInDirectChat={getOtherUserInDirectChat}
+            getChatPhoto={getChatPhoto}
+            getChatDisplayName={getChatDisplayName}
+            formatTimestamp={formatTimestamp}
+          />
         )}
       </div>
       {/* Left Panel (Sidebar) End */}
@@ -690,7 +628,6 @@ function Dashboard() {
             >
               <Icon icon="duo-icons:menu" width="24" height="24" />
             </div>
-
             <div className="w-full">
               <Input
                 type="search"
@@ -705,80 +642,15 @@ function Dashboard() {
           {chatsLoading ? (
             <ChatListLoading />
           ) : (
-            <div className="space-y-2 mb-4 flex-1">
-              {filteredChats.map((chat) => (
-                <div
-                  key={chat.id}
-                  onClick={() => handleSelectChat(chat)}
-                  className={`cursor-pointer p-2 rounded transition-colors ${
-                    chatId === chat.id
-                      ? "bg-blue-500/30 hover:bg-blue-500/40"
-                      : " hover:bg-gray-700"
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <div className="relative">
-                      {chat.type === "direct" && (
-                        <Icon
-                          icon="pajamas:status-active"
-                          width="12"
-                          height="12"
-                          className={`absolute top-0 right-0 z-50  border-2 rounded-full border-gray-800 ${
-                            getOtherUserInDirectChat(chat)?.active
-                              ? "text-green-500"
-                              : " text-gray-500"
-                          }`}
-                        />
-                      )}
-
-                      <Avatar className="w-10 h-10">
-                        <AvatarImage src={getChatPhoto(chat)} />
-                        <AvatarFallback>P</AvatarFallback>
-                      </Avatar>
-                    </div>
-
-                    <div>
-                      <div
-                        className={`text-sm capitalize truncate max-w-40 ${
-                          chatId === chat.id ? "font-semibold " : ""
-                        }`}
-                      >
-                        {getChatDisplayName(chat)}
-                      </div>
-                      <div className="text-xs capitalize text-gray-400 flex items-center gap-1">
-                        {chat.type}
-                        {/* Show last message preview */}
-                        {chat.lastMessage && (
-                          <div
-                            className={`text-xs  truncate w-20 ${
-                              formatTimestamp(chat.lastMessageTime) ===
-                              "Just now"
-                                ? "font-bold text-white"
-                                : "text-gray-300"
-                            }`}
-                          >
-                            {chat.lastMessage}
-                          </div>
-                        )}
-                        {/* Show timestamp */}
-                        {chat.lastMessageTime && (
-                          <div
-                            className={`text-xs  max-w-20 truncate ${
-                              formatTimestamp(chat.lastMessageTime) ===
-                              "Just now"
-                                ? "font-bold text-gray-200"
-                                : "text-gray-400"
-                            }`}
-                          >
-                            {formatTimestamp(chat.lastMessageTime)}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <ChatList
+              filteredChats={filteredChats}
+              chatId={chatId}
+              handleSelectChat={handleSelectChat}
+              getOtherUserInDirectChat={getOtherUserInDirectChat}
+              getChatPhoto={getChatPhoto}
+              getChatDisplayName={getChatDisplayName}
+              formatTimestamp={formatTimestamp}
+            />
           )}
         </div>
       )}
@@ -813,12 +685,10 @@ function Dashboard() {
                         <AvatarImage src={currentChat.photoURL} />
                         <AvatarFallback>GP</AvatarFallback>
                       </Avatar>
-
                       <div className="text-gray-800 font-semibold text-sm sm:text-lg capitalize">
                         {getChatDisplayName(currentChat)}
                       </div>
                     </div>
-
                     {/* Add new user to group button */}
                     <div className="flex items-center gap-2">
                       <AddUsersToGroup
@@ -829,7 +699,6 @@ function Dashboard() {
                         onSubmit={addUsersToGroup}
                         isLoading={isAddingUsers}
                       />
-
                       <div>
                         <ManageGroupChat
                           chatId={currentChat.id}
