@@ -1,7 +1,7 @@
 import { signInWithPopup } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 import { auth, provider, db } from "./firebase";
-import { doc, setDoc, getDoc } from "firebase/firestore";
+import { doc, setDoc, getDoc, updateDoc } from "firebase/firestore";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -37,11 +37,13 @@ function Login() {
           displayName: user.displayName,
           email: user.email,
           photoURL: user.photoURL,
+          active: true,
           createdAt: new Date(),
         });
         //console.log("User document created in Firestore.");
       } else {
         // console.log("User already exists in Firestore.");
+        await updateDoc(userDocRef, { active: true });
       }
 
       navigate("/dashboard");
@@ -101,7 +103,8 @@ function Login() {
               className="w-full"
               onClick={handleGoogleLogin}
             >
-             <Icon icon="flat-color-icons:google" width="48" height="48" /> Login with Google
+              <Icon icon="flat-color-icons:google" width="48" height="48" />{" "}
+              Login with Google
             </Button>
           </CardFooter>
         </Card>

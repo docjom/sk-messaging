@@ -14,10 +14,12 @@ import {
 import { toast } from "sonner";
 import { getAuth } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
+import { getFirestore, doc, updateDoc } from "firebase/firestore";
 
 export function Logout() {
   const navigate = useNavigate();
   const auth = getAuth();
+  const db = getFirestore();
   const [loading, setLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
 
@@ -26,6 +28,13 @@ export function Logout() {
     setLoading(true);
 
     try {
+      const user = auth.currentUser;
+      if (user) {
+        // 1️⃣ Mark them as inactive in Firestore
+        const userRef = doc(db, "users", user.uid);
+        await updateDoc(userRef, { active: false });
+      }
+
       auth.signOut().then(() => {
         navigate("/");
       });
@@ -41,7 +50,7 @@ export function Logout() {
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <Button variant="ghost" className="border bg-red-500 w-full">
-            <Icon icon="solar:logout-broken" width="24" height="24" /> Logout
+          <Icon icon="solar:logout-broken" width="24" height="24" /> Logout
         </Button>
       </DialogTrigger>
 

@@ -223,27 +223,34 @@ function Dashboard() {
     }
   };
 
-  // Fetch current user and user list
   useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const querySnapshot = await getDocs(collection(db, "users"));
+    if (!user) return;
+
+    const usersRef = collection(db, "users");
+    const unsubscribe = onSnapshot(
+      usersRef,
+      (querySnapshot) => {
         const usersList = querySnapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
         }));
         setUsers(usersList);
-      } catch (error) {
+      },
+      (error) => {
         console.error("Error fetching users:", error);
       }
-    };
+    );
 
+    return () => unsubscribe();
+  }, [user]);
+
+  // Fetch current user and user list
+  useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
         setUser(currentUser);
         // Fetch user profile from Firestore
         await fetchUserProfile(currentUser.uid);
-        fetchUsers();
       } else {
         navigate("/");
       }
@@ -299,7 +306,7 @@ function Dashboard() {
         batch.update(msgRef, { seen: true });
       });
     batch.commit();
-  }, [chatId, messages]);
+  }, [chatId, messages, user?.uid]);
 
   // Handle selecting a user for direct messaging
   const handleSelectUser = async (selectedUserData) => {
@@ -464,6 +471,11 @@ function Dashboard() {
     const sender = users.find((u) => u.id === senderId);
     return sender?.displayName || "Unknown User";
   };
+  const getUserData = (userId) => {
+    if (!userId) return null;
+    const user = users.find((u) => u.id === userId);
+    return user || null;
+  };
   const getSenderData = (senderId) => {
     if (!senderId) return null;
     const sender = users.find((u) => u.id === senderId);
@@ -517,6 +529,12 @@ function Dashboard() {
     );
     return () => unsubscribe();
   }, [chatId, user?.uid]);
+
+  const getOtherUserInDirectChat = (chat) => {
+    if (chat.type !== "direct") return null;
+    const otherUserId = chat.users.find((uid) => uid !== user.uid);
+    return getUserData(otherUserId);
+  };
 
   return (
     <div className="h-screen flex flex-col lg:flex-row">
@@ -597,10 +615,25 @@ function Dashboard() {
                 }`}
               >
                 <div className="flex items-center gap-2">
-                  <Avatar className="w-12 h-12">
-                    <AvatarImage src={getChatPhoto(chat)} />
-                    <AvatarFallback>P</AvatarFallback>
-                  </Avatar>
+                  <div className="relative">
+                    {chat.type === "direct" && (
+                      <Icon
+                        icon="pajamas:status-active"
+                        width="12"
+                        height="12"
+                        className={`absolute top-0 right-0 z-50  border-2 rounded-full border-gray-800 ${
+                          getOtherUserInDirectChat(chat)?.active
+                            ? "text-green-500"
+                            : " text-gray-500"
+                        }`}
+                      />
+                    )}
+
+                    <Avatar className="w-12 h-12">
+                      <AvatarImage src={getChatPhoto(chat)} />
+                      <AvatarFallback>P</AvatarFallback>
+                    </Avatar>
+                  </div>
 
                   <div>
                     <div
@@ -683,13 +716,25 @@ function Dashboard() {
                   }`}
                 >
                   <div className="flex items-center gap-2">
-                    <Avatar
-                      className="h-10 w-10"
-                      alt={getChatDisplayName(chat)}
-                    >
-                      <AvatarImage src={getChatPhoto(chat)} />
-                      <AvatarFallback>CI</AvatarFallback>
-                    </Avatar>
+                    <div className="relative">
+                      {chat.type === "direct" && (
+                        <Icon
+                          icon="pajamas:status-active"
+                          width="12"
+                          height="12"
+                          className={`absolute top-0 right-0 z-50  border-2 rounded-full border-gray-800 ${
+                            getOtherUserInDirectChat(chat)?.active
+                              ? "text-green-500"
+                              : " text-gray-500"
+                          }`}
+                        />
+                      )}
+
+                      <Avatar className="w-10 h-10">
+                        <AvatarImage src={getChatPhoto(chat)} />
+                        <AvatarFallback>P</AvatarFallback>
+                      </Avatar>
+                    </div>
 
                     <div>
                       <div
