@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 import { db } from "../firebase";
@@ -57,18 +57,32 @@ function Dashboard() {
   const [isAddingUsers, setIsAddingUsers] = useState(false);
   const [isCreatingGroup, setIsCreatingGroup] = useState(false);
 
-  const sendMessage = async (chatId, senderId, message) => {
-    try {
-      const messagesRef = collection(db, "chats", chatId, "messages");
-      const chatRef = doc(db, "chats", chatId);
+  const endOfMessagesRef = useRef(null);
 
-      await addDoc(messagesRef, {
+  useEffect(() => {
+    if (endOfMessagesRef.current) {
+      endOfMessagesRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages]);
+
+  const sendMessage = async (chatId, senderId, message) => {
+    if (!message.trim()) return;
+
+    const messagesRef = collection(db, "chats", chatId, "messages");
+    const chatRef = doc(db, "chats", chatId);
+
+    try {
+      // 1) Create the message with status "sending"
+      const msgRef = await addDoc(messagesRef, {
         senderId,
         message,
         timestamp: serverTimestamp(),
         seen: false,
+        status: "sending",
       });
 
+      // 2) As soon as the write succeeds, mark it as "sent"
+      await updateDoc(msgRef, { status: "sent" });
       await updateDoc(chatRef, {
         lastMessage: message,
         lastMessageTime: serverTimestamp(),
@@ -604,15 +618,17 @@ function Dashboard() {
         {chatsLoading ? (
           <ChatListLoading />
         ) : (
-          <ChatList
-            filteredChats={filteredChats}
-            chatId={chatId}
-            handleSelectChat={handleSelectChat}
-            getOtherUserInDirectChat={getOtherUserInDirectChat}
-            getChatPhoto={getChatPhoto}
-            getChatDisplayName={getChatDisplayName}
-            formatTimestamp={formatTimestamp}
-          />
+          <div className="space-y-2 mb-4 flex-1">
+            <ChatList
+              filteredChats={filteredChats}
+              chatId={chatId}
+              handleSelectChat={handleSelectChat}
+              getOtherUserInDirectChat={getOtherUserInDirectChat}
+              getChatPhoto={getChatPhoto}
+              getChatDisplayName={getChatDisplayName}
+              formatTimestamp={formatTimestamp}
+            />
+          </div>
         )}
       </div>
       {/* Left Panel (Sidebar) End */}
@@ -738,32 +754,35 @@ function Dashboard() {
               {messagesLoading ? (
                 <MessagesLoading />
               ) : (
-                <div className="flex-1 overflow-y-auto h-96 p-4 bg-gray-50">
-                  {messages.length > 0 ? (
-                    <MessageList
-                      messages={messages}
-                      user={user}
-                      getSenderData={getSenderData}
-                      getSenderDisplayName={getSenderDisplayName}
-                      formatTimestamp={formatTimestamp}
-                    />
-                  ) : (
-                    <div className="flex items-center justify-center h-full text-gray-800">
-                      <div>
-                        <div className="flex items-center justify-center">
-                          <img
-                            src={NoConversation}
-                            alt="3d chat icon"
-                            className="sm:size-30 size-20"
-                          />
+                <>
+                  <div className="flex-1 overflow-y-auto h-96 p-4 bg-gray-50">
+                    {messages.length > 0 ? (
+                      <MessageList
+                        messages={messages}
+                        user={user}
+                        getSenderData={getSenderData}
+                        getSenderDisplayName={getSenderDisplayName}
+                        formatTimestamp={formatTimestamp}
+                      />
+                    ) : (
+                      <div className="flex items-center justify-center h-full text-gray-800">
+                        <div>
+                          <div className="flex items-center justify-center">
+                            <img
+                              src={NoConversation}
+                              alt="3d chat icon"
+                              className="sm:size-30 size-20"
+                            />
+                          </div>
+                          <h1 className="sm:text-2xl text-lg font-semibold">
+                            No messages yet. Start the conversation!
+                          </h1>
                         </div>
-                        <h1 className="sm:text-2xl text-lg font-semibold">
-                          No messages yet. Start the conversation!
-                        </h1>
                       </div>
-                    </div>
-                  )}
-                </div>
+                    )}
+                  </div>
+                  <div ref={endOfMessagesRef} />
+                </>
               )}
 
               {/* Message Input */}

@@ -105,19 +105,26 @@ export const MessageList = ({
                         <div className="flex">
                           {msg.senderId === user.uid && (
                             <div className="flex">
-                              {msg.seen ? (
+                              {msg.status === "sending" ? (
                                 <Icon
-                                  icon="solar:check-read-linear"
-                                  width="20"
-                                  height="20"
+                                  icon="ic:round-access-time"
+                                  width="14"
+                                  height="14"
+                                  className="animate-pulse"
                                 />
-                              ) : (
+                              ) : msg.status === "sent" && !msg.seen ? (
                                 <Icon
                                   icon="ic:round-check"
                                   width="16"
                                   height="16"
                                 />
-                              )}
+                              ) : msg.seen ? (
+                                <Icon
+                                  icon="solar:check-read-linear"
+                                  width="20"
+                                  height="20"
+                                />
+                              ) : null}
                             </div>
                           )}
                         </div>
