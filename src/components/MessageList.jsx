@@ -66,7 +66,7 @@ export const MessageList = ({
                       </div>
                     )}
 
-                    {/* For sent messages, show department/position differently */}
+                    {/* For sent messages, show department/position differently
                     {msg.senderId === user.uid && (
                       <div className="flex gap-1.5 text-xs items-center mb-1 justify-end">
                         <span className="text-[10px] bg-white/20 text-white rounded-full px-2 py-0.5 font-medium">
@@ -76,7 +76,7 @@ export const MessageList = ({
                           {getSenderData(msg.senderId)?.position}
                         </span>
                       </div>
-                    )}
+                    )} */}
 
                     {/* Message content */}
                     <p className="text-sm leading-relaxed mb-1">

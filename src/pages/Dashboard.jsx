@@ -36,27 +36,6 @@ import {
   getDoc,
 } from "firebase/firestore";
 
-const sendMessage = async (chatId, senderId, message) => {
-  try {
-    const messagesRef = collection(db, "chats", chatId, "messages");
-    const chatRef = doc(db, "chats", chatId);
-
-    await addDoc(messagesRef, {
-      senderId,
-      message,
-      timestamp: serverTimestamp(),
-      seen: false,
-    });
-
-    await updateDoc(chatRef, {
-      lastMessage: message,
-      lastMessageTime: serverTimestamp(),
-    });
-  } catch (error) {
-    toast.error("Error sending message:", error);
-  }
-};
-
 function Dashboard() {
   const navigate = useNavigate();
   const auth = getAuth();
@@ -77,6 +56,27 @@ function Dashboard() {
   const [messagesLoading, setMessagesLoading] = useState(false);
   const [isAddingUsers, setIsAddingUsers] = useState(false);
   const [isCreatingGroup, setIsCreatingGroup] = useState(false);
+
+  const sendMessage = async (chatId, senderId, message) => {
+    try {
+      const messagesRef = collection(db, "chats", chatId, "messages");
+      const chatRef = doc(db, "chats", chatId);
+
+      await addDoc(messagesRef, {
+        senderId,
+        message,
+        timestamp: serverTimestamp(),
+        seen: false,
+      });
+
+      await updateDoc(chatRef, {
+        lastMessage: message,
+        lastMessageTime: serverTimestamp(),
+      });
+    } catch (error) {
+      toast.error("Error sending message:", error);
+    }
+  };
 
   const displayUser = userProfile || user;
   // Toggle menu visibility
@@ -232,10 +232,9 @@ function Dashboard() {
     const unsubscribe = onSnapshot(
       usersRef,
       (querySnapshot) => {
-        const usersList = querySnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
+        const usersList = querySnapshot.docs
+          .map((doc) => ({ id: doc.id, ...doc.data() }))
+          .filter((u) => u.id !== user?.uid);
         setUsers(usersList);
       },
       (error) => {
