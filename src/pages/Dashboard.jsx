@@ -50,14 +50,13 @@ function Dashboard() {
   const [currentChat, setCurrentChat] = useState(null);
   const [menu, setMenu] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const endOfMessagesRef = useRef(null);
 
   // Loading states
   const [chatsLoading, setChatsLoading] = useState(true);
   const [messagesLoading, setMessagesLoading] = useState(false);
   const [isAddingUsers, setIsAddingUsers] = useState(false);
   const [isCreatingGroup, setIsCreatingGroup] = useState(false);
-
-  const endOfMessagesRef = useRef(null);
 
   useEffect(() => {
     if (endOfMessagesRef.current) {
@@ -72,7 +71,6 @@ function Dashboard() {
     const chatRef = doc(db, "chats", chatId);
 
     try {
-      // 1) Create the message with status "sending"
       const msgRef = await addDoc(messagesRef, {
         senderId,
         message,
@@ -80,8 +78,6 @@ function Dashboard() {
         seen: false,
         status: "sending",
       });
-
-      // 2) As soon as the write succeeds, mark it as "sent"
       await updateDoc(msgRef, { status: "sent" });
       await updateDoc(chatRef, {
         lastMessage: message,
@@ -93,20 +89,17 @@ function Dashboard() {
   };
 
   const displayUser = userProfile || user;
-  // Toggle menu visibility
   const toggleMenu = () => {
     setMenu(true);
   };
   const closeMenu = () => {
     setMenu(false);
   };
-
   const clearChatId = () => {
     setChatId("");
     setCurrentChat("");
   };
 
-  // Updated parent component function
   const addUsersToGroup = async (selectedUsersToAdd) => {
     if (!currentChat || !currentChat.id || selectedUsersToAdd.length === 0) {
       toast.error("Please select users to add.");
@@ -120,30 +113,25 @@ function Dashboard() {
         const chatData = chatDoc.data();
         const currentUsers = chatData.users || [];
         const currentUserRoles = chatData.userRoles || {};
-        // Filter out users already in the group
         const newUsers = selectedUsersToAdd.filter(
           (userId) => !currentUsers.includes(userId)
         );
         if (newUsers.length > 0) {
           const updatedUsers = [...currentUsers, ...newUsers];
-          // Add new users with "member" role
           const updatedUserRoles = { ...currentUserRoles };
           newUsers.forEach((userId) => {
             updatedUserRoles[userId] = "member";
           });
-          // Update the chat document
           await updateDoc(chatRef, {
             users: updatedUsers,
             userRoles: updatedUserRoles,
             updatedAt: serverTimestamp(),
           });
-          // Update local state
           setCurrentChat((prev) => ({
             ...prev,
             users: updatedUsers,
             userRoles: updatedUserRoles,
           }));
-          // Get user names for system messages
           const usersRef = collection(db, "users");
           const newUsersData = await Promise.all(
             newUsers.map(async (userId) => {
@@ -156,14 +144,12 @@ function Dashboard() {
               };
             })
           );
-          // Send system messages
           const messagesRef = collection(
             db,
             "chats",
             currentChat.id,
             "messages"
           );
-          // Create a single system message for all added users
           if (newUsersData.length === 1) {
             await addDoc(messagesRef, {
               senderId: "system",
@@ -241,7 +227,6 @@ function Dashboard() {
 
   useEffect(() => {
     if (!user) return;
-
     const usersRef = collection(db, "users");
     const unsubscribe = onSnapshot(
       usersRef,
@@ -255,16 +240,13 @@ function Dashboard() {
         console.error("Error fetching users:", error);
       }
     );
-
     return () => unsubscribe();
   }, [user]);
 
-  // Fetch current user and user list
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
         setUser(currentUser);
-        // Fetch user profile from Firestore
         await fetchUserProfile(currentUser.uid);
       } else {
         navigate("/");
@@ -274,7 +256,6 @@ function Dashboard() {
     return () => unsubscribe();
   }, [auth, navigate]);
 
-  // Fetch chats of the logged-in user
   useEffect(() => {
     if (user) {
       const chatsRef = collection(db, "chats");
@@ -291,7 +272,6 @@ function Dashboard() {
     }
   }, [user]);
 
-  // Fetch messages for the selected chat
   useEffect(() => {
     if (chatId) {
       setMessagesLoading(true);
@@ -323,16 +303,13 @@ function Dashboard() {
     batch.commit();
   }, [chatId, messages, user?.uid]);
 
-  // Handle selecting a user for direct messaging
   const handleSelectUser = async (selectedUserData) => {
     setSelectedUser(selectedUserData);
-    // Check if a direct chat already exists with this user
     const existingChat = await checkExistingDirectChat(selectedUserData.id);
     if (existingChat) {
       setChatId(existingChat.id);
       setCurrentChat(existingChat);
     } else {
-      // Create a new direct chat
       const newChatId = await createChat(
         "direct",
         [user.uid, selectedUserData.id],
@@ -347,7 +324,6 @@ function Dashboard() {
     setMenu(false);
   };
 
-  // Check if a direct chat already exists between the current user and selected user
   const checkExistingDirectChat = async (selectedUserId) => {
     try {
       const chatsRef = collection(db, "chats");
@@ -370,7 +346,6 @@ function Dashboard() {
     }
   };
 
-  // Handle selecting a chat from the chat list
   const handleSelectChat = (chat) => {
     setChatId(chat.id);
     setCurrentChat(chat);
@@ -383,7 +358,6 @@ function Dashboard() {
     }
   };
 
-  // Handle sending message
   const handleSendMessage = async () => {
     if (!chatId) {
       console.error("Chat ID is not set.");
@@ -406,7 +380,6 @@ function Dashboard() {
     }
   };
 
-  // Handle Enter key press for sending messages
   const handleKeyPress = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -414,7 +387,6 @@ function Dashboard() {
     }
   };
 
-  // Function to create a new chat (either direct or group)
   const createChat = async (type, userIds, name = "") => {
     try {
       const chatsRef = collection(db, "chats");
@@ -478,7 +450,6 @@ function Dashboard() {
     }
   };
 
-  // Get display name for sender
   const getSenderDisplayName = (senderId) => {
     if (senderId === user?.uid) {
       return "";
@@ -496,8 +467,6 @@ function Dashboard() {
     const sender = users.find((u) => u.id === senderId);
     return sender || null;
   };
-
-  // Get chat display name
   const getChatDisplayName = (chat) => {
     if (chat.type === "direct") {
       const otherUserId = chat.users.find((uid) => uid !== user.uid);
@@ -506,7 +475,6 @@ function Dashboard() {
     }
     return chat.name;
   };
-  // Get chat photo
   const getChatPhoto = (chat) => {
     if (chat.type === "direct") {
       const otherUserId = chat.users.find((uid) => uid !== user.uid);
@@ -544,13 +512,11 @@ function Dashboard() {
     );
     return () => unsubscribe();
   }, [chatId, user?.uid]);
-
   const getOtherUserInDirectChat = (chat) => {
     if (chat.type !== "direct") return null;
     const otherUserId = chat.users.find((uid) => uid !== user.uid);
     return getUserData(otherUserId);
   };
-
   return (
     <div className="h-screen flex flex-col lg:flex-row">
       <Toaster />
