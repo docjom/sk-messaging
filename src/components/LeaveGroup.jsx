@@ -116,7 +116,7 @@ export function LeaveGroup({ chatId, currentUserId, onLeaveSuccess }) {
 
   const handleTransfer = async () => {
     if (!selectedNewAdmin) {
-      toast.error("Select someone to transfer to");
+     // toast.error("Select someone to transfer to");
       return;
     }
     setLoading(true);
