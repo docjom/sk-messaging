@@ -798,7 +798,7 @@ function Dashboard() {
                       </div>
                     )}
                   </div>
-                  <div ref={endOfMessagesRef} className="pb-10 bg-gray-50" />
+                  {/* <div ref={endOfMessagesRef} className="pb-10 bg-gray-50" /> */}
                 </>
               )}
 
