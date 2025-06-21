@@ -91,10 +91,16 @@ export const MessageList = ({
         )}
 
         {message.message && (
-          <p className="text-sm text-white px-2">{message.message}</p>
+          <p
+            className={`text-sm px-2 ${
+              message.senderId === user.uid ? "text-white" : "text-gray-800"
+            }`}
+          >
+            {message.message}
+          </p>
         )}
         <div
-          className={`flex items-center gap-1 pr-2 ${
+          className={`flex items-center gap-1 px-2 ${
             message.senderId === user.uid ? "justify-end" : "justify-start"
           }`}
         >
@@ -105,7 +111,7 @@ export const MessageList = ({
           >
             {formatTimestamp(message.timestamp)}
           </p>
-          {/* Read status indicators for sent messages (optional) */}
+
           {message.senderId === user.uid && (
             <div className="flex">
               {message.senderId === user.uid && (
@@ -186,6 +192,11 @@ export const MessageList = ({
                         }`
                       : msg.type === "file" && msg.senderId === user.uid
                       ? `bg-blue-500 text-white pb-1 shadow-sm ${
+                          // Telegram-style rounded corners - more rounded on top-left, less on bottom-right
+                          "rounded-tl-2xl rounded-tr-2xl rounded-bl-2xl rounded-br-md"
+                        }`
+                      : msg.type === "file" && msg.senderId !== user.uid
+                      ? `bg-white text-gray-800 pb-1 shadow-sm ${
                           // Telegram-style rounded corners - more rounded on top-left, less on bottom-right
                           "rounded-tl-2xl rounded-tr-2xl rounded-bl-2xl rounded-br-md"
                         }`
