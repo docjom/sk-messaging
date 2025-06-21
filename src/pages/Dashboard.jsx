@@ -35,6 +35,7 @@ import {
   writeBatch,
   getDoc,
 } from "firebase/firestore";
+import { Button } from "@/components/ui/button";
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -754,7 +755,20 @@ function Dashboard() {
               {/* Message Input */}
               <div className="fixed bottom-0 left-0 right-0 bg-gray-50 shadow-lg sm:ml-64 z-30">
                 <div className="px-4 py-2  border-t border-gray-300 ">
-                  <div className="flex">
+                  <div className="flex justify-center items-center gap-2">
+                    <div>
+                      <Button
+                        type="button"
+                        variant={"ghost"}
+                        className="w-full text-blue-500 border"
+                      >
+                        <Icon
+                          icon="solar:file-send-bold"
+                          width="24"
+                          height="24"
+                        />
+                      </Button>
+                    </div>
                     <input
                       type="text"
                       className="flex-1 p-2 outline-none rounded-l-lg "
