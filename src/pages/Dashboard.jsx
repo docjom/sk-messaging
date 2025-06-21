@@ -19,8 +19,6 @@ import { MessageList } from "@/components/MessageList";
 import { ChatList } from "@/components/ChatList";
 import { Logout } from "@/components/Logout";
 import FileUploadDialog from "@/components/FileUploadDialog";
-import MessageLogo3d from "../assets/message.svg";
-import NoConversation from "../assets/NoConversation.png";
 import ErrorProfileImage from "../assets/error.png";
 import {
   addDoc,
