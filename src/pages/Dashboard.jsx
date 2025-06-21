@@ -792,15 +792,8 @@ function Dashboard() {
                       />
                     ) : (
                       <div className="flex items-center justify-center h-full text-gray-800">
-                        <div>
-                          <div className="flex items-center justify-center">
-                            <img
-                              src={NoConversation}
-                              alt="3d chat icon"
-                              className="sm:size-30 size-20"
-                            />
-                          </div>
-                          <h1 className="sm:text-2xl text-lg font-semibold">
+                        <div className="border rounded-full px-4 py-1">
+                          <h1 className=" text-sm font-semibold">
                             No messages yet. Start the conversation!
                           </h1>
                         </div>
@@ -861,17 +854,12 @@ function Dashboard() {
             </>
           ) : (
             <div className="hidden sm:flex items-center justify-center h-full text-gray-800 ">
-              <div>
-                <div className="flex items-center justify-center">
-                  <img
-                    src={MessageLogo3d}
-                    alt="3d chat icon"
-                    className="sm:size-30 size-20"
-                  />
+              <div className="flex items-center justify-center h-full text-gray-800">
+                <div className="border rounded-full px-4 py-1">
+                  <h1 className=" text-sm font-semibold">
+                    Select a chat to start messaging!
+                  </h1>
                 </div>
-                <h1 className="sm:text-2xl text-lg font-semibold">
-                  Select a chat to start messaging...
-                </h1>
               </div>
             </div>
           )}

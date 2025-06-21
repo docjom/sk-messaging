@@ -1,5 +1,6 @@
 import React, { useState, useRef } from "react";
-import { X, Send, Upload, File, Image, Video, FileText } from "lucide-react";
+import { Send, Upload, File, Image, Video, FileText } from "lucide-react";
+import { Icon } from "@iconify/react";
 import {
   Dialog,
   DialogContent,
@@ -27,7 +28,7 @@ const FileUploadDialog = ({
     if (!file) return;
 
     // Check file size (max 10MB)
-    const maxSize = 10 * 1024 * 1024; // 10MB
+    const maxSize = 10 * 1024 * 1024;
     if (file.size > maxSize) {
       toast.error("File size must be less than 10MB");
       return;
@@ -125,7 +126,7 @@ const FileUploadDialog = ({
               onClick={handleRemoveFile}
               className="text-red-500 hover:text-red-700"
             >
-              <X className="w-4 h-4" />
+              <Icon icon="mingcute:delete-3-fill" width="24" height="24" />
             </Button>
           )}
         </DialogHeader>
