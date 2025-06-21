@@ -26,6 +26,17 @@ export const MessageList = ({
     const isVideo = fileData.type.startsWith("video/");
     const isPdf = fileData.type.includes("pdf");
 
+    const downloadFile = (url, filename) => {
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    };
+
     return (
       <div className="max-w-sm">
         {isImage && (
@@ -70,7 +81,7 @@ export const MessageList = ({
               <Button
                 size="sm"
                 variant="ghost"
-                onClick={() => window.open(fileData.url, "_blank")}
+                onClick={() => downloadFile(fileData.url, fileData.name)}
                 className="text-blue-500 hover:text-blue-700"
               >
                 <Icon icon="solar:download-bold" width="16" height="16" />

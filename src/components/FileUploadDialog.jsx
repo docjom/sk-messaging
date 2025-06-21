@@ -1,26 +1,25 @@
-import React, { useState, useRef } from 'react';
-import { X, Send, Upload, File, Image, Video, FileText } from 'lucide-react';
+import React, { useState, useRef } from "react";
+import { X, Send, Upload, File, Image, Video, FileText } from "lucide-react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { toast } from 'sonner';
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { toast } from "sonner";
 
-const FileUploadDialog = ({ 
-  isOpen, 
-  onClose, 
-  onSend, 
+const FileUploadDialog = ({
+  isOpen,
+  onClose,
+  onSend,
   chatId,
-  isLoading = false 
+  isLoading = false,
 }) => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [filePreview, setFilePreview] = useState(null);
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState("");
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef(null);
 
@@ -30,14 +29,14 @@ const FileUploadDialog = ({
     // Check file size (max 10MB)
     const maxSize = 10 * 1024 * 1024; // 10MB
     if (file.size > maxSize) {
-      toast.error('File size must be less than 10MB');
+      toast.error("File size must be less than 10MB");
       return;
     }
 
     setSelectedFile(file);
 
     // Create preview for images and videos
-    if (file.type.startsWith('image/') || file.type.startsWith('video/')) {
+    if (file.type.startsWith("image/") || file.type.startsWith("video/")) {
       const reader = new FileReader();
       reader.onload = (e) => {
         setFilePreview(e.target.result);
@@ -72,21 +71,21 @@ const FileUploadDialog = ({
 
   const handleSend = () => {
     if (!selectedFile) {
-      toast.error('Please select a file to send');
+      toast.error("Please select a file to send");
       return;
     }
 
     onSend({
       file: selectedFile,
       message: message.trim(),
-      chatId
+      chatId,
     });
   };
 
   const handleClose = () => {
     setSelectedFile(null);
     setFilePreview(null);
-    setMessage('');
+    setMessage("");
     setIsDragging(false);
     onClose();
   };
@@ -95,23 +94,23 @@ const FileUploadDialog = ({
     setSelectedFile(null);
     setFilePreview(null);
     if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+      fileInputRef.current.value = "";
     }
   };
 
   const getFileIcon = (fileType) => {
-    if (fileType.startsWith('image/')) return <Image className="w-8 h-8" />;
-    if (fileType.startsWith('video/')) return <Video className="w-8 h-8" />;
-    if (fileType.includes('pdf')) return <FileText className="w-8 h-8" />;
+    if (fileType.startsWith("image/")) return <Image className="w-8 h-8" />;
+    if (fileType.startsWith("video/")) return <Video className="w-8 h-8" />;
+    if (fileType.includes("pdf")) return <FileText className="w-8 h-8" />;
     return <File className="w-8 h-8" />;
   };
 
   const formatFileSize = (bytes) => {
-    if (bytes === 0) return '0 Bytes';
+    if (bytes === 0) return "0 Bytes";
     const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const sizes = ["Bytes", "KB", "MB", "GB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
   };
 
   return (
@@ -141,8 +140,8 @@ const FileUploadDialog = ({
               onDrop={handleDrop}
               className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
                 isDragging
-                  ? 'border-blue-500 bg-blue-50'
-                  : 'border-gray-300 hover:border-gray-400'
+                  ? "border-blue-500 bg-blue-50"
+                  : "border-gray-300 hover:border-gray-400"
               }`}
             >
               <Upload className="w-12 h-12 mx-auto mb-4 text-gray-400" />
@@ -165,13 +164,13 @@ const FileUploadDialog = ({
             <div className="space-y-4">
               {/* Preview Area */}
               <div className="border rounded-lg overflow-hidden bg-gray-50">
-                {selectedFile.type.startsWith('image/') && filePreview ? (
+                {selectedFile.type.startsWith("image/") && filePreview ? (
                   <img
                     src={filePreview}
                     alt="Preview"
                     className="w-full max-h-64 object-contain"
                   />
-                ) : selectedFile.type.startsWith('video/') && filePreview ? (
+                ) : selectedFile.type.startsWith("video/") && filePreview ? (
                   <video
                     src={filePreview}
                     controls
@@ -245,7 +244,7 @@ const FileUploadDialog = ({
                 ) : (
                   <Send className="w-4 h-4" />
                 )}
-                <span>{isLoading ? 'Sending...' : 'Send'}</span>
+                <span>{isLoading ? "Sending..." : "Send"}</span>
               </Button>
             </div>
           )}
