@@ -18,6 +18,7 @@ import { AddUsersToGroup } from "@/components/AddUserToGroup";
 import { MessageList } from "@/components/MessageList";
 import { ChatList } from "@/components/ChatList";
 import { Logout } from "@/components/Logout";
+import FileUploadDialog from "@/components/FileUploadDialog";
 import MessageLogo3d from "../assets/message.svg";
 import NoConversation from "../assets/NoConversation.png";
 import ErrorProfileImage from "../assets/error.png";
@@ -36,6 +37,7 @@ import {
   getDoc,
 } from "firebase/firestore";
 import { Button } from "@/components/ui/button";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -58,6 +60,63 @@ function Dashboard() {
   const [messagesLoading, setMessagesLoading] = useState(false);
   const [isAddingUsers, setIsAddingUsers] = useState(false);
   const [isCreatingGroup, setIsCreatingGroup] = useState(false);
+
+  const [isFileDialogOpen, setIsFileDialogOpen] = useState(false);
+  const [isUploadingFile, setIsUploadingFile] = useState(false);
+
+  const handleFileUpload = async ({ file, message, chatId }) => {
+    setIsUploadingFile(true);
+
+    try {
+      // Upload file to Firebase Storage
+      const storage = getStorage();
+      const timestamp = Date.now();
+      const fileName = `${timestamp}_${file.name}`;
+      const storageRef = ref(storage, `chat-files/${chatId}/${fileName}`);
+
+      // Upload the file
+      const uploadResult = await uploadBytes(storageRef, file);
+      const downloadURL = await getDownloadURL(uploadResult.ref);
+
+      // Send file message to chat
+      const messagesRef = collection(db, "chats", chatId, "messages");
+      const chatRef = doc(db, "chats", chatId);
+
+      const messageData = {
+        senderId: user.uid,
+        message: message || "", // Optional text message
+        timestamp: serverTimestamp(),
+        seen: false,
+        status: "sent",
+        type: "file",
+        fileData: {
+          name: file.name,
+          size: file.size,
+          type: file.type,
+          url: downloadURL,
+          fileName: fileName,
+        },
+      };
+
+      // Add the message
+      await addDoc(messagesRef, messageData);
+
+      // Update chat last message
+      const lastMessageText = message ? message : `📎 ${file.name}`;
+      await updateDoc(chatRef, {
+        lastMessage: lastMessageText,
+        lastMessageTime: serverTimestamp(),
+      });
+
+      toast.success("File sent successfully!");
+      setIsFileDialogOpen(false);
+    } catch (error) {
+      console.error("Error uploading file:", error);
+      toast.error("Failed to send file. Please try again.");
+    } finally {
+      setIsUploadingFile(false);
+    }
+  };
 
   useEffect(() => {
     if (endOfMessagesRef.current) {
@@ -759,8 +818,10 @@ function Dashboard() {
                     <div>
                       <Button
                         type="button"
-                        variant={"ghost"}
-                        className="w-full text-blue-500 border"
+                        variant="ghost"
+                        className="text-blue-500 border"
+                        onClick={() => setIsFileDialogOpen(true)}
+                        disabled={!chatId || messagesLoading}
                       >
                         <Icon
                           icon="solar:file-send-bold"
@@ -817,6 +878,14 @@ function Dashboard() {
         </div>
       </div>
       {/* Center Chat Area End */}
+
+      <FileUploadDialog
+        isOpen={isFileDialogOpen}
+        onClose={() => setIsFileDialogOpen(false)}
+        onSend={handleFileUpload}
+        chatId={chatId}
+        isLoading={isUploadingFile}
+      />
     </div>
   );
 }
