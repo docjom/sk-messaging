@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Send, Upload, File, Image, Video, FileText } from "lucide-react";
 import { Icon } from "@iconify/react";
 import {
@@ -22,9 +22,40 @@ const FileUploadDialog = ({
   const [filePreview, setFilePreview] = useState(null);
   const [message, setMessage] = useState("");
   const [isDragging, setIsDragging] = useState(false);
+  const [wasLoading, setWasLoading] = useState(false);
   const fileInputRef = useRef(null);
 
-  const handleFileSelect = (file) => {
+  useEffect(() => {
+    if (wasLoading && !isLoading && selectedFile) {
+      clearForm();
+    }
+    setWasLoading(isLoading);
+  }, [isLoading, wasLoading, selectedFile]);
+
+  const generateVideoThumbnail = (file) => {
+    return new Promise((resolve) => {
+      const video = document.createElement("video");
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+
+      video.addEventListener("loadedmetadata", () => {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+
+        video.currentTime = 0;
+      });
+
+      video.addEventListener("seeked", () => {
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const thumbnail = canvas.toDataURL("image/jpeg", 0.8);
+        resolve(thumbnail);
+      });
+
+      video.src = URL.createObjectURL(file);
+    });
+  };
+
+  const handleFileSelect = async (file) => {
     if (!file) return;
 
     // Check file size (max 10MB)
@@ -35,14 +66,20 @@ const FileUploadDialog = ({
     }
 
     setSelectedFile(file);
-
-    // Create preview for images and videos
-    if (file.type.startsWith("image/") || file.type.startsWith("video/")) {
+    if (file.type.startsWith("image/")) {
       const reader = new FileReader();
       reader.onload = (e) => {
         setFilePreview(e.target.result);
       };
       reader.readAsDataURL(file);
+    } else if (file.type.startsWith("video/")) {
+      try {
+        const thumbnail = await generateVideoThumbnail(file);
+        setFilePreview(thumbnail);
+      } catch (error) {
+        console.error("Error generating thumbnail:", error);
+        setFilePreview(null);
+      }
     } else {
       setFilePreview(null);
     }
@@ -71,23 +108,35 @@ const FileUploadDialog = ({
   };
 
   const handleSend = () => {
-    if (!selectedFile) {
-      toast.error("Please select a file to send");
-      return;
-    }
+    try {
+      if (!selectedFile) {
+        toast.error("Please select a file to send");
+        return;
+      }
 
-    onSend({
-      file: selectedFile,
-      message: message.trim(),
-      chatId,
-    });
+      onSend({
+        file: selectedFile,
+        message: message.trim(),
+        chatId,
+      });
+    } catch (error) {
+      console.error("Error sending file:", error);
+      toast.error("Failed to send file. Please try again.");
+    }
   };
 
-  const handleClose = () => {
+  const clearForm = () => {
     setSelectedFile(null);
     setFilePreview(null);
     setMessage("");
     setIsDragging(false);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const handleClose = () => {
+    clearForm();
     onClose();
   };
 
@@ -172,10 +221,10 @@ const FileUploadDialog = ({
                     className="w-full max-h-64 object-contain"
                   />
                 ) : selectedFile.type.startsWith("video/") && filePreview ? (
-                  <video
+                  <img
                     src={filePreview}
-                    controls
-                    className="w-full max-h-64"
+                    alt="Video thumbnail"
+                    className="w-full max-h-64 object-contain"
                   />
                 ) : (
                   <div className="p-8 text-center">
