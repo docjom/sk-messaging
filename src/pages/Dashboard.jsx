@@ -62,6 +62,13 @@ function Dashboard() {
   const [isFileDialogOpen, setIsFileDialogOpen] = useState(false);
   const [isUploadingFile, setIsUploadingFile] = useState(false);
 
+  const messagesEndRef = useRef(null);
+  const messagesContainerRef = useRef(null);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
   const handleFileUpload = async ({ file, message, chatId }) => {
     setIsUploadingFile(true);
 
@@ -779,15 +786,21 @@ function Dashboard() {
                 <MessagesLoading />
               ) : (
                 <>
-                  <div className="flex-1 overflow-y-auto h-96 p-4 bg-gray-50">
+                  <div
+                    ref={messagesContainerRef}
+                    className="flex-1 overflow-y-auto h-96 p-4 bg-gray-50"
+                  >
                     {messages.length > 0 ? (
-                      <MessageList
-                        messages={messages}
-                        user={user}
-                        getSenderData={getSenderData}
-                        getSenderDisplayName={getSenderDisplayName}
-                        formatTimestamp={formatTimestamp}
-                      />
+                      <>
+                        <MessageList
+                          messages={messages}
+                          user={user}
+                          getSenderData={getSenderData}
+                          getSenderDisplayName={getSenderDisplayName}
+                          formatTimestamp={formatTimestamp}
+                        />
+                        <div ref={messagesEndRef} />
+                      </>
                     ) : (
                       <div className="flex items-center justify-center h-full text-gray-800">
                         <div className="border rounded-full px-4 py-1">

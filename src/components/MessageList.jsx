@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Icon } from "@iconify/react";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,124 @@ export const MessageList = ({
   getSenderDisplayName,
   formatTimestamp,
 }) => {
+  const messagesEndRef = useRef(null);
+  const messagesContainerRef = useRef(null);
+  const [isUserScrolling, setIsUserScrolling] = useState(false);
+  const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
+  const scrollTimeoutRef = useRef(null);
+  const lastMessageCountRef = useRef(0);
+
+  // Scroll functions
+  const scrollToBottomInstant = useCallback(() => {
+    messagesEndRef.current?.scrollIntoView({
+      behavior: "auto",
+      block: "end",
+    });
+  }, []);
+
+  const scrollToBottomSmooth = useCallback(() => {
+    messagesEndRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "end",
+    });
+  }, []);
+
+  // Check if user is near bottom
+  const isNearBottom = useCallback(() => {
+    const container = messagesContainerRef.current;
+    if (!container) return true;
+
+    const { scrollTop, scrollHeight, clientHeight } = container;
+    const threshold = 150; // Pixels from bottom
+    return scrollHeight - scrollTop - clientHeight < threshold;
+  }, []);
+
+  // Handle scroll events
+  const handleScroll = useCallback(() => {
+    const container = messagesContainerRef.current;
+    if (!container) return;
+
+    // Clear existing timeout
+    if (scrollTimeoutRef.current) {
+      clearTimeout(scrollTimeoutRef.current);
+    }
+
+    // User is actively scrolling
+    setIsUserScrolling(true);
+
+    // Check if user is near bottom
+    const nearBottom = isNearBottom();
+    setShouldAutoScroll(nearBottom);
+
+    // Set timeout to detect when user stops scrolling
+    scrollTimeoutRef.current = setTimeout(() => {
+      setIsUserScrolling(false);
+    }, 150); // 150ms after user stops scrolling
+  }, [isNearBottom]);
+
+  // Initial scroll on mount (instant)
+  useEffect(() => {
+    if (messages.length > 0) {
+      // Reset states for new chat
+      setShouldAutoScroll(true);
+      setIsUserScrolling(false);
+      lastMessageCountRef.current = messages.length;
+
+      // Instant scroll to bottom when opening chat
+      setTimeout(() => {
+        scrollToBottomInstant();
+      }, 0);
+    }
+  }, []); // Only run on mount
+
+  // Handle new messages (smart auto-scroll)
+  useEffect(() => {
+    const currentMessageCount = messages.length;
+    const hasNewMessages = currentMessageCount > lastMessageCountRef.current;
+
+    if (hasNewMessages && currentMessageCount > 0) {
+      // Update the last message count
+      lastMessageCountRef.current = currentMessageCount;
+
+      // Smart auto-scroll logic
+      if (shouldAutoScroll && !isUserScrolling) {
+        // Small delay to ensure DOM is updated
+        setTimeout(() => {
+          scrollToBottomSmooth();
+        }, 50);
+      }
+    }
+  }, [
+    messages.length,
+    shouldAutoScroll,
+    isUserScrolling,
+    scrollToBottomSmooth,
+  ]);
+
+  // Attach scroll listener
+  useEffect(() => {
+    const container = messagesContainerRef.current;
+    if (container) {
+      container.addEventListener("scroll", handleScroll, { passive: true });
+
+      return () => {
+        container.removeEventListener("scroll", handleScroll);
+        if (scrollTimeoutRef.current) {
+          clearTimeout(scrollTimeoutRef.current);
+        }
+      };
+    }
+  }, [handleScroll]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
+    };
+  }, []);
+
   const formatFileSize = (bytes) => {
     if (bytes === 0) return "0 Bytes";
     const k = 1024;
@@ -303,7 +421,10 @@ export const MessageList = ({
   };
 
   return (
-    <>
+    <div
+      ref={messagesContainerRef}
+      className="flex-1 overflow-y-auto scroll-smooth"
+    >
       {messages.map((msg) => (
         <div
           key={msg.id}
@@ -422,6 +543,8 @@ export const MessageList = ({
           </div>
         </div>
       ))}
-    </>
+      {/* Invisible element to scroll to */}
+      <div ref={messagesEndRef} />
+    </div>
   );
 };
