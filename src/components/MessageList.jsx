@@ -17,7 +17,6 @@ export const MessageList = ({
   const scrollTimeoutRef = useRef(null);
   const lastMessageCountRef = useRef(0);
 
-  // Scroll functions
   const scrollToBottomInstant = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({
       behavior: "auto",
@@ -32,66 +31,53 @@ export const MessageList = ({
     });
   }, []);
 
-  // Check if user is near bottom
   const isNearBottom = useCallback(() => {
     const container = messagesContainerRef.current;
     if (!container) return true;
 
     const { scrollTop, scrollHeight, clientHeight } = container;
-    const threshold = 150; // Pixels from bottom
+    const threshold = 150;
     return scrollHeight - scrollTop - clientHeight < threshold;
   }, []);
 
-  // Handle scroll events
   const handleScroll = useCallback(() => {
     const container = messagesContainerRef.current;
     if (!container) return;
 
-    // Clear existing timeout
     if (scrollTimeoutRef.current) {
       clearTimeout(scrollTimeoutRef.current);
     }
 
-    // User is actively scrolling
     setIsUserScrolling(true);
 
-    // Check if user is near bottom
     const nearBottom = isNearBottom();
     setShouldAutoScroll(nearBottom);
 
-    // Set timeout to detect when user stops scrolling
     scrollTimeoutRef.current = setTimeout(() => {
       setIsUserScrolling(false);
-    }, 150); // 150ms after user stops scrolling
+    }, 150);
   }, [isNearBottom]);
 
-  // Initial scroll on mount (instant)
   useEffect(() => {
     if (messages.length > 0) {
-      // Reset states for new chat
       setShouldAutoScroll(true);
       setIsUserScrolling(false);
       lastMessageCountRef.current = messages.length;
 
-      // Instant scroll to bottom when opening chat
       setTimeout(() => {
         scrollToBottomInstant();
       }, 0);
     }
-  }, []); // Only run on mount
+  }, []);
 
-  // Handle new messages (smart auto-scroll)
   useEffect(() => {
     const currentMessageCount = messages.length;
     const hasNewMessages = currentMessageCount > lastMessageCountRef.current;
 
     if (hasNewMessages && currentMessageCount > 0) {
-      // Update the last message count
       lastMessageCountRef.current = currentMessageCount;
 
-      // Smart auto-scroll logic
       if (shouldAutoScroll && !isUserScrolling) {
-        // Small delay to ensure DOM is updated
         setTimeout(() => {
           scrollToBottomSmooth();
         }, 50);
@@ -104,7 +90,6 @@ export const MessageList = ({
     scrollToBottomSmooth,
   ]);
 
-  // Attach scroll listener
   useEffect(() => {
     const container = messagesContainerRef.current;
     if (container) {
@@ -119,7 +104,6 @@ export const MessageList = ({
     }
   }, [handleScroll]);
 
-  // Cleanup timeout on unmount
   useEffect(() => {
     return () => {
       if (scrollTimeoutRef.current) {
