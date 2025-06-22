@@ -166,8 +166,8 @@ export const MessageList = ({
 
         {!isImage && !isVideo && (
           <div
-            className={`  border relative  px-3 pt-3 pb-5 bg-gray-50 mb-2 ${
-              message.message !== "" ? " rounded-t-lg" : "rounded-sm"
+            className={`  border relative  px-3 pt-3  bg-gray-50 mb-2 ${
+              message.message !== "" ? " rounded-t-lg pb-3" : "rounded-sm pb-5"
             }`}
           >
             <div className="flex items-center space-x-3">
@@ -213,7 +213,6 @@ export const MessageList = ({
                   >
                     {formatTimestamp(message.timestamp)}
                   </p>
-
                   {message.senderId === user.uid && (
                     <div className="flex">
                       {message.senderId === user.uid && (
@@ -348,24 +347,12 @@ export const MessageList = ({
                     msg.type === "system"
                       ? "bg-white/80 text-gray-600 text-center px-3 py-1.5 rounded-full shadow-sm text-xs"
                       : msg.senderId === user.uid && msg.type !== "file"
-                      ? `bg-blue-500 text-white px-3 py-0.5 shadow-sm ${
-                          // Telegram-style rounded corners - more rounded on top-left, less on bottom-right
-                          "rounded-tl-2xl rounded-tr-2xl rounded-bl-2xl rounded-br-md"
-                        }`
+                      ? `bg-blue-500 text-white px-3 py-0.5 shadow-sm ${"rounded-tl-2xl rounded-tr-2xl rounded-bl-2xl rounded-br-md"}`
                       : msg.type === "file" && msg.senderId === user.uid
-                      ? `bg-blue-500 text-white shadow-sm ${
-                          // Telegram-style rounded corners - more rounded on top-left, less on bottom-right
-                          "rounded-tl-2xl rounded-tr-2xl rounded-bl-2xl rounded-br-md"
-                        }`
+                      ? `bg-blue-500 text-white shadow-sm ${"rounded-tl-2xl rounded-tr-2xl rounded-bl-2xl rounded-br-md"}`
                       : msg.type === "file" && msg.senderId !== user.uid
-                      ? `bg-white text-gray-800 shadow-sm ${
-                          // Telegram-style rounded corners - more rounded on top-left, less on bottom-right
-                          "rounded-tl-2xl rounded-tr-2xl rounded-bl-2xl rounded-br-md"
-                        }`
-                      : `bg-white text-gray-800 px-3 py-2 shadow-sm border border-gray-100 ${
-                          // Opposite rounding for received messages
-                          "rounded-tl-md rounded-tr-2xl rounded-bl-2xl rounded-br-2xl"
-                        }`
+                      ? `bg-white text-gray-800 shadow-sm ${"rounded-tl-2xl rounded-tr-2xl rounded-bl-2xl rounded-br-md"}`
+                      : `bg-white text-gray-800 px-3 py-2 shadow-sm border border-gray-100 ${"rounded-tl-md rounded-tr-2xl rounded-bl-2xl rounded-br-2xl"}`
                   }`}
                 >
                   {msg.type === "file" ? (
@@ -376,18 +363,6 @@ export const MessageList = ({
                         <p className="text-xs font-medium">{msg.message}</p>
                       ) : (
                         <>
-                          {/* For sent messages, show department/position differently
-                    {msg.senderId === user.uid && (
-                      <div className="flex gap-1.5 text-xs items-center mb-1 justify-end">
-                        <span className="text-[10px] bg-white/20 text-white rounded-full px-2 py-0.5 font-medium">
-                          {getSenderData(msg.senderId)?.department}
-                        </span>
-                        <span className="text-[10px] bg-white/20 text-white rounded-full px-2 py-0.5 font-medium">
-                          {getSenderData(msg.senderId)?.position}
-                        </span>
-                      </div>
-                    )} */}
-
                           {/* Message content */}
                           <p className="text-sm ">{msg.message}</p>
 
@@ -408,7 +383,6 @@ export const MessageList = ({
                             >
                               {formatTimestamp(msg.timestamp)}
                             </p>
-                            {/* Read status indicators for sent messages (optional) */}
                             {msg.senderId === user.uid && (
                               <div className="flex">
                                 {msg.senderId === user.uid && (
