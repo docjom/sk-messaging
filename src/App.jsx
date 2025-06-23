@@ -3,6 +3,8 @@ import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import Login from "./Login";
 import Dashboard from "./pages/Dashboard";
+import { WelcomePage } from "./WelcomePage";
+import Register from "./pages/Register";
 
 function App() {
   const [user, setUser] = useState(null);
@@ -25,7 +27,9 @@ function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Login />} />
+        <Route path="/" element={<WelcomePage />} />
+        <Route path="/Login" element={<Login />} />
+        <Route path="/Register" element={<Register />} />
         <Route path="/dashboard" element={user ? <Dashboard /> : <Login />} />
       </Routes>
     </Router>
