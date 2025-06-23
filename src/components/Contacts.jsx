@@ -29,28 +29,29 @@ export function Contacts({ users, currentUserId, handleSelectUser }) {
           <DialogTitle>Contacts</DialogTitle>
         </DialogHeader>
 
-        {users
-          .filter((u) => u.id !== currentUserId)
-          .map((u) => (
-            <div
-              key={u.id}
-              onClick={() => handleSelectUser(u)}
-              className="flex items-center gap-3 hover:bg-gray-200 rounded-lg p-2"
-            >
-              <Avatar className="w-8 h-8">
-                {u?.photoURL ? (
-                  <AvatarImage src={u?.photoURL} />
-                ) : (
-                  <AvatarFallback>{u?.displayName?.[0]}</AvatarFallback>
-                )}
-              </Avatar>
-              <div>
-                <p className="font-medium capitalize">{u?.displayName}</p>
-                <p className="text-xs text-gray-500">{u?.email}</p>
+        <div className="space-y-2 max-h-60 overflow-y-auto">
+          {users
+            .filter((u) => u.id !== currentUserId)
+            .map((u) => (
+              <div
+                key={u.id}
+                onClick={() => handleSelectUser(u)}
+                className="flex items-center gap-2 mb-0 hover:bg-gray-200 rounded-lg p-2"
+              >
+                <Avatar className="w-8 h-8">
+                  {u?.photoURL ? (
+                    <AvatarImage src={u?.photoURL} />
+                  ) : (
+                    <AvatarFallback>{u?.displayName?.[0]}</AvatarFallback>
+                  )}
+                </Avatar>
+                <div>
+                  <p className="font-medium capitalize">{u?.displayName}</p>
+                  <p className="text-xs text-gray-500">{u?.email}</p>
+                </div>
               </div>
-            </div>
-          ))}
-
+            ))}
+        </div>
         <DialogFooter>
           <DialogClose asChild>
             <Button variant="outline" type="button">
