@@ -855,8 +855,8 @@ function Dashboard() {
                     >
                       <Icon
                         icon="material-symbols:send-rounded"
-                        width="30"
-                        height="30"
+                        width="20"
+                        height="20"
                       />
                     </button>
                   </div>
