@@ -5,7 +5,7 @@ import {
   sendPasswordResetEmail,
 } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
-import { auth, provider, db } from "./firebase";
+import { auth, provider, db } from "../firebase";
 import { doc, setDoc, getDoc, updateDoc } from "firebase/firestore";
 import { Button } from "@/components/ui/button";
 import {

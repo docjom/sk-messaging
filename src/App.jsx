@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
-import Login from "./Login";
+import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import { WelcomePage } from "./WelcomePage";
 import Register from "./pages/Register";
