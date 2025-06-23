@@ -45,8 +45,5 @@
     "globals": "^16.0.0",
     "tw-animate-css": "^1.3.4",
     "vite": "^6.3.5"
-  },
-  "engines": {
-  "node": "20.20.0"
-}
+  }
 }
