@@ -29,7 +29,7 @@ export function Contacts({ users, currentUserId, handleSelectUser }) {
           <DialogTitle>Contacts</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-2 max-h-60 overflow-y-auto">
+        <div className="space-y-2 max-h-80 overflow-y-auto">
           {users
             .filter((u) => u.id !== currentUserId)
             .map((u) => (

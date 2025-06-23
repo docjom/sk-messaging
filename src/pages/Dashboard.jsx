@@ -704,7 +704,7 @@ function Dashboard() {
       {/* mobile end */}
 
       {/* Center Chat Area */}
-      <div className="flex-1 bg-gray-100  sm:ml-64 lg:ml-0 sticky top-0 left-0 z-20 overflow-y-auto flex flex-col h-full">
+      <div className="flex-1 bg-gray-100  sm:ml-64 lg:ml-0 sticky top-0 left-0 z-20 overflow-y-hidden flex flex-col h-full">
         {/* Header */}
         {currentChat && (
           <div className="fixed top-0 left-0 right-0 bg-white shadow sm:ml-64 z-30">
@@ -778,7 +778,7 @@ function Dashboard() {
         )}
 
         {/* Chat Messages */}
-        <div className="bg-white rounded shadow flex-1 pt-12 pb-12 flex flex-col">
+        <div className="bg-white rounded shadow overflow-y-auto flex-1 mt-14 mb-15 flex flex-col">
           {chatId ? (
             <>
               {/* Messages Area with Loading */}
