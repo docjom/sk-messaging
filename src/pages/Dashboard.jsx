@@ -58,6 +58,7 @@ function Dashboard() {
   const [messagesLoading, setMessagesLoading] = useState(false);
   const [isAddingUsers, setIsAddingUsers] = useState(false);
   const [isCreatingGroup, setIsCreatingGroup] = useState(false);
+  const [isMessagesSending, setIsMessagesSending] = useState(false);
 
   const [isFileDialogOpen, setIsFileDialogOpen] = useState(false);
   const [isUploadingFile, setIsUploadingFile] = useState(false);
@@ -132,6 +133,8 @@ function Dashboard() {
   const sendMessage = async (chatId, senderId, message) => {
     if (!message.trim()) return;
 
+    setIsMessagesSending(true);
+
     const messagesRef = collection(db, "chats", chatId, "messages");
     const chatRef = doc(db, "chats", chatId);
 
@@ -148,6 +151,7 @@ function Dashboard() {
         lastMessage: message,
         lastMessageTime: serverTimestamp(),
       });
+      setIsMessagesSending(false);
     } catch (error) {
       toast.error("Error sending message:", error);
     }
@@ -428,6 +432,7 @@ function Dashboard() {
       console.error("Chat ID is not set.");
       return;
     }
+    
     const chatRef = doc(db, "chats", chatId);
     const chatDoc = await getDoc(chatRef);
 
@@ -825,7 +830,9 @@ function Dashboard() {
                         variant="ghost"
                         className="text-blue-500 border"
                         onClick={() => setIsFileDialogOpen(true)}
-                        disabled={!chatId || messagesLoading}
+                        disabled={
+                          !chatId || messagesLoading || isMessagesSending
+                        }
                       >
                         <Icon
                           icon="solar:file-send-bold"
@@ -842,7 +849,7 @@ function Dashboard() {
                       onChange={(e) => setMessage(e.target.value)}
                       onKeyPress={handleKeyPress}
                       placeholder="Write a message..."
-                      disabled={messagesLoading}
+                      disabled={messagesLoading || isMessagesSending}
                     />
                     <button
                       onClick={handleSendMessage}
@@ -851,7 +858,9 @@ function Dashboard() {
                           ? "bg-gray-400 text-white cursor-not-allowed"
                           : "bg-blue-500 text-white "
                       }`}
-                      disabled={!message.trim()}
+                      disabled={
+                        !message.trim() || messagesLoading || isMessagesSending
+                      }
                     >
                       <Icon
                         icon="material-symbols:send-rounded"
