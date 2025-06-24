@@ -11,7 +11,7 @@ export const WelcomePage = () => {
         <div className="flex justify-center items-center">
           <img src={Logo} alt="" className="h-20 w-auto" />
         </div>
-        <h1 className="text-4xl text-white mt-10 not-last-of-type:mx-20 font-bold mb-4">
+        <h1 className="sm:text-4xl text-2xl text-white mt-10 not-last-of-type:mx-20 font-bold mb-4">
           Welcome to ArisChat – Where Conversations Come Alive
         </h1>
 
