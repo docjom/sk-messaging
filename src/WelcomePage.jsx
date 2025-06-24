@@ -1,12 +1,12 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@iconify/react";
-import Logo from "./assets/heading.png"; // Assuming you have a logo image
+import Logo from "./assets/heading.png";
 export const WelcomePage = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="flex items-center justify-center h-screen bg-gray-800">
+    <div className="flex items-center justify-center h-screen bg-gray-900">
       <div className="text-center mb-20">
         <div className="flex justify-center items-center">
           <img src={Logo} alt="" className="h-20 w-auto" />
