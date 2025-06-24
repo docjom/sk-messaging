@@ -438,12 +438,16 @@ export const MessageList = ({
                         {getSenderDisplayName(msg.senderId)}
                       </p>
                     )}
-                    <span className="text-[10px] bg-blue-100 text-blue-700 rounded-full px-2 py-0.5 font-medium">
-                      {getSenderData(msg.senderId)?.department}
-                    </span>
-                    <span className="text-[10px] bg-gray-100 text-gray-600 rounded-full border px-2 py-0.5 font-medium">
-                      {getSenderData(msg.senderId)?.position}
-                    </span>
+                    {getSenderData(msg.senderId)?.department && (
+                      <span className="text-[10px] bg-blue-100 text-blue-700 rounded-full px-2 py-0.5 font-medium">
+                        {getSenderData(msg.senderId)?.department}
+                      </span>
+                    )}
+                    {getSenderData(msg.senderId)?.position && (
+                      <span className="text-[10px] bg-gray-100 text-gray-600 rounded-full border px-2 py-0.5 font-medium">
+                        {getSenderData(msg.senderId)?.position}
+                      </span>
+                    )}
                   </div>
                 )}
 
