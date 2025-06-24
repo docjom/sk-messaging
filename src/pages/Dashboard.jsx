@@ -798,7 +798,7 @@ function Dashboard() {
         )}
 
         {/* Chat Messages */}
-        <div className="bg-white rounded overflow-y-auto flex-1 mt-14 mb-15 flex flex-col">
+        <div className="bg-white rounded overflow-y-auto flex-1 mt-14 mb-14 flex flex-col">
           {chatId ? (
             <>
               {/* Messages Area with Loading */}
