@@ -27,7 +27,7 @@ export default defineConfig({
         start_url: "/",
         icons: [
           {
-            src: "pwa-192x192.png",
+            src: "og-logo.jpg",
             sizes: "192x192",
             type: "image/png",
           },
