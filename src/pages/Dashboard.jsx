@@ -67,6 +67,7 @@ function Dashboard() {
 
   const messagesEndRef = useRef(null);
   const messagesContainerRef = useRef(null);
+  const textareaRef = useRef(null);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -433,6 +434,10 @@ function Dashboard() {
     if (!chatId) {
       console.error("Chat ID is not set.");
       return;
+    }
+
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "40px";
     }
 
     const msgToSend = message.trim();
@@ -833,7 +838,7 @@ function Dashboard() {
               {/* Message Input */}
               <div className="fixed bottom-0 left-0 right-0 bg-gray-50 shadow-lg sm:ml-64 z-30">
                 <div className="px-4 py-2  border-t border-gray-300 ">
-                  <div className="flex justify-center items-center gap-2">
+                  <div className="flex justify-center items-end gap-2">
                     <div>
                       <Button
                         type="button"
@@ -851,15 +856,29 @@ function Dashboard() {
                         />
                       </Button>
                     </div>
-                    <input
-                      type="text"
-                      className="flex-1 p-2 outline-none rounded-l-lg "
+                    <textarea
+                      className="flex-1 p-2 outline-none rounded-l-lg resize-none min-h-[40px] max-h-32 overflow-y-auto"
                       value={message}
+                      ref={textareaRef}
                       required
                       onChange={(e) => setMessage(e.target.value)}
                       onKeyPress={handleKeyPress}
                       placeholder="Write a message..."
                       disabled={messagesLoading || isMessagesSending}
+                      rows={1}
+                      style={{
+                        height: "auto",
+                        minHeight: "40px",
+                      }}
+                      onInput={(e) => {
+                        if (e.target.value === "") {
+                          e.target.style.height = "40px";
+                        } else {
+                          e.target.style.height = "auto";
+                          e.target.style.height =
+                            Math.min(e.target.scrollHeight, 128) + "px";
+                        }
+                      }}
                     />
                     <button
                       onClick={handleSendMessage}
