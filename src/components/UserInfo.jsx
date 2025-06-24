@@ -29,19 +29,23 @@ export const UserInfo = ({ user, isOpen, onClose }) => {
               </Avatar>
 
               <div>
-                <div>
-                  <span
-                    title="Department"
-                    className="text-xs font-semibold text-blue-500 bg-gray-100 border px-2 py-0.5 rounded-full"
-                  >
-                    {user.department}
-                  </span>{" "}
-                  <span
-                    title="Position"
-                    className="text-xs font-semibold text-gray-800 bg-gray-100 border px-2 py-0.5 rounded-full"
-                  >
-                    {user.position}
-                  </span>
+                <div className="flex gap-2">
+                  {user.department && (
+                    <span
+                      title="Department"
+                      className="text-xs font-semibold text-blue-500 bg-gray-100 border px-2 py-0.5 rounded-full"
+                    >
+                      {user.department}
+                    </span>
+                  )}
+                  {user.position && (
+                    <span
+                      title="Position"
+                      className="text-xs font-semibold text-gray-800 bg-gray-100 border px-2 py-0.5 rounded-full"
+                    >
+                      {user.position}
+                    </span>
+                  )}
                 </div>
                 <h1 title="Name" className=" font-bold text-gray-800 text-2xl">
                   {user.displayName}
