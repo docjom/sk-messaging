@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@iconify/react";
-import Logo from "./assets/logo.jpg"; // Assuming you have a logo image
+import Logo from "./assets/heading.png"; // Assuming you have a logo image
 export const WelcomePage = () => {
   const navigate = useNavigate();
 
@@ -9,7 +9,7 @@ export const WelcomePage = () => {
     <div className="flex items-center justify-center h-screen bg-gray-800">
       <div className="text-center mb-20">
         <div className="flex justify-center items-center">
-          <img src={Logo} alt="" className="size-20" />
+          <img src={Logo} alt="" className="h-20 w-auto" />
         </div>
         <h1 className="text-4xl text-white mt-10 not-last-of-type:mx-20 font-bold mb-4">
           Welcome to ArisChat – Where Conversations Come Alive
