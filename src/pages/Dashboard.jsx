@@ -435,6 +435,11 @@ function Dashboard() {
       return;
     }
 
+    const msgToSend = message.trim();
+    if (msgToSend === "") return;
+
+    setMessage("");
+
     const chatRef = doc(db, "chats", chatId);
     const chatDoc = await getDoc(chatRef);
 
@@ -446,10 +451,8 @@ function Dashboard() {
         return;
       }
     }
-    if (message.trim() !== "") {
-      await sendMessage(chatId, user.uid, message);
-      setMessage("");
-    }
+
+    await sendMessage(chatId, user.uid, msgToSend);
   };
 
   const handleKeyPress = (e) => {
