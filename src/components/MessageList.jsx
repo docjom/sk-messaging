@@ -413,13 +413,19 @@ export const MessageList = ({
 
         {message.message && (
           <>
-            <p
-              className={`text-sm px-2 ${
+            <div
+              dangerouslySetInnerHTML={{
+                __html: formatMessageWithLinks(
+                  message.message,
+                  message.senderId,
+                  user.uid
+                ),
+              }}
+              className={`text-sm px-2 whitespace-pre-wrap break-words  ${
                 message.senderId === user.uid ? "text-white" : "text-gray-800"
               }`}
-            >
-              {message.message}
-            </p>
+            />
+
             <div
               className={`flex items-center gap-1 px-2 ${
                 message.senderId === user.uid ? "justify-end" : "justify-start"
@@ -464,6 +470,50 @@ export const MessageList = ({
         )}
       </div>
     );
+  };
+
+  const formatMessageWithLinks = (text, senderId, userId) => {
+    if (!text) return "";
+
+    // Regular expressions for different patterns
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    const emailRegex = /([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g;
+    const phoneRegex = /(\+?[\d\s\-()]{10,})/g;
+
+    // Determine styling based on sender
+    const isCurrentUser = senderId === userId;
+    const linkClasses = isCurrentUser
+      ? "text-white font-bold underline hover:text-gray-200 cursor-pointer"
+      : "text-blue-400 underline hover:text-blue-300 cursor-pointer";
+
+    let formattedText = text;
+
+    // Replace URLs with clickable links
+    formattedText = formattedText.replace(urlRegex, (url) => {
+      return `<a href="${url}" target="_blank" rel="noopener noreferrer" 
+            class="${linkClasses}"
+           >${url}</a>`;
+    });
+
+    // Replace emails with clickable mailto links
+    formattedText = formattedText.replace(emailRegex, (email) => {
+      return `<a href="mailto:${email}" 
+            class="${linkClasses}"
+            >${email}</a>`;
+    });
+
+    // Replace phone numbers with clickable tel links
+    formattedText = formattedText.replace(phoneRegex, (phone) => {
+      const cleanPhone = phone.replace(/\s+/g, "");
+      if (cleanPhone.length >= 10) {
+        return `<a href="tel:${cleanPhone}" 
+              class="${linkClasses}"
+             >${phone}</a>`;
+      }
+      return phone;
+    });
+
+    return formattedText;
   };
 
   return (
@@ -535,7 +585,16 @@ export const MessageList = ({
                       ) : (
                         <>
                           {/* Message content */}
-                          <p className="text-sm ">{msg.message}</p>
+                          <div
+                            dangerouslySetInnerHTML={{
+                              __html: formatMessageWithLinks(
+                                msg.message,
+                                msg.senderId,
+                                user.uid
+                              ),
+                            }}
+                            className="text-sm whitespace-pre-wrap break-words "
+                          />
 
                           {/* Timestamp - Telegram style */}
                           <div
