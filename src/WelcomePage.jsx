@@ -8,7 +8,9 @@ export const WelcomePage = () => {
   return (
     <div className="flex items-center justify-center h-screen bg-gray-100">
       <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Pagud Kanaba sa buhay?</h1>
+        <h1 className="text-4xl font-bold mb-4">
+          Welcome to ArisChat – Where Conversations Come Alive
+        </h1>
 
         <div className="flex justify-center items-center gap-2">
           <Button
