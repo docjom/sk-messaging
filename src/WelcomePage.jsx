@@ -6,20 +6,20 @@ export const WelcomePage = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="flex items-center justify-center h-screen bg-gray-100">
+    <div className="flex items-center justify-center h-screen bg-gray-800">
       <div className="text-center mb-20">
         <div className="flex justify-center items-center">
           <img src={Logo} alt="" className="size-20" />
         </div>
-        <h1 className="text-4xl mt-10 not-last-of-type:mx-20 font-bold mb-4">
+        <h1 className="text-4xl text-white mt-10 not-last-of-type:mx-20 font-bold mb-4">
           Welcome to ArisChat – Where Conversations Come Alive
         </h1>
 
         <div className="flex justify-center items-center gap-2">
           <Button
             type="button"
-            variant="default"
-            className=" border shadow"
+            variant=""
+            className=" border shadow bg-blue-500"
             onClick={() => navigate("/Login")}
           >
             <Icon icon="solar:login-broken" width="24" height="24" />
@@ -28,7 +28,7 @@ export const WelcomePage = () => {
           <Button
             type="button"
             variant="ghost"
-            className=" border shadow"
+            className=" border shadow text-white"
             onClick={() => navigate("/Register")}
           >
             <Icon icon="solar:add-circle-broken" width="24" height="24" />
