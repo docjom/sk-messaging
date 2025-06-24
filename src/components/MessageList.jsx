@@ -269,7 +269,7 @@ export const MessageList = ({
         {!isImage && !isVideo && (
           <div
             className={`  border relative  px-3 pt-3  bg-gray-50 mb-2 ${
-              message.message !== "" ? " rounded-t-lg pb-3" : "rounded-sm pb-5"
+              message.message !== "" ? " rounded-t-lg pb-3" : "rounded-lg pb-5"
             }`}
           >
             <div className="flex items-center space-x-3">
@@ -452,11 +452,11 @@ export const MessageList = ({
                     msg.type === "system"
                       ? "bg-white/80 text-gray-600 text-center px-3 py-1.5 rounded-full shadow-sm text-xs"
                       : msg.senderId === user.uid && msg.type !== "file"
-                      ? `bg-blue-500 text-white px-3 py-0.5 shadow-sm ${"rounded-tl-2xl rounded-tr-2xl rounded-bl-2xl rounded-br-md"}`
+                      ? `bg-blue-500 text-white px-3 py-0.5 shadow-sm ${"rounded-tl-2xl rounded-tr-2xl rounded-bl-2xl rounded-br-lg"}`
                       : msg.type === "file" && msg.senderId === user.uid
-                      ? `bg-blue-500 text-white shadow-sm ${"rounded-tl-2xl rounded-tr-2xl rounded-bl-2xl rounded-br-md"}`
+                      ? `bg-blue-500 text-white shadow-sm ${"rounded-tl-2xl rounded-tr-2xl rounded-bl-2xl rounded-br-lg"}`
                       : msg.type === "file" && msg.senderId !== user.uid
-                      ? `bg-white text-gray-800 shadow-sm ${"rounded-tl-2xl rounded-tr-2xl rounded-bl-2xl rounded-br-md"}`
+                      ? `bg-white text-gray-800 shadow-sm ${"rounded-tl-2xl rounded-tr-2xl rounded-bl-2xl rounded-br-lg"}`
                       : `bg-white text-gray-800 px-3 py-2 shadow-sm border border-gray-100 ${"rounded-tl-md rounded-tr-2xl rounded-bl-2xl rounded-br-2xl"}`
                   }`}
                 >
