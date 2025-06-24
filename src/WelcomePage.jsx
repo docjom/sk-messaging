@@ -6,7 +6,7 @@ export const WelcomePage = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="flex items-center justify-center h-screen bg-gray-900">
+    <div className="flex items-center justify-center h-screen bg-gradient-to-r from-blue-950 via-blue-700 to-blue-500">
       <div className="text-center mb-20">
         <div className="flex justify-center items-center">
           <img src={Logo} alt="" className="h-20 w-auto" />
@@ -19,7 +19,7 @@ export const WelcomePage = () => {
           <Button
             type="button"
             variant=""
-            className=" border shadow bg-blue-500"
+            className=" border shadow bg-white text-blue-500"
             onClick={() => navigate("/Login")}
           >
             <Icon icon="solar:login-broken" width="24" height="24" />
