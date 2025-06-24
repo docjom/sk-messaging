@@ -20,6 +20,7 @@ import { ChatList } from "@/components/ChatList";
 import { Logout } from "@/components/Logout";
 import FileUploadDialog from "@/components/FileUploadDialog";
 import ErrorProfileImage from "../assets/error.png";
+import { UserInfo } from "@/components/UserInfo";
 import {
   addDoc,
   collection,
@@ -61,6 +62,7 @@ function Dashboard() {
   const [isMessagesSending, setIsMessagesSending] = useState(false);
 
   const [isFileDialogOpen, setIsFileDialogOpen] = useState(false);
+  const [ifUserInfoOpen, setIfUserInfoOpen] = useState(false);
   const [isUploadingFile, setIsUploadingFile] = useState(false);
 
   const messagesEndRef = useRef(null);
@@ -432,7 +434,7 @@ function Dashboard() {
       console.error("Chat ID is not set.");
       return;
     }
-    
+
     const chatRef = doc(db, "chats", chatId);
     const chatDoc = await getDoc(chatRef);
 
@@ -763,7 +765,12 @@ function Dashboard() {
 
                 {/* Show direct chat user info */}
                 {currentChat.type === "direct" && selectedUser && (
-                  <div className="flex items-center">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="flex items-center p-0"
+                    onClick={() => setIfUserInfoOpen(true)}
+                  >
                     <img
                       src={selectedUser.photoURL}
                       alt={selectedUser.displayName}
@@ -775,7 +782,7 @@ function Dashboard() {
                     <span className="text-lg text-gray-800 font-semibold capitalize">
                       {selectedUser.displayName}
                     </span>
-                  </div>
+                  </Button>
                 )}
               </div>
             </div>
@@ -893,6 +900,12 @@ function Dashboard() {
         onSend={handleFileUpload}
         chatId={chatId}
         isLoading={isUploadingFile}
+      />
+
+      <UserInfo
+        isOpen={ifUserInfoOpen}
+        onClose={() => setIfUserInfoOpen(false)}
+        user={selectedUser}
       />
     </div>
   );
