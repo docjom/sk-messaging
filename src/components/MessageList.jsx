@@ -16,6 +16,7 @@ export const MessageList = ({
   const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
   const scrollTimeoutRef = useRef(null);
   const lastMessageCountRef = useRef(0);
+  const [loadingStates, setLoadingStates] = useState({});
 
   const scrollToBottomInstant = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({
@@ -57,6 +58,20 @@ export const MessageList = ({
       setIsUserScrolling(false);
     }, 150);
   }, [isNearBottom]);
+
+  const handleImageLoad = useCallback((messageId) => {
+    setLoadingStates((prev) => ({
+      ...prev,
+      [messageId]: { ...prev[messageId], imageLoaded: true },
+    }));
+  }, []);
+
+  const handleVideoLoad = useCallback((messageId) => {
+    setLoadingStates((prev) => ({
+      ...prev,
+      [messageId]: { ...prev[messageId], videoLoaded: true },
+    }));
+  }, []);
 
   useEffect(() => {
     if (messages.length > 0) {
@@ -127,6 +142,9 @@ export const MessageList = ({
     const isImage = fileData.type.startsWith("image/");
     const isVideo = fileData.type.startsWith("video/");
     const isPdf = fileData.type.includes("pdf");
+    const messageId = message.id;
+    const isImageLoaded = loadingStates[messageId]?.imageLoaded || false;
+    const isVideoLoaded = loadingStates[messageId]?.videoLoaded || false;
 
     const downloadFile = (url, filename) => {
       const link = document.createElement("a");
@@ -142,18 +160,39 @@ export const MessageList = ({
     return (
       <div className="max-w-sm">
         {isImage && (
-          <div className={` relative${message.message ? "mb-2" : ""}`}>
+          <div className={`relative${message.message ? " mb-2" : ""}`}>
+            {/* Loading placeholder */}
+            {!isImageLoaded && (
+              <div
+                className={`w-40 h-80 bg-white border border-gray-200 flex items-center justify-center ${
+                  message.message !== "" ? "rounded-t-lg" : "rounded-lg"
+                }`}
+              >
+                <div className="flex flex-col items-center gap-2">
+                  <Icon
+                    icon="ic:round-image"
+                    width="24"
+                    height="24"
+                    className="text-gray-400 animate-pulse"
+                  />
+                  <span className="text-xs text-gray-400">Loading...</span>
+                </div>
+              </div>
+            )}
+
             <img
               src={fileData.url}
               alt={fileData.name}
-              className={`  w-full h-auto max-h-80 object-cover cursor-pointer ${
-                message.message !== "" ? " rounded-t-lg" : "rounded-lg"
-              }`}
+              className={`w-full h-auto max-h-80 object-cover cursor-pointer ${
+                message.message !== "" ? "rounded-t-lg" : "rounded-lg"
+              } ${!isImageLoaded ? "hidden" : ""}`}
               onClick={() => window.open(fileData.url, "_blank")}
+              onLoad={() => handleImageLoad(messageId)}
             />
-            {!message.message && (
+
+            {!message.message && isImageLoaded && (
               <div
-                className={`absolute   border-gray-200/50 border backdrop-blur-sm rounded-full max-w-32 gap-1 px-2 ${
+                className={`absolute border-gray-200/50 border backdrop-blur-sm rounded-full max-w-32 gap-1 px-2 ${
                   message.senderId === user.uid
                     ? "justify-end bottom-1 right-1 bg-gray-200"
                     : "justify-start top-1 left-1 bg-gray-200"
@@ -206,16 +245,39 @@ export const MessageList = ({
 
         {isVideo && (
           <div className="mb-2 relative">
+            {/* Loading placeholder */}
+            {!isVideoLoaded && (
+              <div
+                className={`w-40 h-80 bg-white border border-gray-200 flex items-center justify-center ${
+                  message.message !== "" ? "rounded-t-lg" : "rounded-lg"
+                }`}
+              >
+                <div className="flex flex-col items-center gap-2">
+                  <Icon
+                    icon="ic:round-play-circle-filled"
+                    width="32"
+                    height="32"
+                    className="text-gray-400 animate-pulse"
+                  />
+                  <span className="text-xs text-gray-400">
+                    Loading video...
+                  </span>
+                </div>
+              </div>
+            )}
+
             <video
               src={fileData.url}
               controls
-              className={`  w-full h-auto max-h-80 object-cover cursor-pointer ${
-                message.message !== "" ? " rounded-t-lg" : "rounded-lg"
-              }`}
+              className={`w-full h-auto max-h-80 object-cover cursor-pointer ${
+                message.message !== "" ? "rounded-t-lg" : "rounded-lg"
+              } ${!isVideoLoaded ? "hidden" : ""}`}
+              onLoadedData={() => handleVideoLoad(messageId)}
             />
-            {!message.message && (
+
+            {!message.message && isVideoLoaded && (
               <div
-                className={`absolute   border-gray-200/50 border backdrop-blur-sm rounded-full max-w-32 gap-1 px-2 ${
+                className={`absolute border-gray-200/50 border backdrop-blur-sm rounded-full max-w-32 gap-1 px-2 ${
                   message.senderId === user.uid
                     ? "justify-end bottom-1 right-1 bg-gray-500/50"
                     : "justify-start top-1 left-1 bg-gray-200"
@@ -268,8 +330,8 @@ export const MessageList = ({
 
         {!isImage && !isVideo && (
           <div
-            className={`  border relative  px-3 pt-3  bg-gray-50 mb-2 ${
-              message.message !== "" ? " rounded-t-lg pb-3" : "rounded-lg pb-5"
+            className={`border relative px-3 pt-3 bg-gray-50 mb-2 ${
+              message.message !== "" ? "rounded-t-lg pb-3" : "rounded-lg pb-5"
             }`}
           >
             <div className="flex items-center space-x-3">
@@ -299,10 +361,10 @@ export const MessageList = ({
             </div>
             {!message.message && (
               <div
-                className={`absolute bottom-1 right-1  border-gray-200/50 border backdrop-blur-sm rounded-full max-w-32 gap-1 px-2 ${
+                className={`absolute bottom-1 right-1 border-gray-200/50 border backdrop-blur-sm rounded-full max-w-32 gap-1 px-2 ${
                   message.senderId === user.uid
-                    ? "justify-end  bg-gray-500/50"
-                    : "justify-start  bg-gray-500/20"
+                    ? "justify-end bg-gray-500/50"
+                    : "justify-start bg-gray-500/20"
                 }`}
               >
                 <div className="flex items-center space-x-2">
