@@ -2,9 +2,18 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@iconify/react";
 import Logo from "./assets/heading.png";
+import { useEffect } from "react";
+import { useInternetConnection } from "@/hooks/CheckInternetConnection";
 
 export const WelcomePage = () => {
   const navigate = useNavigate();
+  const { isOnline, wasOffline } = useInternetConnection();
+
+  useEffect(() => {
+    if (!isOnline && wasOffline) {
+      navigate("/no-internet");
+    }
+  }, [isOnline, wasOffline, navigate]);
 
   return (
     <div className="flex items-center justify-center h-screen bg-gradient-to-r from-blue-950 via-blue-700 to-blue-500">
