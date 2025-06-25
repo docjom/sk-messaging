@@ -7,7 +7,7 @@ import {
   PopoverTrigger,
   PopoverContent,
 } from "@/components/ui/popover";
-import Picker from "emoji-picker-react";
+import { EmojiSet } from "./EmojiSet";
 
 export const MessageList = ({
   messages,
@@ -587,85 +587,7 @@ export const MessageList = ({
                   </Button>
                   <div className="absolute w-52 -top-13  left-0  mt-2">
                     <div className="relative">
-                      <div className="flex gap-2 border p-1 rounded-full bg-transparent backdrop-blur-sm ">
-                        <div>
-                          <picture>
-                            <source
-                              srcset="https://fonts.gstatic.com/s/e/notoemoji/latest/2764_fe0f/512.webp"
-                              type="image/webp"
-                            />
-                            <img
-                              src="https://fonts.gstatic.com/s/e/notoemoji/latest/2764_fe0f/512.gif"
-                              alt="❤"
-                              width="32"
-                              height="32"
-                            />
-                          </picture>
-                        </div>
-                        <div>
-                          <picture>
-                            <source
-                              srcset="https://fonts.gstatic.com/s/e/notoemoji/latest/1f620/512.webp"
-                              type="image/webp"
-                            />
-                            <img
-                              src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f620/512.gif"
-                              alt="😠"
-                              width="32"
-                              height="32"
-                            />
-                          </picture>
-                        </div>
-                        <div>
-                          <picture>
-                            <source
-                              srcset="https://fonts.gstatic.com/s/e/notoemoji/latest/1f62d/512.webp"
-                              type="image/webp"
-                            />
-                            <img
-                              src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f62d/512.gif"
-                              alt="😭"
-                              width="32"
-                              height="32"
-                            />
-                          </picture>
-                        </div>
-                        <div>
-                          <picture>
-                            <source
-                              srcset="https://fonts.gstatic.com/s/e/notoemoji/latest/1f64f/512.webp"
-                              type="image/webp"
-                            />
-                            <img
-                              src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f64f/512.gif"
-                              alt="🙏"
-                              width="32"
-                              height="32"
-                            />
-                          </picture>
-                        </div>
-                        <div>
-                          <picture>
-                            <source
-                              srcset="https://fonts.gstatic.com/s/e/notoemoji/latest/1f600/512.webp"
-                              type="image/webp"
-                            />
-                            <img
-                              src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f600/512.gif"
-                              alt="😀"
-                              width="32"
-                              height="32"
-                            />
-                          </picture>
-                        </div>
-                        <div className="flex items-center text-white pr-2 justify-center ">
-                          <Icon
-                            icon="solar:widget-add-bold-duotone"
-                            width="16"
-                            height="16"
-                          />
-                        </div>
-                      </div>
+                      <EmojiSet />
                     </div>
                   </div>
                 </PopoverContent>
@@ -829,23 +751,9 @@ export const MessageList = ({
                         Copy
                       </Button>
 
-                      <div className="absolute w-96 -top-14 left-0 mb-2">
+                      <div className="absolute w-52 -top-13 left-0 mb-2">
                         <div className="relative">
-                          <div className="flex gap-4">
-                            {/* // <EmojiPicker /> */}
-                            {emojiPickerLoaded ? (
-                              <Picker
-                                reactionsDefaultOpen={true}
-                                onEmojiClick={(emojiData) => {
-                                  console.log("Selected emoji:", emojiData);
-                                }}
-                              />
-                            ) : (
-                              <div className="p-4 text-sm text-gray-500">
-                                Loading emojis...
-                              </div>
-                            )}
-                          </div>
+                          <EmojiSet />
                         </div>
                       </div>
                     </PopoverContent>
