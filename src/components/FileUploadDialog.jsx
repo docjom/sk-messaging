@@ -213,12 +213,12 @@ const FileUploadDialog = ({
             /* File Preview */
             <div className="space-y-4">
               {/* Preview Area */}
-              <div className="border rounded-lg overflow-hidden bg-gray-50">
+              <div className="border rounded-lg max-w- overflow-hidden bg-gray-50">
                 {selectedFile.type.startsWith("image/") && filePreview ? (
                   <img
                     src={filePreview}
                     alt="Preview"
-                    className="w-full max-h-64 object-contain"
+                    className=" w-full max-h-64 object-contain"
                   />
                 ) : selectedFile.type.startsWith("video/") && filePreview ? (
                   <img
@@ -264,13 +264,15 @@ const FileUploadDialog = ({
               <label className="text-sm font-medium text-gray-700">
                 Add a message (optional)
               </label>
-              <Textarea
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                placeholder="Write a message..."
-                className="resize-none"
-                rows={3}
-              />
+              <div className="border rounded-lg max-w-md">
+                <Textarea
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  placeholder="Write a message..."
+                  className=" outline-none w-80 resize-none max-h-80 border-none shadow-none sm:w-md whitespace-normal"
+                  rows={3}
+                />
+              </div>
             </div>
           )}
 
