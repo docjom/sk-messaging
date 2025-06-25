@@ -815,7 +815,7 @@ function Dashboard() {
                       <>
                         <MessageList
                           messages={messages}
-                          user={user}
+                          user={userProfile}
                           getSenderData={getSenderData}
                           getSenderDisplayName={getSenderDisplayName}
                           formatTimestamp={formatTimestamp}

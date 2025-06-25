@@ -2,6 +2,11 @@ import React, { useEffect, useRef, useState, useCallback } from "react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Icon } from "@iconify/react";
 import { Button } from "@/components/ui/button";
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from "@/components/ui/popover";
 
 export const MessageList = ({
   messages,
@@ -532,6 +537,45 @@ export const MessageList = ({
               : "justify-start"
           }`}
         >
+          {/* Options button for current user messages */}
+          {msg.senderId === user.uid && msg.type !== "system" && (
+            <>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant={"ghost"}
+                    size={"sm"}
+                    className="mr-2 rounded-full border"
+                  >
+                    <Icon
+                      icon="solar:menu-dots-bold-duotone"
+                      width="24"
+                      height="24"
+                    />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-40 p-1">
+                  <Button
+                    variant={"ghost"}
+                    size={"sm"}
+                    className="flex w-full justify-start gap-2 items-center"
+                  >
+                    <Icon icon="solar:reply-broken" width="24" height="24" />
+                    Reply
+                  </Button>
+                  <Button
+                    variant={"ghost"}
+                    size={"sm"}
+                    className="flex w-full justify-start gap-2 items-center"
+                  >
+                    <Icon icon="solar:copy-broken" width="24" height="24" />
+                    Copy
+                  </Button>
+                </PopoverContent>
+              </Popover>
+            </>
+          )}
+          {/* ------------------------------------------------ */}
           <div>
             <div className="flex items-end gap-1.5">
               {msg.senderId !== user.uid && msg.type !== "system" && (
@@ -648,6 +692,23 @@ export const MessageList = ({
                   )}
                 </div>
               </div>
+
+              {/* Options button for non-current user messages */}
+              {msg.senderId !== user.uid && msg.type !== "system" && (
+                <>
+                  <Button
+                    variant={"ghost"}
+                    size={"sm"}
+                    className="mr-2 rounded-full border"
+                  >
+                    <Icon
+                      icon="solar:menu-dots-bold-duotone"
+                      width="24"
+                      height="24"
+                    />
+                  </Button>
+                </>
+              )}
             </div>
           </div>
         </div>
