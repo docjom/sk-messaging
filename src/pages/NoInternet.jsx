@@ -3,8 +3,6 @@ import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@iconify/react";
 import { useInternetConnection } from "../hooks/CheckInternetConnection";
-import NoInternetImage from "../assets/NoInternet.svg";
-
 export const NoInternetPage = () => {
   const navigate = useNavigate();
   const { isOnline } = useInternetConnection();
@@ -22,10 +20,6 @@ export const NoInternetPage = () => {
   return (
     <div className="flex items-center justify-center h-screen bg-gradient-to-r from-gray-900 via-gray-700 to-gray-500">
       <div className="text-center">
-        <div className="flex justify-center items-center">
-          <img src={NoInternetImage} alt="" className="size-32" />
-        </div>
-
         <h1 className="text-2xl sm:text-4xl text-white font-bold mb-4">
           No Internet Connection
         </h1>
