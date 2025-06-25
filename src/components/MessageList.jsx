@@ -571,6 +571,33 @@ export const MessageList = ({
                     <Icon icon="solar:copy-broken" width="24" height="24" />
                     Copy
                   </Button>
+                  <div className="absolute w-full  left-0 border-gray-200/50 border backdrop-blur-sm rounded-lg py-1 px-2 mt-2">
+                    <div className="relative">
+                      <div className="flex gap-4">
+                        <Button
+                          variant={"ghost"}
+                          size={"lg"}
+                          className=" p-0 hover:bg-none h-5"
+                        >
+                          👍
+                        </Button>{" "}
+                        <Button
+                          variant={"ghost"}
+                          size={"lg"}
+                          className=" p-0 hover:bg-none h-5"
+                        >
+                          😂
+                        </Button>{" "}
+                        <Button
+                          variant={"ghost"}
+                          size={"lg"}
+                          className=" p-0 hover:bg-none h-5"
+                        >
+                          ❤️
+                        </Button>{" "}
+                      </div>
+                    </div>
+                  </div>
                 </PopoverContent>
               </Popover>
             </>
@@ -696,17 +723,71 @@ export const MessageList = ({
               {/* Options button for non-current user messages */}
               {msg.senderId !== user.uid && msg.type !== "system" && (
                 <>
-                  <Button
-                    variant={"ghost"}
-                    size={"sm"}
-                    className="mr-2 rounded-full border"
-                  >
-                    <Icon
-                      icon="solar:menu-dots-bold-duotone"
-                      width="24"
-                      height="24"
-                    />
-                  </Button>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant={"ghost"}
+                        size={"sm"}
+                        className="mr-2 rounded-full border"
+                      >
+                        <Icon
+                          icon="solar:menu-dots-bold-duotone"
+                          width="24"
+                          height="24"
+                        />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-40 p-1">
+                      <Button
+                        variant={"ghost"}
+                        size={"sm"}
+                        className="flex w-full justify-start gap-2 items-center"
+                      >
+                        <Icon
+                          icon="solar:reply-broken"
+                          width="24"
+                          height="24"
+                        />
+                        Reply
+                      </Button>
+                      <Button
+                        variant={"ghost"}
+                        size={"sm"}
+                        className="flex w-full justify-start gap-2 items-center"
+                      >
+                        <Icon icon="solar:copy-broken" width="24" height="24" />
+                        Copy
+                      </Button>
+
+                      <div className="absolute w-full  left-0 border-gray-200/50 border backdrop-blur-sm rounded-lg py-1 px-2 mt-2">
+                        <div className="relative">
+                          <div className="flex gap-4">
+                            <Button
+                              variant={"ghost"}
+                              size={"lg"}
+                              className=" p-0 hover:bg-none h-5"
+                            >
+                              👍
+                            </Button>{" "}
+                            <Button
+                              variant={"ghost"}
+                              size={"lg"}
+                              className=" p-0 hover:bg-none h-5"
+                            >
+                              😂
+                            </Button>{" "}
+                            <Button
+                              variant={"ghost"}
+                              size={"lg"}
+                              className=" p-0 hover:bg-none h-5"
+                            >
+                              ❤️
+                            </Button>{" "}
+                          </div>
+                        </div>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
                 </>
               )}
             </div>
