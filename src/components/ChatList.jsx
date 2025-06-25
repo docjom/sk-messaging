@@ -23,7 +23,7 @@ export const ChatList = ({
               : " hover:bg-gray-700"
           }`}
         >
-          <div className="flex items-center gap-2">
+          <div className="flex items-end gap-2">
             <div className="relative">
               {chat.type === "direct" && (
                 <Icon
@@ -44,7 +44,7 @@ export const ChatList = ({
               </Avatar>
             </div>
 
-            <div>
+            <div className="w-full">
               <div
                 className={`text-sm capitalize truncate max-w-40 ${
                   chatId === chat.id ? "font-semibold " : ""
@@ -52,12 +52,12 @@ export const ChatList = ({
               >
                 {getChatDisplayName(chat)}
               </div>
-              <div className="text-xs capitalize text-gray-400 flex items-center gap-1">
+              <div className="text-xs w-52 sm:w-28 capitalize text-gray-400 flex items-center gap-1">
                 {chat.type}
                 {/* Show last message preview */}
                 {chat.lastMessage && (
                   <div
-                    className={`text-xs truncate w-20 ${
+                    className={`text-xs w-full overflow-hidden truncate ${
                       formatTimestamp(chat.lastMessageTime) === "Just now"
                         ? "font-bold text-white"
                         : "text-gray-300"
@@ -66,20 +66,21 @@ export const ChatList = ({
                     {chat.lastMessage}
                   </div>
                 )}
-                {/* Show timestamp */}
-                {chat.lastMessageTime && (
-                  <div
-                    className={`text-xs max-w-20 truncate ${
-                      formatTimestamp(chat.lastMessageTime) === "Just now"
-                        ? "font-bold text-gray-200"
-                        : "text-gray-400"
-                    }`}
-                  >
-                    {formatTimestamp(chat.lastMessageTime)}
-                  </div>
-                )}
               </div>
             </div>
+
+            {/* Show timestamp */}
+            {chat.lastMessageTime && (
+              <div
+                className={`text-xs min-w-18 sm:min-w-15 flex justify-end ${
+                  formatTimestamp(chat.lastMessageTime) === "Just now"
+                    ? "font-bold text-gray-200"
+                    : "text-gray-400"
+                }`}
+              >
+                {formatTimestamp(chat.lastMessageTime)}
+              </div>
+            )}
           </div>
         </div>
       ))}
