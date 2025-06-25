@@ -24,7 +24,7 @@ export default defineConfig({
         theme_color: "#ffffff",
         background_color: "#ffffff",
         display: "standalone",
-        start_url: "/Dashboard",
+        start_url: "/dashboard",
         icons: [
           {
             src: "og-logo.jpg",
