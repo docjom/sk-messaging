@@ -2,21 +2,9 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@iconify/react";
 import Logo from "./assets/heading.png";
-import { useEffect } from "react";
-import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "./firebase";
+
 export const WelcomePage = () => {
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (!user) {
-        navigate("/", { replace: true });
-      }
-      navigate("/dashboard", { replace: true });
-    });
-    return () => unsubscribe();
-  }, [navigate]);
 
   return (
     <div className="flex items-center justify-center h-screen bg-gradient-to-r from-blue-950 via-blue-700 to-blue-500">
