@@ -69,7 +69,6 @@ function Dashboard() {
   const messagesContainerRef = useRef(null);
   const textareaRef = useRef(null);
 
-
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);

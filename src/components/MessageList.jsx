@@ -7,6 +7,7 @@ import {
   PopoverTrigger,
   PopoverContent,
 } from "@/components/ui/popover";
+import Picker from "emoji-picker-react";
 
 export const MessageList = ({
   messages,
@@ -22,6 +23,19 @@ export const MessageList = ({
   const scrollTimeoutRef = useRef(null);
   const lastMessageCountRef = useRef(0);
   const [loadingStates, setLoadingStates] = useState({});
+
+  const [emojiPickerLoaded, setEmojiPickerLoaded] = useState(false);
+
+  const handlePopoverOpen = async () => {
+    if (!emojiPickerLoaded) {
+      try {
+        await import("emoji-picker-react");
+        setEmojiPickerLoaded(true);
+      } catch (error) {
+        console.warn("Failed to load emoji picker:", error);
+      }
+    }
+  };
 
   const scrollToBottomInstant = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({
@@ -426,7 +440,7 @@ export const MessageList = ({
                   user.uid
                 ),
               }}
-              className={`text-sm max-w-66 sm:max-w-96 px-2 whitespace-pre-wrap break-words  ${
+              className={`text-sm max-w-52 sm:max-w-80 px-2 whitespace-pre-wrap break-words  ${
                 message.senderId === user.uid ? "text-white" : "text-gray-800"
               }`}
             />
@@ -539,8 +553,8 @@ export const MessageList = ({
         >
           {/* Options button for current user messages */}
           {msg.senderId === user.uid && msg.type !== "system" && (
-            <>
-              <Popover>
+            <div className="relative">
+              <Popover onOpenChange={(open) => open && handlePopoverOpen()}>
                 <PopoverTrigger asChild>
                   <Button
                     variant={"ghost"}
@@ -571,36 +585,28 @@ export const MessageList = ({
                     <Icon icon="solar:copy-broken" width="24" height="24" />
                     Copy
                   </Button>
-                  <div className="absolute w-full  left-0 border-gray-200/50 border backdrop-blur-sm rounded-lg py-1 px-2 mt-2">
+                  <div className="absolute w-96 -top-14  left-0  mt-2">
                     <div className="relative">
                       <div className="flex gap-4">
-                        <Button
-                          variant={"ghost"}
-                          size={"lg"}
-                          className=" p-0 hover:bg-none h-5"
-                        >
-                          👍
-                        </Button>{" "}
-                        <Button
-                          variant={"ghost"}
-                          size={"lg"}
-                          className=" p-0 hover:bg-none h-5"
-                        >
-                          😂
-                        </Button>{" "}
-                        <Button
-                          variant={"ghost"}
-                          size={"lg"}
-                          className=" p-0 hover:bg-none h-5"
-                        >
-                          ❤️
-                        </Button>{" "}
+                        {/* // <EmojiPicker /> */}
+                        {emojiPickerLoaded ? (
+                          <Picker
+                            reactionsDefaultOpen={true}
+                            onEmojiClick={(emojiData) => {
+                              console.log("Selected emoji:", emojiData);
+                            }}
+                          />
+                        ) : (
+                          <div className="p-4 text-sm text-gray-500">
+                            Loading emojis...
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
                 </PopoverContent>
               </Popover>
-            </>
+            </div>
           )}
           {/* ------------------------------------------------ */}
           <div>
@@ -664,7 +670,7 @@ export const MessageList = ({
                                 user.uid
                               ),
                             }}
-                            className="text-sm max-w-66 sm:max-w-96 whitespace-pre-wrap break-words "
+                            className="text-sm max-w-52 sm:max-w-80 whitespace-pre-wrap break-words "
                           />
 
                           {/* Timestamp - Telegram style */}
@@ -759,30 +765,22 @@ export const MessageList = ({
                         Copy
                       </Button>
 
-                      <div className="absolute w-full  left-0 border-gray-200/50 border backdrop-blur-sm rounded-lg py-1 px-2 mt-2">
+                      <div className="absolute w-96 -top-14 left-0 mb-2">
                         <div className="relative">
                           <div className="flex gap-4">
-                            <Button
-                              variant={"ghost"}
-                              size={"lg"}
-                              className=" p-0 hover:bg-none h-5"
-                            >
-                              👍
-                            </Button>{" "}
-                            <Button
-                              variant={"ghost"}
-                              size={"lg"}
-                              className=" p-0 hover:bg-none h-5"
-                            >
-                              😂
-                            </Button>{" "}
-                            <Button
-                              variant={"ghost"}
-                              size={"lg"}
-                              className=" p-0 hover:bg-none h-5"
-                            >
-                              ❤️
-                            </Button>{" "}
+                            {/* // <EmojiPicker /> */}
+                            {emojiPickerLoaded ? (
+                              <Picker
+                                reactionsDefaultOpen={true}
+                                onEmojiClick={(emojiData) => {
+                                  console.log("Selected emoji:", emojiData);
+                                }}
+                              />
+                            ) : (
+                              <div className="p-4 text-sm text-gray-500">
+                                Loading emojis...
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
