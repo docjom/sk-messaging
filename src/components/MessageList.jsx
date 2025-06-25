@@ -421,7 +421,7 @@ export const MessageList = ({
                   user.uid
                 ),
               }}
-              className={`text-sm max-w-70 px-2 whitespace-pre-wrap break-words  ${
+              className={`text-sm max-w-66 sm:max-w-96 px-2 whitespace-pre-wrap break-words  ${
                 message.senderId === user.uid ? "text-white" : "text-gray-800"
               }`}
             />
@@ -593,7 +593,7 @@ export const MessageList = ({
                                 user.uid
                               ),
                             }}
-                            className="text-sm max-w-70 whitespace-pre-wrap break-words "
+                            className="text-sm max-w-66 sm:max-w-96 whitespace-pre-wrap break-words "
                           />
 
                           {/* Timestamp - Telegram style */}
