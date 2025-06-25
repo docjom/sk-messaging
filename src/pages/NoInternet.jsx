@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@iconify/react";
 import { useInternetConnection } from "../hooks/CheckInternetConnection";
+
 export const NoInternetPage = () => {
   const navigate = useNavigate();
   const { isOnline } = useInternetConnection();
