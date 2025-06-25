@@ -585,22 +585,86 @@ export const MessageList = ({
                     <Icon icon="solar:copy-broken" width="24" height="24" />
                     Copy
                   </Button>
-                  <div className="absolute w-96 -top-14  left-0  mt-2">
+                  <div className="absolute w-52 -top-13  left-0  mt-2">
                     <div className="relative">
-                      <div className="flex gap-4">
-                        {/* // <EmojiPicker /> */}
-                        {emojiPickerLoaded ? (
-                          <Picker
-                            reactionsDefaultOpen={true}
-                            onEmojiClick={(emojiData) => {
-                              console.log("Selected emoji:", emojiData);
-                            }}
+                      <div className="flex gap-2 border p-1 rounded-full bg-transparent backdrop-blur-sm ">
+                        <div>
+                          <picture>
+                            <source
+                              srcset="https://fonts.gstatic.com/s/e/notoemoji/latest/2764_fe0f/512.webp"
+                              type="image/webp"
+                            />
+                            <img
+                              src="https://fonts.gstatic.com/s/e/notoemoji/latest/2764_fe0f/512.gif"
+                              alt="❤"
+                              width="32"
+                              height="32"
+                            />
+                          </picture>
+                        </div>
+                        <div>
+                          <picture>
+                            <source
+                              srcset="https://fonts.gstatic.com/s/e/notoemoji/latest/1f620/512.webp"
+                              type="image/webp"
+                            />
+                            <img
+                              src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f620/512.gif"
+                              alt="😠"
+                              width="32"
+                              height="32"
+                            />
+                          </picture>
+                        </div>
+                        <div>
+                          <picture>
+                            <source
+                              srcset="https://fonts.gstatic.com/s/e/notoemoji/latest/1f62d/512.webp"
+                              type="image/webp"
+                            />
+                            <img
+                              src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f62d/512.gif"
+                              alt="😭"
+                              width="32"
+                              height="32"
+                            />
+                          </picture>
+                        </div>
+                        <div>
+                          <picture>
+                            <source
+                              srcset="https://fonts.gstatic.com/s/e/notoemoji/latest/1f64f/512.webp"
+                              type="image/webp"
+                            />
+                            <img
+                              src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f64f/512.gif"
+                              alt="🙏"
+                              width="32"
+                              height="32"
+                            />
+                          </picture>
+                        </div>
+                        <div>
+                          <picture>
+                            <source
+                              srcset="https://fonts.gstatic.com/s/e/notoemoji/latest/1f600/512.webp"
+                              type="image/webp"
+                            />
+                            <img
+                              src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f600/512.gif"
+                              alt="😀"
+                              width="32"
+                              height="32"
+                            />
+                          </picture>
+                        </div>
+                        <div className="flex items-center text-white pr-2 justify-center ">
+                          <Icon
+                            icon="solar:widget-add-bold-duotone"
+                            width="16"
+                            height="16"
                           />
-                        ) : (
-                          <div className="p-4 text-sm text-gray-500">
-                            Loading emojis...
-                          </div>
-                        )}
+                        </div>
                       </div>
                     </div>
                   </div>
