@@ -105,18 +105,17 @@ export const EmojiSet = ({ messageId, userId, chatId }) => {
     return emojiReactions.length;
   };
 
-  // Get users who reacted with specific emoji
-  const getReactionUsers = (emojiSrcSet) => {
-    const emojiReactions = reactions[emojiSrcSet] || [];
-    return emojiReactions.map((reaction) => reaction.userId);
-  };
+  // // Get users who reacted with specific emoji
+  // const getReactionUsers = (emojiSrcSet) => {
+  //   const emojiReactions = reactions[emojiSrcSet] || [];
+  //   return emojiReactions.map((reaction) => reaction.userId);
+  // };
 
   return (
     <div className="flex gap-2 border p-1 rounded-full bg-transparent backdrop-blur-sm">
       {emojis.map((emoji, index) => {
         const userReacted = hasUserReacted(emoji.srcSet);
         const count = getReactionCount(emoji.srcSet);
-        const users = getReactionUsers(emoji.srcSet);
 
         return (
           <div key={index} className="relative">
@@ -127,13 +126,9 @@ export const EmojiSet = ({ messageId, userId, chatId }) => {
                   ? "bg-blue-100 ring-2 ring-blue-300 transform scale-110"
                   : "hover:bg-gray-100"
               }`}
-              title={
-                count > 0
-                  ? `${count} reaction${count > 1 ? "s" : ""}: ${users.join(
-                      ", "
-                    )}`
-                  : ""
-              }
+              title={`${count} reaction${count > 1 ? "s" : ""}
+              
+             `}
             >
               <picture>
                 <source

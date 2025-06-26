@@ -25,19 +25,6 @@ export const MessageList = ({
   const lastMessageCountRef = useRef(0);
   const [loadingStates, setLoadingStates] = useState({});
 
-  const [emojiPickerLoaded, setEmojiPickerLoaded] = useState(false);
-
-  const handlePopoverOpen = async () => {
-    if (!emojiPickerLoaded) {
-      try {
-        await import("emoji-picker-react");
-        setEmojiPickerLoaded(true);
-      } catch (error) {
-        console.warn("Failed to load emoji picker:", error);
-      }
-    }
-  };
-
   const scrollToBottomInstant = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({
       behavior: "auto",
@@ -451,6 +438,78 @@ export const MessageList = ({
                 message.senderId === user.uid ? "justify-end" : "justify-start"
               }`}
             >
+              {/* emoji reactions to message */}
+              <div className="relative max-w-40 pb-0.5">
+                <div className="flex gap-1 pr-4 justify-start items-center max-w-40 overflow-x-auto  scrollbar-hide">
+                  {message.reactions && (
+                    <>
+                      {message.reactions &&
+                        Object.entries(message.reactions).map(
+                          ([emojiSrcSet, users]) => (
+                            <span
+                              key={emojiSrcSet}
+                              className={`flex gap-1 justify-start items-center border rounded-full  px-1 py-0.5 ${
+                                message.senderId === user.uid
+                                  ? "border-gray-300"
+                                  : "bg-gray-200/50"
+                              }`}
+                            >
+                              <span className="rounded-full bg-gray-200/50 size-5">
+                                <picture className="cursor-pointer">
+                                  <source
+                                    srcSet={`https://fonts.gstatic.com/s/e/notoemoji/latest/${emojiSrcSet}/512.webp`}
+                                    type="image/webp"
+                                  />
+                                  <img
+                                    src={`https://fonts.gstatic.com/s/e/notoemoji/latest/${emojiSrcSet}/512.gif`}
+                                    alt=""
+                                    width="32"
+                                    height="32"
+                                  />
+                                </picture>
+                              </span>
+
+                              <div className="*:data-[slot=avatar]:ring-background flex -space-x-2 *:data-[slot=avatar]:ring-1 ">
+                                {/* Map over users array for this emoji */}
+                                {users.slice(0, 3).map((user) => (
+                                  <Avatar key={user.userId} className="h-5 w-5">
+                                    <AvatarImage
+                                      src={getSenderData(user.userId)?.photoURL}
+                                      alt={`@${user.userId}`}
+                                    />
+                                    <AvatarFallback>
+                                      {user.userId
+                                        .substring(0, 2)
+                                        .toUpperCase()}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                ))}
+
+                                {/* Show +X if more than 3 users */}
+                                {users.length > 3 && (
+                                  <div className="h-5 w-5 rounded-full bg-gray-300 flex items-center justify-center text-xs font-medium text-gray-600">
+                                    +{users.length - 3}
+                                  </div>
+                                )}
+                              </div>
+                              {/* Optional: Show total count
+                                          <span className="text-xs text-gray-500 ml-1">
+                                            {users.length}
+                                          </span> */}
+                            </span>
+                          )
+                        )}
+                    </>
+                  )}
+                  <div
+                    className={`pointer-events-none absolute inset-y-0 -right-1 w-1/3 bg-gradient-to-l  ${
+                      message.senderId === user.uid
+                        ? " from-blue-500 "
+                        : " from-white"
+                    }`}
+                  ></div>
+                </div>
+              </div>
               <p
                 className={`text-[10px] ${
                   message.senderId === user.uid
@@ -555,7 +614,7 @@ export const MessageList = ({
           {/* Options button for current user messages */}
           {msg.senderId === user.uid && msg.type !== "system" && (
             <div className="relative">
-              <Popover onOpenChange={(open) => open && handlePopoverOpen()}>
+              <Popover>
                 <PopoverTrigger asChild>
                   <Button
                     variant={"ghost"}
@@ -664,7 +723,6 @@ export const MessageList = ({
                             className="text-sm max-w-52 sm:max-w-80 whitespace-pre-wrap break-words "
                           />
 
-                          {/* Timestamp - Telegram style */}
                           <div
                             className={`flex items-center gap-1 ${
                               msg.senderId === user.uid
@@ -673,70 +731,82 @@ export const MessageList = ({
                             }`}
                           >
                             {/* emoji reactions to message */}
-                            <div className="flex gap-1 justify-start items-center max-w-40 overflow-x-auto scrollbar-hide">
-                              {msg.reactions && (
-                                <>
-                                  {/* Map over the reactions object keys (emoji srcSets) */}
-                                  {msg.reactions &&
-                                    Object.entries(msg.reactions).map(
-                                      ([emojiSrcSet, users]) => (
-                                        <span
-                                          key={emojiSrcSet}
-                                          className="flex gap-1 justify-start items-center border rounded-full border-gray-100 px-1 py-0.5"
-                                        >
-                                          <span className="rounded-full bg-gray-200/50 size-5">
-                                            <picture className="cursor-pointer">
-                                              <source
-                                                srcSet={`https://fonts.gstatic.com/s/e/notoemoji/latest/${emojiSrcSet}/512.webp`}
-                                                type="image/webp"
-                                              />
-                                              <img
-                                                src={`https://fonts.gstatic.com/s/e/notoemoji/latest/${emojiSrcSet}/512.gif`}
-                                                alt=""
-                                                width="32"
-                                                height="32"
-                                              />
-                                            </picture>
-                                          </span>
-
-                                          <div className="*:data-[slot=avatar]:ring-background flex -space-x-2 *:data-[slot=avatar]:ring-1 ">
-                                            {/* Map over users array for this emoji */}
-                                            {users.slice(0, 3).map((user) => (
-                                              <Avatar
-                                                key={user.userId}
-                                                className="h-5 w-5"
-                                              >
-                                                <AvatarImage
-                                                  src={
-                                                    getSenderData(user.userId)
-                                                      ?.photoURL
-                                                  }
-                                                  alt={`@${user.userId}`}
+                            <div className="relative max-w-40">
+                              <div className="flex gap-1 pr-4 justify-start items-center max-w-40 overflow-x-auto  scrollbar-hide">
+                                {msg.reactions && (
+                                  <>
+                                    {msg.reactions &&
+                                      Object.entries(msg.reactions).map(
+                                        ([emojiSrcSet, users]) => (
+                                          <span
+                                            key={emojiSrcSet}
+                                            className={`flex gap-1 justify-start items-center border rounded-full  px-1 py-0.5 ${
+                                              msg.senderId === user.uid
+                                                ? "border-gray-300"
+                                                : "bg-gray-200/50"
+                                            }`}
+                                          >
+                                            <span className="rounded-full bg-gray-200/50 size-5">
+                                              <picture className="cursor-pointer">
+                                                <source
+                                                  srcSet={`https://fonts.gstatic.com/s/e/notoemoji/latest/${emojiSrcSet}/512.webp`}
+                                                  type="image/webp"
                                                 />
-                                                <AvatarFallback>
-                                                  {user.userId
-                                                    .substring(0, 2)
-                                                    .toUpperCase()}
-                                                </AvatarFallback>
-                                              </Avatar>
-                                            ))}
+                                                <img
+                                                  src={`https://fonts.gstatic.com/s/e/notoemoji/latest/${emojiSrcSet}/512.gif`}
+                                                  alt=""
+                                                  width="32"
+                                                  height="32"
+                                                />
+                                              </picture>
+                                            </span>
 
-                                            {/* Show +X if more than 3 users */}
-                                            {users.length > 3 && (
-                                              <div className="h-5 w-5 rounded-full bg-gray-300 flex items-center justify-center text-xs font-medium text-gray-600">
-                                                +{users.length - 3}
-                                              </div>
-                                            )}
-                                          </div>
-                                          {/* Optional: Show total count
+                                            <div className="*:data-[slot=avatar]:ring-background flex -space-x-2 *:data-[slot=avatar]:ring-1 ">
+                                              {/* Map over users array for this emoji */}
+                                              {users.slice(0, 3).map((user) => (
+                                                <Avatar
+                                                  key={user.userId}
+                                                  className="h-5 w-5"
+                                                >
+                                                  <AvatarImage
+                                                    src={
+                                                      getSenderData(user.userId)
+                                                        ?.photoURL
+                                                    }
+                                                    alt={`@${user.userId}`}
+                                                  />
+                                                  <AvatarFallback>
+                                                    {user.userId
+                                                      .substring(0, 2)
+                                                      .toUpperCase()}
+                                                  </AvatarFallback>
+                                                </Avatar>
+                                              ))}
+
+                                              {/* Show +X if more than 3 users */}
+                                              {users.length > 3 && (
+                                                <div className="h-5 w-5 rounded-full bg-gray-300 flex items-center justify-center text-xs font-medium text-gray-600">
+                                                  +{users.length - 3}
+                                                </div>
+                                              )}
+                                            </div>
+                                            {/* Optional: Show total count
                                           <span className="text-xs text-gray-500 ml-1">
                                             {users.length}
                                           </span> */}
-                                        </span>
-                                      )
-                                    )}
-                                </>
-                              )}
+                                          </span>
+                                        )
+                                      )}
+                                  </>
+                                )}
+                                <div
+                                  className={`pointer-events-none absolute inset-y-0 -right-1 w-1/3 bg-gradient-to-l  ${
+                                    msg.senderId === user.uid
+                                      ? " from-blue-500 "
+                                      : " from-white"
+                                  }`}
+                                ></div>
+                              </div>
                             </div>
                             <p
                               className={`text-[10px] ${
