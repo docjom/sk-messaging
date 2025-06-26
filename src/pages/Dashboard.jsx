@@ -810,7 +810,7 @@ function Dashboard() {
                 <>
                   <div
                     ref={messagesContainerRef}
-                    className="flex-1 overflow-y-auto h-96 p-4 bg-gray-50"
+                    className="flex-1 overflow-y-auto h-96 py-4 px-2 bg-gray-50"
                   >
                     {messages.length > 0 ? (
                       <>

@@ -835,6 +835,18 @@ export const MessageList = ({
                     <Icon icon="solar:copy-broken" width="24" height="24" />
                     Copy
                   </Button>
+                  <Button
+                    variant={"ghost"}
+                    size={"sm"}
+                    className="flex w-full justify-start gap-2 items-center"
+                  >
+                    <Icon
+                      icon="solar:gallery-edit-broken"
+                      width="24"
+                      height="24"
+                    />
+                    Edit
+                  </Button>
                   <div className="absolute w-52 -top-13  left-0  mt-2">
                     <div className="relative">
                       <EmojiSet
@@ -1080,6 +1092,18 @@ export const MessageList = ({
                       >
                         <Icon icon="solar:copy-broken" width="24" height="24" />
                         Copy
+                      </Button>
+                      <Button
+                        variant={"ghost"}
+                        size={"sm"}
+                        className="flex w-full justify-start gap-2 items-center"
+                      >
+                        <Icon
+                          icon="solar:gallery-edit-broken"
+                          width="24"
+                          height="24"
+                        />
+                        Edit
                       </Button>
 
                       <div className="absolute w-52 -top-13 left-0 mb-2">
