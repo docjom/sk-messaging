@@ -51,18 +51,16 @@ export const EmojiSet = ({ messageId, userId, chatId }) => {
     try {
       const messageRef = doc(db, "chats", chatId, "messages", messageId);
 
-      // Get current reactions for this emoji
+      // Check if user already reacted with this specific emoji
       const currentEmojiReactions = reactions[emoji.srcSet] || [];
-
-      // Check if user already reacted with this emoji
-      const userReactionIndex = currentEmojiReactions.findIndex(
+      const userAlreadyReactedWithThis = currentEmojiReactions.some(
         (reaction) => reaction.userId === userId
       );
 
       let updatedReactions = { ...reactions };
 
-      if (userReactionIndex !== -1) {
-        // Remove user's reaction (toggle off)
+      if (userAlreadyReactedWithThis) {
+        // Remove user's reaction from this emoji (toggle off)
         updatedReactions[emoji.srcSet] = currentEmojiReactions.filter(
           (reaction) => reaction.userId !== userId
         );
@@ -72,14 +70,26 @@ export const EmojiSet = ({ messageId, userId, chatId }) => {
           delete updatedReactions[emoji.srcSet];
         }
       } else {
-        // Add user's reaction
+        // First, remove user's reaction from ALL other emojis
+        Object.keys(updatedReactions).forEach((emojiKey) => {
+          updatedReactions[emojiKey] = updatedReactions[emojiKey].filter(
+            (reaction) => reaction.userId !== userId
+          );
+
+          // Remove emoji key if no reactions left
+          if (updatedReactions[emojiKey].length === 0) {
+            delete updatedReactions[emojiKey];
+          }
+        });
+
+        // Then add user's reaction to the clicked emoji
         const newReaction = {
           userId: userId,
           timestamp: new Date().toISOString(),
         };
 
         updatedReactions[emoji.srcSet] = [
-          ...currentEmojiReactions,
+          ...(updatedReactions[emoji.srcSet] || []),
           newReaction,
         ];
       }
@@ -105,12 +115,6 @@ export const EmojiSet = ({ messageId, userId, chatId }) => {
     return emojiReactions.length;
   };
 
-  // // Get users who reacted with specific emoji
-  // const getReactionUsers = (emojiSrcSet) => {
-  //   const emojiReactions = reactions[emojiSrcSet] || [];
-  //   return emojiReactions.map((reaction) => reaction.userId);
-  // };
-
   return (
     <div className="flex gap-2 border p-1 rounded-full bg-transparent backdrop-blur-sm">
       {emojis.map((emoji, index) => {
@@ -126,9 +130,7 @@ export const EmojiSet = ({ messageId, userId, chatId }) => {
                   ? "bg-blue-100 ring-2 ring-blue-300 transform scale-110"
                   : "hover:bg-gray-100"
               }`}
-              title={`${count} reaction${count > 1 ? "s" : ""}
-              
-             `}
+              title={`${count} reaction${count > 1 ? "s" : ""}`}
             >
               <picture>
                 <source

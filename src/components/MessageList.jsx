@@ -200,7 +200,7 @@ export const MessageList = ({
             {!message.message && isImageLoaded && (
               <div
                 className={`absolute border-gray-200/50 border backdrop-blur-sm rounded-full max-w-32 gap-1 px-2 ${
-                  message.senderId === user.uid
+                  message.senderId === user.uid && !message.reactions
                     ? "justify-end bottom-1 right-1 bg-gray-200"
                     : "justify-start top-1 left-1 bg-gray-200"
                 }`}
@@ -247,6 +247,69 @@ export const MessageList = ({
                 </div>
               </div>
             )}
+            {/* emoji reactions to message */}
+            {!message.message && (
+              <div className="relative max-w-30 pb-0.5 px-1 my-1">
+                <div className="flex gap-1 pr-4 justify-start items-center max-w-30 overflow-x-auto  scrollbar-hide">
+                  {message.reactions && (
+                    <>
+                      {message.reactions &&
+                        Object.entries(message.reactions).map(
+                          ([emojiSrcSet, users]) => (
+                            <span
+                              key={emojiSrcSet}
+                              className={`flex gap-1 justify-start items-center border rounded-full  px-1 py-0.5 ${
+                                message.senderId === user.uid
+                                  ? "border-gray-300"
+                                  : "bg-gray-200/50"
+                              }`}
+                            >
+                              <span className="rounded-full bg-gray-200/50 size-5">
+                                <picture className="cursor-pointer">
+                                  <source
+                                    srcSet={`https://fonts.gstatic.com/s/e/notoemoji/latest/${emojiSrcSet}/512.webp`}
+                                    type="image/webp"
+                                  />
+                                  <img
+                                    src={`https://fonts.gstatic.com/s/e/notoemoji/latest/${emojiSrcSet}/512.gif`}
+                                    alt=""
+                                    width="32"
+                                    height="32"
+                                  />
+                                </picture>
+                              </span>
+
+                              <div className="*:data-[slot=avatar]:ring-background flex -space-x-2 *:data-[slot=avatar]:ring-1 ">
+                                {/* Map over users array for this emoji */}
+                                {users.slice(0, 3).map((user) => (
+                                  <Avatar key={user.userId} className="h-5 w-5">
+                                    <AvatarImage
+                                      src={getSenderData(user.userId)?.photoURL}
+                                      alt={`@${user.userId}`}
+                                    />
+                                    <AvatarFallback>
+                                      {user.userId
+                                        .substring(0, 2)
+                                        .toUpperCase()}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                ))}
+
+                                {/* Show +X if more than 3 users */}
+                                {users.length > 3 && (
+                                  <div className="h-5 w-5 rounded-full bg-gray-300 flex items-center justify-center text-xs font-medium text-gray-600">
+                                    +{users.length - 3}
+                                  </div>
+                                )}
+                              </div>
+                            </span>
+                          )
+                        )}
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -285,19 +348,13 @@ export const MessageList = ({
             {!message.message && isVideoLoaded && (
               <div
                 className={`absolute border-gray-200/50 border backdrop-blur-sm rounded-full max-w-32 gap-1 px-2 ${
-                  message.senderId === user.uid
+                  message.senderId === user.uid && !message.reactions
                     ? "justify-end bottom-1 right-1 bg-gray-500/50"
                     : "justify-start top-1 left-1 bg-gray-200"
                 }`}
               >
-                <div className="flex items-center space-x-2">
-                  <p
-                    className={`text-xs py-0.5 ${
-                      message.senderId === user.uid
-                        ? "text-white/70"
-                        : "text-gray-800"
-                    }`}
-                  >
+                <div className="flex items-center space-x-2 text-gray-800">
+                  <p className="text-xs py-0.5">
                     {formatTimestamp(message.timestamp)}
                   </p>
 
@@ -328,6 +385,69 @@ export const MessageList = ({
                         </div>
                       )}
                     </div>
+                  )}
+                </div>
+              </div>
+            )}
+            {/* emoji reactions to message */}
+            {!message.message && (
+              <div className="relative max-w-30 pb-0.5 px-1 my-1">
+                <div className="flex gap-1 pr-4 justify-start items-center max-w-30 overflow-x-auto  scrollbar-hide">
+                  {message.reactions && (
+                    <>
+                      {message.reactions &&
+                        Object.entries(message.reactions).map(
+                          ([emojiSrcSet, users]) => (
+                            <span
+                              key={emojiSrcSet}
+                              className={`flex gap-1 justify-start items-center border rounded-full  px-1 py-0.5 ${
+                                message.senderId === user.uid
+                                  ? "border-gray-300"
+                                  : "bg-gray-200/50"
+                              }`}
+                            >
+                              <span className="rounded-full bg-gray-200/50 size-5">
+                                <picture className="cursor-pointer">
+                                  <source
+                                    srcSet={`https://fonts.gstatic.com/s/e/notoemoji/latest/${emojiSrcSet}/512.webp`}
+                                    type="image/webp"
+                                  />
+                                  <img
+                                    src={`https://fonts.gstatic.com/s/e/notoemoji/latest/${emojiSrcSet}/512.gif`}
+                                    alt=""
+                                    width="32"
+                                    height="32"
+                                  />
+                                </picture>
+                              </span>
+
+                              <div className="*:data-[slot=avatar]:ring-background flex -space-x-2 *:data-[slot=avatar]:ring-1 ">
+                                {/* Map over users array for this emoji */}
+                                {users.slice(0, 3).map((user) => (
+                                  <Avatar key={user.userId} className="h-5 w-5">
+                                    <AvatarImage
+                                      src={getSenderData(user.userId)?.photoURL}
+                                      alt={`@${user.userId}`}
+                                    />
+                                    <AvatarFallback>
+                                      {user.userId
+                                        .substring(0, 2)
+                                        .toUpperCase()}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                ))}
+
+                                {/* Show +X if more than 3 users */}
+                                {users.length > 3 && (
+                                  <div className="h-5 w-5 rounded-full bg-gray-300 flex items-center justify-center text-xs font-medium text-gray-600">
+                                    +{users.length - 3}
+                                  </div>
+                                )}
+                              </div>
+                            </span>
+                          )
+                        )}
+                    </>
                   )}
                 </div>
               </div>
@@ -439,8 +559,8 @@ export const MessageList = ({
               }`}
             >
               {/* emoji reactions to message */}
-              <div className="relative max-w-40 pb-0.5">
-                <div className="flex gap-1 pr-4 justify-start items-center max-w-40 overflow-x-auto  scrollbar-hide">
+              <div className="relative max-w-30 pb-0.5">
+                <div className="flex gap-1 pr-4 justify-start items-center max-w-30 overflow-x-auto  scrollbar-hide">
                   {message.reactions && (
                     <>
                       {message.reactions &&
