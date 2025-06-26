@@ -568,7 +568,7 @@ export const MessageList = ({
                     />
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-40 p-1">
+                <PopoverContent className="w-52 p-1">
                   <Button
                     variant={"ghost"}
                     size={"sm"}
@@ -729,7 +729,7 @@ export const MessageList = ({
                         />
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-40 p-1">
+                    <PopoverContent className="w-52 p-1">
                       <Button
                         variant={"ghost"}
                         size={"sm"}

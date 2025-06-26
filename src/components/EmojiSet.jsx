@@ -21,26 +21,12 @@ export const EmojiSet = () => {
       <div>
         <picture>
           <source
-            srcSet="https://fonts.gstatic.com/s/e/notoemoji/latest/1f620/512.webp"
+            srcSet="https://fonts.gstatic.com/s/e/notoemoji/latest/1f600/512.webp"
             type="image/webp"
           />
           <img
-            src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f620/512.gif"
-            alt="😠"
-            width="32"
-            height="32"
-          />
-        </picture>
-      </div>
-      <div>
-        <picture>
-          <source
-            srcSet="https://fonts.gstatic.com/s/e/notoemoji/latest/1f62d/512.webp"
-            type="image/webp"
-          />
-          <img
-            src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f62d/512.gif"
-            alt="😭"
+            src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f600/512.gif"
+            alt="😀"
             width="32"
             height="32"
           />
@@ -60,23 +46,40 @@ export const EmojiSet = () => {
           />
         </picture>
       </div>
+
       <div>
         <picture>
           <source
-            srcSet="https://fonts.gstatic.com/s/e/notoemoji/latest/1f600/512.webp"
+            srcSet="https://fonts.gstatic.com/s/e/notoemoji/latest/1f62d/512.webp"
             type="image/webp"
           />
           <img
-            src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f600/512.gif"
-            alt="😀"
+            src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f62d/512.gif"
+            alt="😭"
             width="32"
             height="32"
           />
         </picture>
       </div>
-      <div className="flex items-center text-gray-500 pr-2 justify-center ">
-        <Icon icon="solar:widget-add-bold-duotone" width="16" height="16" />
+
+      <div>
+        <picture>
+          <source
+            srcSet="https://fonts.gstatic.com/s/e/notoemoji/latest/1f620/512.webp"
+            type="image/webp"
+          />
+          <img
+            src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f620/512.gif"
+            alt="😠"
+            width="32"
+            height="32"
+          />
+        </picture>
       </div>
+
+      {/* <div className="flex items-center text-gray-500 pr-2 justify-center ">
+        <Icon icon="solar:widget-add-bold-duotone" width="16" height="16" />
+      </div> */}
     </div>
   );
 };
