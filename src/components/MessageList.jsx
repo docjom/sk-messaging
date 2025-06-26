@@ -587,7 +587,7 @@ export const MessageList = ({
                   </Button>
                   <div className="absolute w-52 -top-13  left-0  mt-2">
                     <div className="relative">
-                      <EmojiSet />
+                      <EmojiSet messageId={msg.id} userId={user.uid} />
                     </div>
                   </div>
                 </PopoverContent>
@@ -753,7 +753,7 @@ export const MessageList = ({
 
                       <div className="absolute w-52 -top-13 left-0 mb-2">
                         <div className="relative">
-                          <EmojiSet />
+                           <EmojiSet messageId={msg.id} userId={user.uid} />
                         </div>
                       </div>
                     </PopoverContent>
