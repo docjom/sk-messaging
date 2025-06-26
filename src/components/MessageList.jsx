@@ -15,6 +15,7 @@ export const MessageList = ({
   getSenderData,
   getSenderDisplayName,
   formatTimestamp,
+  chatId,
 }) => {
   const messagesEndRef = useRef(null);
   const messagesContainerRef = useRef(null);
@@ -587,7 +588,11 @@ export const MessageList = ({
                   </Button>
                   <div className="absolute w-52 -top-13  left-0  mt-2">
                     <div className="relative">
-                      <EmojiSet messageId={msg.id} userId={user.uid} />
+                      <EmojiSet
+                        messageId={msg.id}
+                        userId={user.uid}
+                        chatId={chatId}
+                      />
                     </div>
                   </div>
                 </PopoverContent>
@@ -667,6 +672,72 @@ export const MessageList = ({
                                 : "justify-start"
                             }`}
                           >
+                            {/* emoji reactions to message */}
+                            <div className="flex gap-1 justify-start items-center max-w-40 overflow-x-auto scrollbar-hide">
+                              {msg.reactions && (
+                                <>
+                                  {/* Map over the reactions object keys (emoji srcSets) */}
+                                  {msg.reactions &&
+                                    Object.entries(msg.reactions).map(
+                                      ([emojiSrcSet, users]) => (
+                                        <span
+                                          key={emojiSrcSet}
+                                          className="flex gap-1 justify-start items-center border rounded-full border-gray-100 px-1 py-0.5"
+                                        >
+                                          <span className="rounded-full bg-gray-200/50 size-5">
+                                            <picture className="cursor-pointer">
+                                              <source
+                                                srcSet={`https://fonts.gstatic.com/s/e/notoemoji/latest/${emojiSrcSet}/512.webp`}
+                                                type="image/webp"
+                                              />
+                                              <img
+                                                src={`https://fonts.gstatic.com/s/e/notoemoji/latest/${emojiSrcSet}/512.gif`}
+                                                alt=""
+                                                width="32"
+                                                height="32"
+                                              />
+                                            </picture>
+                                          </span>
+
+                                          <div className="*:data-[slot=avatar]:ring-background flex -space-x-2 *:data-[slot=avatar]:ring-1 ">
+                                            {/* Map over users array for this emoji */}
+                                            {users.slice(0, 3).map((user) => (
+                                              <Avatar
+                                                key={user.userId}
+                                                className="h-5 w-5"
+                                              >
+                                                <AvatarImage
+                                                  src={
+                                                    getSenderData(user.userId)
+                                                      ?.photoURL
+                                                  }
+                                                  alt={`@${user.userId}`}
+                                                />
+                                                <AvatarFallback>
+                                                  {user.userId
+                                                    .substring(0, 2)
+                                                    .toUpperCase()}
+                                                </AvatarFallback>
+                                              </Avatar>
+                                            ))}
+
+                                            {/* Show +X if more than 3 users */}
+                                            {users.length > 3 && (
+                                              <div className="h-5 w-5 rounded-full bg-gray-300 flex items-center justify-center text-xs font-medium text-gray-600">
+                                                +{users.length - 3}
+                                              </div>
+                                            )}
+                                          </div>
+                                          {/* Optional: Show total count
+                                          <span className="text-xs text-gray-500 ml-1">
+                                            {users.length}
+                                          </span> */}
+                                        </span>
+                                      )
+                                    )}
+                                </>
+                              )}
+                            </div>
                             <p
                               className={`text-[10px] ${
                                 msg.senderId === user.uid
@@ -753,7 +824,11 @@ export const MessageList = ({
 
                       <div className="absolute w-52 -top-13 left-0 mb-2">
                         <div className="relative">
-                           <EmojiSet messageId={msg.id} userId={user.uid} />
+                          <EmojiSet
+                            messageId={msg.id}
+                            userId={user.uid}
+                            chatId={chatId}
+                          />
                         </div>
                       </div>
                     </PopoverContent>

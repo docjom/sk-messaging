@@ -1,4 +1,6 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { doc, updateDoc, onSnapshot } from "firebase/firestore";
+import { db } from "../firebase";
 
 const emojis = [
   {
@@ -28,34 +30,132 @@ const emojis = [
   },
 ];
 
-const HandleEmojiClick = (emoji, messageId, userId) => {
-  console.log(`Emoji clicked: ${emoji.label}`);
-  console.log(`Message ID: ${messageId}`);
-  console.log(`User ID: ${userId}`);
-};
+export const EmojiSet = ({ messageId, userId, chatId }) => {
+  const [reactions, setReactions] = useState({});
 
-export const EmojiSet = ({ messageId, userId }) => {
+  useEffect(() => {
+    // Listen to reactions in real-time
+    const messageRef = doc(db, "chats", chatId, "messages", messageId);
+
+    const unsubscribe = onSnapshot(messageRef, (doc) => {
+      if (doc.exists()) {
+        const data = doc.data();
+        setReactions(data.reactions || {});
+      }
+    });
+
+    return () => unsubscribe();
+  }, [chatId, messageId]);
+
+  const handleEmojiClick = async (emoji) => {
+    try {
+      const messageRef = doc(db, "chats", chatId, "messages", messageId);
+
+      // Get current reactions for this emoji
+      const currentEmojiReactions = reactions[emoji.srcSet] || [];
+
+      // Check if user already reacted with this emoji
+      const userReactionIndex = currentEmojiReactions.findIndex(
+        (reaction) => reaction.userId === userId
+      );
+
+      let updatedReactions = { ...reactions };
+
+      if (userReactionIndex !== -1) {
+        // Remove user's reaction (toggle off)
+        updatedReactions[emoji.srcSet] = currentEmojiReactions.filter(
+          (reaction) => reaction.userId !== userId
+        );
+
+        // If no reactions left for this emoji, remove the key entirely
+        if (updatedReactions[emoji.srcSet].length === 0) {
+          delete updatedReactions[emoji.srcSet];
+        }
+      } else {
+        // Add user's reaction
+        const newReaction = {
+          userId: userId,
+          timestamp: new Date().toISOString(),
+        };
+
+        updatedReactions[emoji.srcSet] = [
+          ...currentEmojiReactions,
+          newReaction,
+        ];
+      }
+
+      // Update Firestore
+      await updateDoc(messageRef, {
+        reactions: updatedReactions,
+      });
+    } catch (error) {
+      console.error("Error updating reaction:", error);
+    }
+  };
+
+  // Check if current user has reacted with specific emoji
+  const hasUserReacted = (emojiSrcSet) => {
+    const emojiReactions = reactions[emojiSrcSet] || [];
+    return emojiReactions.some((reaction) => reaction.userId === userId);
+  };
+
+  // Get reaction count for each emoji
+  const getReactionCount = (emojiSrcSet) => {
+    const emojiReactions = reactions[emojiSrcSet] || [];
+    return emojiReactions.length;
+  };
+
+  // Get users who reacted with specific emoji
+  const getReactionUsers = (emojiSrcSet) => {
+    const emojiReactions = reactions[emojiSrcSet] || [];
+    return emojiReactions.map((reaction) => reaction.userId);
+  };
+
   return (
     <div className="flex gap-2 border p-1 rounded-full bg-transparent backdrop-blur-sm">
-      {emojis.map((emoji, index) => (
-        <div key={index}>
-          <picture
-            onClick={() => HandleEmojiClick(emoji, messageId, userId)}
-            className="cursor-pointer"
-          >
-            <source
-              srcSet={`https://fonts.gstatic.com/s/e/notoemoji/latest/${emoji.srcSet}/512.webp`}
-              type="image/webp"
-            />
-            <img
-              src={`https://fonts.gstatic.com/s/e/notoemoji/latest/${emoji.srcSet}/512.gif`}
-              alt={emoji.alt}
-              width="32"
-              height="32"
-            />
-          </picture>
-        </div>
-      ))}
+      {emojis.map((emoji, index) => {
+        const userReacted = hasUserReacted(emoji.srcSet);
+        const count = getReactionCount(emoji.srcSet);
+        const users = getReactionUsers(emoji.srcSet);
+
+        return (
+          <div key={index} className="relative">
+            <div
+              onClick={() => handleEmojiClick(emoji)}
+              className={`cursor-pointer transition-all duration-200 rounded-full p-1 ${
+                userReacted
+                  ? "bg-blue-100 ring-2 ring-blue-300 transform scale-110"
+                  : "hover:bg-gray-100"
+              }`}
+              title={
+                count > 0
+                  ? `${count} reaction${count > 1 ? "s" : ""}: ${users.join(
+                      ", "
+                    )}`
+                  : ""
+              }
+            >
+              <picture>
+                <source
+                  srcSet={`https://fonts.gstatic.com/s/e/notoemoji/latest/${emoji.srcSet}/512.webp`}
+                  type="image/webp"
+                />
+                <img
+                  src={`https://fonts.gstatic.com/s/e/notoemoji/latest/${emoji.srcSet}/512.gif`}
+                  alt={emoji.alt}
+                  width="32"
+                  height="32"
+                />
+              </picture>
+            </div>
+            {count > 0 && (
+              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] rounded-full min-w-[16px] h-4 flex items-center justify-center px-1">
+                {count}
+              </span>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 };

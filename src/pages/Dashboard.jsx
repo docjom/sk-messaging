@@ -303,9 +303,11 @@ function Dashboard() {
     const unsubscribe = onSnapshot(
       usersRef,
       (querySnapshot) => {
-        const usersList = querySnapshot.docs
-          .map((doc) => ({ id: doc.id, ...doc.data() }))
-          .filter((u) => u.id !== user?.uid);
+        const usersList = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        //  .filter((u) => u.id !== user?.uid);
         setUsers(usersList);
       },
       (error) => {
@@ -815,6 +817,7 @@ function Dashboard() {
                         <MessageList
                           messages={messages}
                           user={userProfile}
+                          chatId={chatId}
                           getSenderData={getSenderData}
                           getSenderDisplayName={getSenderDisplayName}
                           formatTimestamp={formatTimestamp}
