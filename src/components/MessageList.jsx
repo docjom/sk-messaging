@@ -8,6 +8,8 @@ import {
   PopoverContent,
 } from "@/components/ui/popover";
 import { EmojiSet } from "./EmojiSet";
+import { ReplyDialog } from "./ReplyDialog";
+import { ReplyMessageDisplay } from "./ReplyMessage";
 
 export const MessageList = ({
   messages,
@@ -835,6 +837,7 @@ export const MessageList = ({
                     <Icon icon="solar:copy-broken" width="24" height="24" />
                     Copy
                   </Button>
+
                   <Button
                     variant={"ghost"}
                     size={"sm"}
@@ -847,6 +850,7 @@ export const MessageList = ({
                     />
                     Edit
                   </Button>
+
                   <div className="absolute w-52 -top-13  left-0  mt-2">
                     <div className="relative">
                       <EmojiSet
@@ -905,6 +909,10 @@ export const MessageList = ({
                       : `bg-white text-gray-800 px-3 py-2 shadow-sm border border-gray-100 ${"rounded-tl-md rounded-tr-2xl rounded-bl-2xl rounded-br-2xl"}`
                   }`}
                 >
+                  <ReplyMessageDisplay
+                    message={msg}
+                    getSenderDisplayName={getSenderDisplayName}
+                  />
                   {msg.type === "file" ? (
                     renderFileMessage(msg)
                   ) : (
@@ -1073,18 +1081,13 @@ export const MessageList = ({
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-52 p-1">
-                      <Button
-                        variant={"ghost"}
-                        size={"sm"}
-                        className="flex w-full justify-start gap-2 items-center"
-                      >
-                        <Icon
-                          icon="solar:reply-broken"
-                          width="24"
-                          height="24"
-                        />
-                        Reply
-                      </Button>
+                      <ReplyDialog
+                        getSenderDisplayName={getSenderDisplayName}
+                        msg={msg}
+                        userId={user.uid}
+                        messageId={msg.id}
+                        chatId={chatId}
+                      />
                       <Button
                         variant={"ghost"}
                         size={"sm"}
@@ -1092,18 +1095,6 @@ export const MessageList = ({
                       >
                         <Icon icon="solar:copy-broken" width="24" height="24" />
                         Copy
-                      </Button>
-                      <Button
-                        variant={"ghost"}
-                        size={"sm"}
-                        className="flex w-full justify-start gap-2 items-center"
-                      >
-                        <Icon
-                          icon="solar:gallery-edit-broken"
-                          width="24"
-                          height="24"
-                        />
-                        Edit
                       </Button>
 
                       <div className="absolute w-52 -top-13 left-0 mb-2">
