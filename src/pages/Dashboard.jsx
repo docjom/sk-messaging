@@ -81,6 +81,12 @@ function Dashboard() {
   }, [replyTo, editMessage]);
 
   useEffect(() => {
+    if (textareaRef.current && message.trim() === "") {
+      textareaRef.current.focus();
+    }
+  }, [message]);
+
+  useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
@@ -139,6 +145,7 @@ function Dashboard() {
   };
 
   useEffect(() => {
+    textareaRef.current?.focus();
     if (endOfMessagesRef.current) {
       endOfMessagesRef.current.scrollIntoView({ behavior: "smooth" });
     }
@@ -464,7 +471,9 @@ function Dashboard() {
 
     if (textareaRef.current) {
       textareaRef.current.style.height = "40px";
+      textareaRef.current?.focus();
     }
+    textareaRef.current?.focus();
 
     const msgToSend = message.trim();
     const reply = useMessageActionStore.getState().replyTo;
@@ -486,9 +495,11 @@ function Dashboard() {
     }
 
     await sendMessage(chatId, user.uid, msgToSend, reply);
+    textareaRef.current?.focus();
   };
 
   const handleKeyPress = (e) => {
+    textareaRef.current?.focus();
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
