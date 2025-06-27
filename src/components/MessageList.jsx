@@ -250,6 +250,7 @@ export const MessageList = ({
                         messageId={msg.id}
                         userId={user.uid}
                         chatId={chatId}
+                        onSelect={() => setOpenPopoverId(null)}
                       />
                     </div>
                   </div>
@@ -458,6 +459,7 @@ export const MessageList = ({
                             messageId={msg.id}
                             userId={user.uid}
                             chatId={chatId}
+                            onSelect={() => setOpenPopoverId(null)}
                           />
                         </div>
                       </div>

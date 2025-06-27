@@ -75,6 +75,12 @@ function Dashboard() {
     useMessageActionStore();
 
   useEffect(() => {
+    if ((replyTo || editMessage) && textareaRef.current) {
+      textareaRef.current.focus();
+    }
+  }, [replyTo, editMessage]);
+
+  useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 

@@ -30,7 +30,7 @@ const emojis = [
   },
 ];
 
-export const EmojiSet = ({ messageId, userId, chatId }) => {
+export const EmojiSet = ({ messageId, userId, chatId, onSelect }) => {
   const [reactions, setReactions] = useState({});
 
   useEffect(() => {
@@ -48,6 +48,7 @@ export const EmojiSet = ({ messageId, userId, chatId }) => {
   }, [chatId, messageId]);
 
   const handleEmojiClick = async (emoji) => {
+    onSelect?.();
     try {
       const messageRef = doc(db, "chats", chatId, "messages", messageId);
 
@@ -124,7 +125,9 @@ export const EmojiSet = ({ messageId, userId, chatId }) => {
         return (
           <div key={index} className="relative">
             <div
-              onClick={() => handleEmojiClick(emoji)}
+              onClick={() => {
+                handleEmojiClick(emoji);
+              }}
               className={`cursor-pointer transition-all duration-200 rounded-full p-1 ${
                 userReacted
                   ? "bg-blue-100 ring-2 ring-blue-300 transform scale-110"
