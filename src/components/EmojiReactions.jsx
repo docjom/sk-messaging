@@ -4,7 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 export const EmojiReactions = ({ msg, getSenderData, user }) => {
   return (
     <div className="relative max-w-40">
-      <div className="flex gap-1 pr-4 justify-start items-center max-w-40 overflow-x-auto  scrollbar-hide">
+      <div className="flex gap-1 pr-2 justify-start items-center max-w-40 overflow-x-auto  scrollbar-hide">
         {msg.reactions && (
           <>
             {msg.reactions &&

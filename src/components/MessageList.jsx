@@ -221,28 +221,31 @@ export const MessageList = ({
                     Copy
                   </Button>
 
-                  <Button
-                    onClick={() => {
-                      setEditMessage({
-                        messageId: msg.id,
-                        message: msg.message,
-                        senderId: msg.senderId,
-                        fileData: msg.fileData,
-                        name: getSenderDisplayName(msg.senderId),
-                      });
-                      setOpenPopoverId(null);
-                    }}
-                    variant={"ghost"}
-                    size={"sm"}
-                    className="flex w-full justify-start gap-2 items-center"
-                  >
-                    <Icon
-                      icon="solar:gallery-edit-broken"
-                      width="24"
-                      height="24"
-                    />
-                    Edit
-                  </Button>
+                  {msg.message && (
+                    <Button
+                      onClick={() => {
+                        setEditMessage({
+                          messageId: msg.id,
+                          message: msg.message,
+                          senderId: msg.senderId,
+                          fileData: msg.fileData,
+                          timestamp: msg.timestamp,
+                          name: getSenderDisplayName(msg.senderId),
+                        });
+                        setOpenPopoverId(null);
+                      }}
+                      variant={"ghost"}
+                      size={"sm"}
+                      className="flex w-full justify-start gap-2 items-center"
+                    >
+                      <Icon
+                        icon="solar:gallery-edit-broken"
+                        width="24"
+                        height="24"
+                      />
+                      Edit
+                    </Button>
+                  )}
 
                   <div className="absolute w-52 -top-13  left-0  mt-2">
                     <div className="relative">
@@ -295,7 +298,7 @@ export const MessageList = ({
                     msg.type === "system"
                       ? "bg-white/80 text-gray-600 text-center px-3 py-1.5 rounded-full shadow-sm text-xs"
                       : msg.senderId === user.uid && msg.type !== "file"
-                      ? `bg-blue-500 text-white px-3 py-0.5 shadow-sm ${"rounded-tl-2xl rounded-tr-2xl rounded-bl-2xl rounded-br-lg"}`
+                      ? `bg-blue-500 text-white px-3 py-2 shadow-sm ${"rounded-tl-2xl rounded-tr-2xl rounded-bl-2xl rounded-br-lg"}`
                       : msg.type === "file" && msg.senderId === user.uid
                       ? `bg-blue-500 text-white shadow-sm ${"rounded-tl-2xl rounded-tr-2xl rounded-bl-2xl rounded-br-lg"}`
                       : msg.type === "file" && msg.senderId !== user.uid
@@ -345,20 +348,26 @@ export const MessageList = ({
                             }`}
                           >
                             {/* emoji reactions to message */}
-                            <EmojiReactions
-                              msg={msg}
-                              getSenderData={getSenderData}
-                              user={user}
-                            />
-                            <p
+                            {msg.reactions && (
+                              <EmojiReactions
+                                msg={msg}
+                                getSenderData={getSenderData}
+                                user={user}
+                              />
+                            )}
+
+                            <div
                               className={`text-[10px] ${
                                 msg.senderId === user.uid
                                   ? "text-white/70"
                                   : "text-gray-400"
                               }`}
                             >
+                              {msg.edited && (
+                                <span className="px-1">Edited</span>
+                              )}
                               {formatTimestamp(msg.timestamp)}
-                            </p>
+                            </div>
                             {msg.senderId === user.uid && (
                               <div className="flex">
                                 {msg.senderId === user.uid && (

@@ -75,17 +75,11 @@ export const ReplyMessageDisplay = ({ message }) => {
   };
 
   return (
-    <div className="mb-2 border-l-4 border-blue-400 bg-blue-50 bg-opacity-60 p-2 rounded-r">
+    <div className="mb-2 border-l-4 border-blue-400 bg-blue-50 bg-opacity-60 p-2 rounded-r-xl rounded-l-lg">
       {/* Reply header */}
       <div className="flex items-center gap-1 mb-1">
-        <Icon
-          icon="solar:reply-broken"
-          width="12"
-          height="12"
-          className="text-blue-500"
-        />
-        <span className="text-xs font-medium text-blue-600">
-          Reply to {replyTo.senderName}
+        <span className="text-sm font-semibold text-blue-600">
+          {replyTo.senderName}
         </span>
       </div>
 
@@ -96,7 +90,7 @@ export const ReplyMessageDisplay = ({ message }) => {
 
         {/* Original message text */}
         {replyTo.message && (
-          <div className="mt-1 line-clamp-2 break-words">{replyTo.message}</div>
+          <div className=" line-clamp-2 break-words">{replyTo.message}</div>
         )}
 
         {/* Fallback for empty replies */}

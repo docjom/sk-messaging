@@ -76,6 +76,9 @@ function Dashboard() {
 
   useEffect(() => {
     if ((replyTo || editMessage) && textareaRef.current) {
+      if (editMessage) {
+        setMessage(editMessage.message);
+      }
       textareaRef.current.focus();
     }
   }, [replyTo, editMessage]);
@@ -144,6 +147,13 @@ function Dashboard() {
     }
   };
 
+  const handleCancelEdit = () => {
+    clearEdit();
+    clearReply();
+    setMessage("");
+    textareaRef.current?.focus();
+  };
+
   useEffect(() => {
     textareaRef.current?.focus();
     if (endOfMessagesRef.current) {
@@ -151,43 +161,60 @@ function Dashboard() {
     }
   }, [messages]);
 
-  const sendMessage = async (chatId, senderId, message, reply) => {
+  const sendMessage = async (chatId, senderId, message, reply, edit) => {
     if (!message.trim()) return;
 
     setIsMessagesSending(true);
 
-    const messagesRef = collection(db, "chats", chatId, "messages");
-    const chatRef = doc(db, "chats", chatId);
-
     try {
-      const messagePayload = {
-        senderId,
-        message,
-        timestamp: serverTimestamp(),
-        seen: false,
-        status: "sending",
-        ...(reply?.messageId && {
-          replyTo: {
-            messageId: reply.messageId,
-            senderId: reply.senderId || null,
-            message: reply.message || null,
-            senderName: reply.name || null,
-            ...(reply.fileData && { fileData: reply.fileData }),
-          },
-        }),
-      };
+      if (edit?.messageId) {
+        const msgRef = doc(db, "chats", chatId, "messages", edit.messageId);
 
-      const msgRef = await addDoc(messagesRef, messagePayload);
-      await updateDoc(msgRef, { status: "sent" });
-      await updateDoc(chatRef, {
-        lastMessage: message,
-        lastMessageTime: serverTimestamp(),
-      });
+        await updateDoc(msgRef, {
+          message: message,
+          edited: true,
+          timestamp: edit?.timestamp,
+          editTimestamp: serverTimestamp(),
+        });
 
-      useMessageActionStore.getState().clearReply();
-      setIsMessagesSending(false);
+        useMessageActionStore.getState().clearEdit();
+      } else {
+        const messagesRef = collection(db, "chats", chatId, "messages");
+        const chatRef = doc(db, "chats", chatId);
+
+        const messagePayload = {
+          senderId,
+          message,
+          timestamp: serverTimestamp(),
+          seen: false,
+          status: "sending",
+          ...(reply?.messageId && {
+            replyTo: {
+              messageId: reply.messageId,
+              senderId: reply.senderId || null,
+              message: reply.message || null,
+              senderName: reply.name || null,
+              ...(reply.fileData && { fileData: reply.fileData }),
+            },
+          }),
+        };
+
+        const msgRef = await addDoc(messagesRef, messagePayload);
+        await updateDoc(msgRef, { status: "sent" });
+        await updateDoc(chatRef, {
+          lastMessage: message,
+          lastMessageTime: serverTimestamp(),
+        });
+
+        useMessageActionStore.getState().clearReply();
+        useMessageActionStore.getState().clearEdit();
+        setIsMessagesSending(false);
+      }
+      textareaRef.current?.focus();
     } catch (error) {
       toast.error("Error sending message:", error);
+    } finally {
+      setIsMessagesSending(false);
     }
   };
 
@@ -477,9 +504,11 @@ function Dashboard() {
 
     const msgToSend = message.trim();
     const reply = useMessageActionStore.getState().replyTo;
+    const edit = useMessageActionStore.getState().editMessage;
     if (msgToSend === "") return;
 
     clearReply();
+    clearEdit();
     setMessage("");
 
     const chatRef = doc(db, "chats", chatId);
@@ -494,7 +523,7 @@ function Dashboard() {
       }
     }
 
-    await sendMessage(chatId, user.uid, msgToSend, reply);
+    await sendMessage(chatId, user.uid, msgToSend, reply, edit);
     textareaRef.current?.focus();
   };
 
@@ -570,9 +599,6 @@ function Dashboard() {
   };
 
   const getSenderDisplayName = (senderId) => {
-    if (senderId === user?.uid) {
-      return "You";
-    }
     const sender = users.find((u) => u.id === senderId);
     return sender?.displayName || "Unknown User";
   };
@@ -883,65 +909,82 @@ function Dashboard() {
                       <div className="flex items-start justify-between bg-gray-100 border-l-4 border-blue-500 px-3 py-2 rounded-t-md w-full mb-1">
                         <div className="text-sm text-gray-800 max-w-[80%]">
                           <span className="font-medium text-blue-600">
-                            {replyTo?.name || editMessage?.name || "Unknown"}
+                            {editMessage ? (
+                              <>
+                                <Icon
+                                  icon="solar:pen-bold"
+                                  className="inline mr-1"
+                                  width="14"
+                                  height="14"
+                                />
+                                Editing message
+                              </>
+                            ) : (
+                              <>Replying to {replyTo?.name || "Unknown"}</>
+                            )}
                           </span>
                           <div className="truncate">
-                            {replyTo?.message || editMessage?.message || (
+                            {editMessage ? (
+                              <span className="text-gray-600">
+                                {editMessage.message || "No content"}
+                              </span>
+                            ) : (
                               <>
-                                {replyTo?.fileData && (
-                                  <div className=" p-2 bg-white rounded border flex items-center gap-2">
-                                    {replyTo?.fileData.type?.startsWith(
-                                      "image/"
-                                    ) ? (
-                                      <div className="flex items-center gap-2">
-                                        <Icon
-                                          icon="solar:gallery-bold"
-                                          className="text-blue-500"
-                                          width="16"
-                                          height="16"
-                                        />
-                                        <span className="text-xs text-gray-600">
-                                          Image: {replyTo?.fileData.name}
-                                        </span>
-                                      </div>
-                                    ) : replyTo?.fileData.type?.startsWith(
-                                        "video/"
-                                      ) ? (
-                                      <div className="flex items-center gap-2">
-                                        <Icon
-                                          icon="solar:videocamera-bold"
-                                          className="text-red-500"
-                                          width="16"
-                                          height="16"
-                                        />
-                                        <span className="text-xs text-gray-600">
-                                          Video: {replyTo?.fileData.name}
-                                        </span>
-                                      </div>
-                                    ) : (
-                                      <div className="flex items-center gap-2">
-                                        <Icon
-                                          icon="solar:document-bold"
-                                          className="text-gray-500"
-                                          width="16"
-                                          height="16"
-                                        />
-                                        <span className="text-xs text-gray-600">
-                                          File: {replyTo?.fileData.name}
-                                        </span>
+                                {replyTo?.message || (
+                                  <>
+                                    {replyTo?.fileData && (
+                                      <div className="p-2 bg-white rounded border flex items-center gap-2">
+                                        {replyTo?.fileData.type?.startsWith(
+                                          "image/"
+                                        ) ? (
+                                          <div className="flex items-center gap-2">
+                                            <Icon
+                                              icon="solar:gallery-bold"
+                                              className="text-blue-500"
+                                              width="16"
+                                              height="16"
+                                            />
+                                            <span className="text-xs text-gray-600">
+                                              Image: {replyTo?.fileData.name}
+                                            </span>
+                                          </div>
+                                        ) : replyTo?.fileData.type?.startsWith(
+                                            "video/"
+                                          ) ? (
+                                          <div className="flex items-center gap-2">
+                                            <Icon
+                                              icon="solar:videocamera-bold"
+                                              className="text-red-500"
+                                              width="16"
+                                              height="16"
+                                            />
+                                            <span className="text-xs text-gray-600">
+                                              Video: {replyTo?.fileData.name}
+                                            </span>
+                                          </div>
+                                        ) : (
+                                          <div className="flex items-center gap-2">
+                                            <Icon
+                                              icon="solar:document-bold"
+                                              className="text-gray-500"
+                                              width="16"
+                                              height="16"
+                                            />
+                                            <span className="text-xs text-gray-600">
+                                              File: {replyTo?.fileData.name}
+                                            </span>
+                                          </div>
+                                        )}
                                       </div>
                                     )}
-                                  </div>
+                                  </>
                                 )}
                               </>
                             )}
                           </div>
                         </div>
                         <button
-                          onClick={() => {
-                            clearReply();
-                            clearEdit();
-                          }}
+                          onClick={handleCancelEdit}
                           className="text-gray-500 hover:text-red-500 transition text-sm"
                         >
                           <Icon icon="mdi:close" width="18" height="18" />
@@ -950,23 +993,25 @@ function Dashboard() {
                     )}
 
                     <div className="flex justify-center items-end gap-2">
-                      <div>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          className="text-blue-500 border"
-                          onClick={() => setIsFileDialogOpen(true)}
-                          disabled={
-                            !chatId || messagesLoading || isMessagesSending
-                          }
-                        >
-                          <Icon
-                            icon="solar:file-send-bold"
-                            width="24"
-                            height="24"
-                          />
-                        </Button>
-                      </div>
+                      {!editMessage && (
+                        <div>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            className="text-blue-500 border"
+                            onClick={() => setIsFileDialogOpen(true)}
+                            disabled={
+                              !chatId || messagesLoading || isMessagesSending
+                            }
+                          >
+                            <Icon
+                              icon="solar:file-send-bold"
+                              width="24"
+                              height="24"
+                            />
+                          </Button>
+                        </div>
+                      )}
 
                       <textarea
                         className="flex-1 p-2 outline-none rounded-l-lg resize-none min-h-[40px] max-h-32 overflow-y-auto"
@@ -975,7 +1020,11 @@ function Dashboard() {
                         required
                         onChange={(e) => setMessage(e.target.value)}
                         onKeyPress={handleKeyPress}
-                        placeholder="Write a message..."
+                        placeholder={
+                          editMessage
+                            ? "Edit your message..."
+                            : "Write a message..."
+                        }
                         disabled={messagesLoading || isMessagesSending}
                         rows={1}
                         style={{ height: "auto", minHeight: "40px" }}
@@ -995,6 +1044,8 @@ function Dashboard() {
                         className={`p-2 rounded-full ${
                           !message.trim()
                             ? "bg-gray-400 text-white cursor-not-allowed"
+                            : editMessage
+                            ? "bg-green-500 text-white"
                             : "bg-blue-500 text-white"
                         }`}
                         disabled={
@@ -1004,7 +1055,11 @@ function Dashboard() {
                         }
                       >
                         <Icon
-                          icon="material-symbols:send-rounded"
+                          icon={
+                            editMessage
+                              ? "solar:check-circle-bold"
+                              : "material-symbols:send-rounded"
+                          }
                           width="20"
                           height="20"
                         />

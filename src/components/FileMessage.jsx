@@ -1,7 +1,7 @@
 import React from "react";
 import { Icon } from "@iconify/react";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { EmojiReactions } from "@/components/EmojiReactions";
 
 export const FileMessage = ({
   message,
@@ -116,64 +116,18 @@ export const FileMessage = ({
           )}
           {/* emoji reactions to message */}
           {!message.message && (
-            <div className="relative max-w-30 pb-0.5 px-1 my-1">
-              <div className="flex gap-1 pr-4 justify-start items-center max-w-30 overflow-x-auto  scrollbar-hide">
-                {message.reactions && (
-                  <>
-                    {message.reactions &&
-                      Object.entries(message.reactions).map(
-                        ([emojiSrcSet, users]) => (
-                          <span
-                            key={emojiSrcSet}
-                            className={`flex gap-1 justify-start items-center border rounded-full  px-1 py-0.5 ${
-                              message.senderId === user.uid
-                                ? "border-gray-300"
-                                : "bg-gray-200/50"
-                            }`}
-                          >
-                            <span className="rounded-full bg-gray-200/50 size-5">
-                              <picture className="cursor-pointer">
-                                <source
-                                  srcSet={`https://fonts.gstatic.com/s/e/notoemoji/latest/${emojiSrcSet}/512.webp`}
-                                  type="image/webp"
-                                />
-                                <img
-                                  src={`https://fonts.gstatic.com/s/e/notoemoji/latest/${emojiSrcSet}/512.gif`}
-                                  alt=""
-                                  width="32"
-                                  height="32"
-                                />
-                              </picture>
-                            </span>
-
-                            <div className="*:data-[slot=avatar]:ring-background flex -space-x-2 *:data-[slot=avatar]:ring-1 ">
-                              {/* Map over users array for this emoji */}
-                              {users.slice(0, 3).map((user) => (
-                                <Avatar key={user.userId} className="h-5 w-5">
-                                  <AvatarImage
-                                    src={getSenderData(user.userId)?.photoURL}
-                                    alt={`@${user.userId}`}
-                                  />
-                                  <AvatarFallback>
-                                    {user.userId.substring(0, 2).toUpperCase()}
-                                  </AvatarFallback>
-                                </Avatar>
-                              ))}
-
-                              {/* Show +X if more than 3 users */}
-                              {users.length > 3 && (
-                                <div className="h-5 w-5 rounded-full bg-gray-300 flex items-center justify-center text-xs font-medium text-gray-600">
-                                  +{users.length - 3}
-                                </div>
-                              )}
-                            </div>
-                          </span>
-                        )
-                      )}
-                  </>
-                )}
-              </div>
-            </div>
+            <>
+              {/* emoji reactions to message */}
+              {message.reactions && (
+                <div className="p-1">
+                  <EmojiReactions
+                    msg={message}
+                    getSenderData={getSenderData}
+                    user={user}
+                  />
+                </div>
+              )}
+            </>
           )}
         </div>
       )}
@@ -249,163 +203,64 @@ export const FileMessage = ({
             </div>
           )}
           {/* emoji reactions to message */}
-          {!message.message && (
-            <div className="relative max-w-30 pb-0.5 px-1 my-1">
-              <div className="flex gap-1 pr-4 justify-start items-center max-w-30 overflow-x-auto  scrollbar-hide">
-                {message.reactions && (
-                  <>
-                    {message.reactions &&
-                      Object.entries(message.reactions).map(
-                        ([emojiSrcSet, users]) => (
-                          <span
-                            key={emojiSrcSet}
-                            className={`flex gap-1 justify-start items-center border rounded-full  px-1 py-0.5 ${
-                              message.senderId === user.uid
-                                ? "border-gray-300"
-                                : "bg-gray-200/50"
-                            }`}
-                          >
-                            <span className="rounded-full bg-gray-200/50 size-5">
-                              <picture className="cursor-pointer">
-                                <source
-                                  srcSet={`https://fonts.gstatic.com/s/e/notoemoji/latest/${emojiSrcSet}/512.webp`}
-                                  type="image/webp"
-                                />
-                                <img
-                                  src={`https://fonts.gstatic.com/s/e/notoemoji/latest/${emojiSrcSet}/512.gif`}
-                                  alt=""
-                                  width="32"
-                                  height="32"
-                                />
-                              </picture>
-                            </span>
-
-                            <div className="*:data-[slot=avatar]:ring-background flex -space-x-2 *:data-[slot=avatar]:ring-1 ">
-                              {/* Map over users array for this emoji */}
-                              {users.slice(0, 3).map((user) => (
-                                <Avatar key={user.userId} className="h-5 w-5">
-                                  <AvatarImage
-                                    src={getSenderData(user.userId)?.photoURL}
-                                    alt={`@${user.userId}`}
-                                  />
-                                  <AvatarFallback>
-                                    {user.userId.substring(0, 2).toUpperCase()}
-                                  </AvatarFallback>
-                                </Avatar>
-                              ))}
-
-                              {/* Show +X if more than 3 users */}
-                              {users.length > 3 && (
-                                <div className="h-5 w-5 rounded-full bg-gray-300 flex items-center justify-center text-xs font-medium text-gray-600">
-                                  +{users.length - 3}
-                                </div>
-                              )}
-                            </div>
-                          </span>
-                        )
-                      )}
-                  </>
-                )}
-              </div>
+          {message.reactions && (
+            <div className="p-1">
+              <EmojiReactions
+                msg={message}
+                getSenderData={getSenderData}
+                user={user}
+              />
             </div>
           )}
         </div>
       )}
 
       {!isImage && !isVideo && (
-        <div
-          className={`border relative px-3 pt-3 bg-gray-50 mb-2 ${
-            message.message !== "" ? "rounded-t-lg pb-3" : "rounded-lg"
-          }`}
-        >
-          <div className="flex items-center space-x-3">
-            <div className="text-blue-500">
-              {isPdf ? (
-                <Icon icon="solar:file-text-bold" width="24" height="24" />
-              ) : (
-                <Icon icon="solar:file-bold" width="24" height="24" />
-              )}
+        <>
+          <div
+            className={`border relative px-3 py-2 bg-gray-50 ${
+              message.message !== "" ? "rounded-t-lg pb-3" : "rounded-lg"
+            }`}
+          >
+            <div className="flex items-center space-x-3">
+              <div className="text-blue-500">
+                {isPdf ? (
+                  <Icon icon="solar:file-text-bold" width="24" height="24" />
+                ) : (
+                  <Icon icon="solar:file-bold" width="24" height="24" />
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-gray-900 truncate">
+                  {fileData.name}
+                </p>
+                <p className="text-xs text-gray-500">
+                  {formatFileSize(fileData.size)}
+                </p>
+              </div>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => downloadFile(fileData.url, fileData.name)}
+                className="text-blue-500 hover:text-blue-700"
+              >
+                <Icon icon="solar:download-bold" width="16" height="16" />
+              </Button>
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900 truncate">
-                {fileData.name}
-              </p>
-              <p className="text-xs text-gray-500">
-                {formatFileSize(fileData.size)}
-              </p>
-            </div>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => downloadFile(fileData.url, fileData.name)}
-              className="text-blue-500 hover:text-blue-700"
-            >
-              <Icon icon="solar:download-bold" width="16" height="16" />
-            </Button>
           </div>
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 p-1">
             {/* emoji reactions to message */}
             {!message.message && (
-              <div className="relative max-w-30 pb-0.5 px-1 my-1">
-                <div className="flex gap-1 pr-4 justify-start items-center max-w-30 overflow-x-auto  scrollbar-hide">
-                  {message.reactions && (
-                    <>
-                      {message.reactions &&
-                        Object.entries(message.reactions).map(
-                          ([emojiSrcSet, users]) => (
-                            <span
-                              key={emojiSrcSet}
-                              className={`flex gap-1 justify-start items-center border rounded-full  px-1 py-0.5 ${
-                                message.senderId === user.uid
-                                  ? "border-gray-300"
-                                  : "bg-gray-200/50"
-                              }`}
-                            >
-                              <span className="rounded-full bg-gray-200/50 size-5">
-                                <picture className="cursor-pointer">
-                                  <source
-                                    srcSet={`https://fonts.gstatic.com/s/e/notoemoji/latest/${emojiSrcSet}/512.webp`}
-                                    type="image/webp"
-                                  />
-                                  <img
-                                    src={`https://fonts.gstatic.com/s/e/notoemoji/latest/${emojiSrcSet}/512.gif`}
-                                    alt=""
-                                    width="32"
-                                    height="32"
-                                  />
-                                </picture>
-                              </span>
-
-                              <div className="*:data-[slot=avatar]:ring-background flex -space-x-2 *:data-[slot=avatar]:ring-1 ">
-                                {/* Map over users array for this emoji */}
-                                {users.slice(0, 3).map((user) => (
-                                  <Avatar key={user.userId} className="h-5 w-5">
-                                    <AvatarImage
-                                      src={getSenderData(user.userId)?.photoURL}
-                                      alt={`@${user.userId}`}
-                                    />
-                                    <AvatarFallback>
-                                      {user.userId
-                                        .substring(0, 2)
-                                        .toUpperCase()}
-                                    </AvatarFallback>
-                                  </Avatar>
-                                ))}
-
-                                {/* Show +X if more than 3 users */}
-                                {users.length > 3 && (
-                                  <div className="h-5 w-5 rounded-full bg-gray-300 flex items-center justify-center text-xs font-medium text-gray-600">
-                                    +{users.length - 3}
-                                  </div>
-                                )}
-                              </div>
-                            </span>
-                          )
-                        )}
-                    </>
-                  )}
-                </div>
-              </div>
+              <>
+                {/* emoji reactions to message */}
+                {message.reactions && (
+                  <EmojiReactions
+                    msg={message}
+                    getSenderData={getSenderData}
+                    user={user}
+                  />
+                )}
+              </>
             )}
             {!message.message && (
               <div
@@ -419,7 +274,7 @@ export const FileMessage = ({
                   <p
                     className={`text-xs py-0.5 ${
                       message.senderId === user.uid
-                        ? "text-white/70"
+                        ? "text-white"
                         : "text-gray-800"
                     }`}
                   >
@@ -457,7 +312,7 @@ export const FileMessage = ({
               </div>
             )}
           </div>
-        </div>
+        </>
       )}
 
       {message.message && (
@@ -481,75 +336,15 @@ export const FileMessage = ({
             }`}
           >
             {/* emoji reactions to message */}
-            <div className="relative max-w-30 pb-0.5">
-              <div className="flex gap-1 pr-4 justify-start items-center max-w-30 overflow-x-auto  scrollbar-hide">
-                {message.reactions && (
-                  <>
-                    {message.reactions &&
-                      Object.entries(message.reactions).map(
-                        ([emojiSrcSet, users]) => (
-                          <span
-                            key={emojiSrcSet}
-                            className={`flex gap-1 justify-start items-center border rounded-full  px-1 py-0.5 ${
-                              message.senderId === user.uid
-                                ? "border-gray-300"
-                                : "bg-gray-200/50"
-                            }`}
-                          >
-                            <span className="rounded-full bg-gray-200/50 size-5">
-                              <picture className="cursor-pointer">
-                                <source
-                                  srcSet={`https://fonts.gstatic.com/s/e/notoemoji/latest/${emojiSrcSet}/512.webp`}
-                                  type="image/webp"
-                                />
-                                <img
-                                  src={`https://fonts.gstatic.com/s/e/notoemoji/latest/${emojiSrcSet}/512.gif`}
-                                  alt=""
-                                  width="32"
-                                  height="32"
-                                />
-                              </picture>
-                            </span>
-
-                            <div className="*:data-[slot=avatar]:ring-background flex -space-x-2 *:data-[slot=avatar]:ring-1 ">
-                              {/* Map over users array for this emoji */}
-                              {users.slice(0, 3).map((user) => (
-                                <Avatar key={user.userId} className="h-5 w-5">
-                                  <AvatarImage
-                                    src={getSenderData(user.userId)?.photoURL}
-                                    alt={`@${user.userId}`}
-                                  />
-                                  <AvatarFallback>
-                                    {user.userId.substring(0, 2).toUpperCase()}
-                                  </AvatarFallback>
-                                </Avatar>
-                              ))}
-
-                              {/* Show +X if more than 3 users */}
-                              {users.length > 3 && (
-                                <div className="h-5 w-5 rounded-full bg-gray-300 flex items-center justify-center text-xs font-medium text-gray-600">
-                                  +{users.length - 3}
-                                </div>
-                              )}
-                            </div>
-                            {/* Optional: Show total count
-                                          <span className="text-xs text-gray-500 ml-1">
-                                            {users.length}
-                                          </span> */}
-                          </span>
-                        )
-                      )}
-                  </>
-                )}
-                <div
-                  className={`pointer-events-none absolute inset-y-0 -right-1 w-1/3 bg-gradient-to-l  ${
-                    message.senderId === user.uid
-                      ? " from-blue-500 "
-                      : " from-white"
-                  }`}
-                ></div>
+            {message.reactions && (
+              <div className="p-1">
+                <EmojiReactions
+                  msg={message}
+                  getSenderData={getSenderData}
+                  user={user}
+                />
               </div>
-            </div>
+            )}
             <p
               className={`text-[10px] ${
                 message.senderId === user.uid
