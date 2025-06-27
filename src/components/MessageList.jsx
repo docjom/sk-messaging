@@ -29,7 +29,8 @@ export const MessageList = ({
   const scrollTimeoutRef = useRef(null);
   const lastMessageCountRef = useRef(0);
   const [loadingStates, setLoadingStates] = useState({});
-
+  const [isOpen, setIsOpen] = useState(false);
+  const [openPopoverId, setOpenPopoverId] = useState(null);
   const { setEditMessage, setReplyTo } = useMessageActionStore();
 
   const scrollToBottomInstant = useCallback(() => {
@@ -160,7 +161,10 @@ export const MessageList = ({
           {/* Options button for current user messages */}
           {msg.senderId === user.uid && msg.type !== "system" && (
             <div className="relative">
-              <Popover>
+              <Popover
+                open={openPopoverId === msg.id}
+                onOpenChange={(open) => setOpenPopoverId(open ? msg.id : null)}
+              >
                 <PopoverTrigger asChild>
                   <Button
                     variant={"ghost"}
@@ -176,15 +180,16 @@ export const MessageList = ({
                 </PopoverTrigger>
                 <PopoverContent className="w-52 p-1">
                   <Button
-                    onClick={() =>
+                    onClick={() => {
                       setReplyTo({
                         messageId: msg.id,
                         message: msg.message,
                         senderId: msg.senderId,
                         fileData: msg.fileData,
                         name: getSenderDisplayName(msg.senderId),
-                      })
-                    }
+                      });
+                      setOpenPopoverId(null);
+                    }}
                     variant={"ghost"}
                     size={"sm"}
                     className="flex w-full justify-start gap-2 items-center"
@@ -193,6 +198,10 @@ export const MessageList = ({
                     Reply
                   </Button>
                   <Button
+                    onClick={() => {
+                      setOpenPopoverId(null);
+                      navigator.clipboard.writeText(msg.message);
+                    }}
                     variant={"ghost"}
                     size={"sm"}
                     className="flex w-full justify-start gap-2 items-center"
@@ -202,15 +211,16 @@ export const MessageList = ({
                   </Button>
 
                   <Button
-                    onClick={() =>
+                    onClick={() => {
                       setEditMessage({
                         messageId: msg.id,
                         message: msg.message,
                         senderId: msg.senderId,
                         fileData: msg.fileData,
                         name: getSenderDisplayName(msg.senderId),
-                      })
-                    }
+                      });
+                      setOpenPopoverId(null);
+                    }}
                     variant={"ghost"}
                     size={"sm"}
                     className="flex w-full justify-start gap-2 items-center"
@@ -376,7 +386,12 @@ export const MessageList = ({
               {/* Options button for non-current user messages */}
               {msg.senderId !== user.uid && msg.type !== "system" && (
                 <>
-                  <Popover>
+                  <Popover
+                    open={openPopoverId === msg.id}
+                    onOpenChange={(open) =>
+                      setOpenPopoverId(open ? msg.id : null)
+                    }
+                  >
                     <PopoverTrigger asChild>
                       <Button
                         variant={"ghost"}
@@ -392,15 +407,16 @@ export const MessageList = ({
                     </PopoverTrigger>
                     <PopoverContent className="w-52 p-1">
                       <Button
-                        onClick={() =>
+                        onClick={() => {
                           setReplyTo({
                             messageId: msg.id,
                             message: msg.message,
                             senderId: msg.senderId,
                             fileData: msg.fileData,
                             name: getSenderDisplayName(msg.senderId),
-                          })
-                        }
+                          });
+                          setOpenPopoverId(null);
+                        }}
                         variant={"ghost"}
                         size={"sm"}
                         className="flex w-full justify-start gap-2 items-center"
@@ -413,6 +429,10 @@ export const MessageList = ({
                         Reply
                       </Button>
                       <Button
+                        onClick={() => {
+                          setOpenPopoverId(null);
+                          navigator.clipboard.writeText(msg.message);
+                        }}
                         variant={"ghost"}
                         size={"sm"}
                         className="flex w-full justify-start gap-2 items-center"
