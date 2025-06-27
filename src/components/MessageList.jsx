@@ -263,6 +263,26 @@ export const MessageList = ({
           )}
           {/* ------------------------------------------------ */}
           <div>
+            {/* Header with sender info */}
+            {msg.senderId !== user.uid && msg.type !== "system" && (
+              <div className="flex gap-1.5 text-xs ml-7 items-center mb-0.5">
+                {getSenderDisplayName(msg.senderId) && (
+                  <p className="capitalize font-semibold text-blue-600">
+                    {getSenderDisplayName(msg.senderId)}
+                  </p>
+                )}
+                {getSenderData(msg.senderId)?.department && (
+                  <span className="text-[10px] bg-blue-100 text-blue-700 rounded-full px-2 py-0.5 font-medium">
+                    {getSenderData(msg.senderId)?.department}
+                  </span>
+                )}
+                {getSenderData(msg.senderId)?.position && (
+                  <span className="text-[10px] bg-gray-100 text-gray-600 rounded-full border px-2 py-0.5 font-medium">
+                    {getSenderData(msg.senderId)?.position}
+                  </span>
+                )}
+              </div>
+            )}
             <div className="flex items-end gap-1.5">
               {msg.senderId !== user.uid && msg.type !== "system" && (
                 <Avatar className="h-5 w-5">
@@ -272,27 +292,6 @@ export const MessageList = ({
               )}
 
               <div>
-                {/* Header with sender info */}
-                {msg.senderId !== user.uid && msg.type !== "system" && (
-                  <div className="flex gap-1.5 text-xs items-center mb-1">
-                    {getSenderDisplayName(msg.senderId) && (
-                      <p className="capitalize font-semibold text-blue-600">
-                        {getSenderDisplayName(msg.senderId)}
-                      </p>
-                    )}
-                    {getSenderData(msg.senderId)?.department && (
-                      <span className="text-[10px] bg-blue-100 text-blue-700 rounded-full px-2 py-0.5 font-medium">
-                        {getSenderData(msg.senderId)?.department}
-                      </span>
-                    )}
-                    {getSenderData(msg.senderId)?.position && (
-                      <span className="text-[10px] bg-gray-100 text-gray-600 rounded-full border px-2 py-0.5 font-medium">
-                        {getSenderData(msg.senderId)?.position}
-                      </span>
-                    )}
-                  </div>
-                )}
-
                 <div
                   className={`relative max-w-md lg:max-w-lg ${
                     msg.type === "system"

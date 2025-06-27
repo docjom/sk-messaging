@@ -1,5 +1,15 @@
 import { Button } from "@/components/ui/button";
 import { Icon } from "@iconify/react";
+import EmojiPicker from "emoji-picker-react";
+import React, { lazy, Suspense, useState } from "react";
+
+// Lazy load
+const LazyEmojiPicker = lazy(() => import("emoji-picker-react"));
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 export const MessageInput = ({
   chatId,
   messagesLoading,
@@ -14,6 +24,22 @@ export const MessageInput = ({
   editMessage,
   setMessage,
 }) => {
+  const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
+
+  const handleEmojiClick = (emojiData) => {
+    const emoji = emojiData.emoji;
+    const cursorPos = textareaRef.current.selectionStart;
+    const text = message;
+    const newText = text.slice(0, cursorPos) + emoji + text.slice(cursorPos);
+
+    setMessage(newText);
+
+    setTimeout(() => {
+      textareaRef.current.focus();
+      textareaRef.current.selectionEnd = cursorPos + emoji.length;
+    }, 0);
+  };
+
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-gray-50 shadow-lg sm:ml-64 z-30">
       <div className="px-4 py-2 border-t border-gray-300">
@@ -141,6 +167,33 @@ export const MessageInput = ({
                 }
               }}
             />
+
+            <Popover open={emojiPickerOpen} onOpenChange={setEmojiPickerOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="p-0 rounded-full bg-gray-200 hover:bg-gray-300 text-blue-500 transition"
+                >
+                  <Icon
+                    icon="solar:emoji-funny-circle-broken"
+                    width="20"
+                    height="20"
+                  />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-full p-0">
+                <Suspense
+                  fallback={
+                    <div className="p-2 text-sm text-gray-500">
+                      Loading emojis...
+                    </div>
+                  }
+                >
+                  <LazyEmojiPicker onEmojiClick={handleEmojiClick} />
+                </Suspense>
+              </PopoverContent>
+            </Popover>
 
             <button
               onClick={handleSendMessage}
