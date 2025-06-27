@@ -85,7 +85,7 @@ export const ReplyMessageDisplay = ({ message }) => {
           className="text-blue-500"
         />
         <span className="text-xs font-medium text-blue-600">
-          Replying to {replyTo.senderName}
+          Reply to {replyTo.senderName}
         </span>
       </div>
 
