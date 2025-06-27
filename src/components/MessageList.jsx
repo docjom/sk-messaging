@@ -11,6 +11,8 @@ import { EmojiSet } from "./EmojiSet";
 import { ReplyMessageDisplay } from "./ReplyMessage";
 import { useMessageActionStore } from "../stores/useMessageActionStore";
 import { FileMessage } from "./FileMessage";
+import { EmojiReactions } from "./EmojiReactions";
+import { formatMessageWithLinks, formatFileSize } from "../composables/scripts";
 
 export const MessageList = ({
   messages,
@@ -138,58 +140,6 @@ export const MessageList = ({
       }
     };
   }, []);
-
-  const formatFileSize = (bytes) => {
-    if (bytes === 0) return "0 Bytes";
-    const k = 1024;
-    const sizes = ["Bytes", "KB", "MB", "GB"];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
-  };
-
-  const formatMessageWithLinks = (text, senderId, userId) => {
-    if (!text) return "";
-
-    // Regular expressions for different patterns
-    const urlRegex = /(https?:\/\/[^\s]+)/g;
-    const emailRegex = /([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g;
-    const phoneRegex = /(\+?[\d\s\-()]{10,})/g;
-
-    // Determine styling based on sender
-    const isCurrentUser = senderId === userId;
-    const linkClasses = isCurrentUser
-      ? "text-white font-bold underline hover:text-gray-200 cursor-pointer"
-      : "text-blue-400 underline hover:text-blue-300 cursor-pointer";
-
-    let formattedText = text;
-
-    // Replace URLs with clickable links
-    formattedText = formattedText.replace(urlRegex, (url) => {
-      return `<a href="${url}" target="_blank" rel="noopener noreferrer" 
-            class="${linkClasses}"
-           >${url}</a>`;
-    });
-
-    // Replace emails with clickable mailto links
-    formattedText = formattedText.replace(emailRegex, (email) => {
-      return `<a href="mailto:${email}" 
-            class="${linkClasses}"
-            >${email}</a>`;
-    });
-
-    // Replace phone numbers with clickable tel links
-    formattedText = formattedText.replace(phoneRegex, (phone) => {
-      const cleanPhone = phone.replace(/\s+/g, "");
-      if (cleanPhone.length >= 10) {
-        return `<a href="tel:${cleanPhone}" 
-              class="${linkClasses}"
-             >${phone}</a>`;
-      }
-      return phone;
-    });
-
-    return formattedText;
-  };
 
   return (
     <div
@@ -373,83 +323,11 @@ export const MessageList = ({
                             }`}
                           >
                             {/* emoji reactions to message */}
-                            <div className="relative max-w-40">
-                              <div className="flex gap-1 pr-4 justify-start items-center max-w-40 overflow-x-auto  scrollbar-hide">
-                                {msg.reactions && (
-                                  <>
-                                    {msg.reactions &&
-                                      Object.entries(msg.reactions).map(
-                                        ([emojiSrcSet, users]) => (
-                                          <span
-                                            key={emojiSrcSet}
-                                            className={`flex gap-1 justify-start items-center border rounded-full  px-1 py-0.5 ${
-                                              msg.senderId === user.uid
-                                                ? "border-gray-300"
-                                                : "bg-gray-200/50"
-                                            }`}
-                                          >
-                                            <span className="rounded-full bg-gray-200/50 size-5">
-                                              <picture className="cursor-pointer">
-                                                <source
-                                                  srcSet={`https://fonts.gstatic.com/s/e/notoemoji/latest/${emojiSrcSet}/512.webp`}
-                                                  type="image/webp"
-                                                />
-                                                <img
-                                                  src={`https://fonts.gstatic.com/s/e/notoemoji/latest/${emojiSrcSet}/512.gif`}
-                                                  alt=""
-                                                  width="32"
-                                                  height="32"
-                                                />
-                                              </picture>
-                                            </span>
-
-                                            <div className="*:data-[slot=avatar]:ring-background flex -space-x-2 *:data-[slot=avatar]:ring-1 ">
-                                              {/* Map over users array for this emoji */}
-                                              {users.slice(0, 3).map((user) => (
-                                                <Avatar
-                                                  key={user.userId}
-                                                  className="h-5 w-5"
-                                                >
-                                                  <AvatarImage
-                                                    src={
-                                                      getSenderData(user.userId)
-                                                        ?.photoURL
-                                                    }
-                                                    alt={`@${user.userId}`}
-                                                  />
-                                                  <AvatarFallback>
-                                                    {user.userId
-                                                      .substring(0, 2)
-                                                      .toUpperCase()}
-                                                  </AvatarFallback>
-                                                </Avatar>
-                                              ))}
-
-                                              {/* Show +X if more than 3 users */}
-                                              {users.length > 3 && (
-                                                <div className="h-5 w-5 rounded-full bg-gray-300 flex items-center justify-center text-xs font-medium text-gray-600">
-                                                  +{users.length - 3}
-                                                </div>
-                                              )}
-                                            </div>
-                                            {/* Optional: Show total count
-                                          <span className="text-xs text-gray-500 ml-1">
-                                            {users.length}
-                                          </span> */}
-                                          </span>
-                                        )
-                                      )}
-                                  </>
-                                )}
-                                <div
-                                  className={`pointer-events-none absolute inset-y-0 -right-1 w-1/3 bg-gradient-to-l  ${
-                                    msg.senderId === user.uid
-                                      ? " from-blue-500 "
-                                      : " from-white"
-                                  }`}
-                                ></div>
-                              </div>
-                            </div>
+                            <EmojiReactions
+                              msg={msg}
+                              getSenderData={getSenderData}
+                              user={user}
+                            />
                             <p
                               className={`text-[10px] ${
                                 msg.senderId === user.uid
@@ -560,7 +438,6 @@ export const MessageList = ({
           </div>
         </div>
       ))}
-      {/* Invisible element to scroll to */}
       <div ref={messagesEndRef} />
     </div>
   );
