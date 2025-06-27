@@ -13,6 +13,7 @@ import { useMessageActionStore } from "../stores/useMessageActionStore";
 import { FileMessage } from "./FileMessage";
 import { EmojiReactions } from "./EmojiReactions";
 import { formatMessageWithLinks, formatFileSize } from "../composables/scripts";
+import { toast } from "sonner";
 
 export const MessageList = ({
   messages,
@@ -29,9 +30,19 @@ export const MessageList = ({
   const scrollTimeoutRef = useRef(null);
   const lastMessageCountRef = useRef(0);
   const [loadingStates, setLoadingStates] = useState({});
-  const [isOpen, setIsOpen] = useState(false);
   const [openPopoverId, setOpenPopoverId] = useState(null);
   const { setEditMessage, setReplyTo } = useMessageActionStore();
+
+  const copy = (text) => {
+    navigator.clipboard
+      .writeText(text)
+      .then(() => {
+        toast("Text copied!");
+      })
+      .catch(() => {
+        toast.error("Failed to copy ");
+      });
+  };
 
   const scrollToBottomInstant = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({
@@ -200,7 +211,7 @@ export const MessageList = ({
                   <Button
                     onClick={() => {
                       setOpenPopoverId(null);
-                      navigator.clipboard.writeText(msg.message);
+                      copy(msg.message);
                     }}
                     variant={"ghost"}
                     size={"sm"}
@@ -431,7 +442,7 @@ export const MessageList = ({
                       <Button
                         onClick={() => {
                           setOpenPopoverId(null);
-                          navigator.clipboard.writeText(msg.message);
+                          copy(msg.message);
                         }}
                         variant={"ghost"}
                         size={"sm"}
