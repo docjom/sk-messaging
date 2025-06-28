@@ -823,7 +823,7 @@ function Dashboard() {
                             <Button
                               onClick={() => setIfUserInfoOpen(true)}
                               variant={"ghost"}
-                              className=""
+                              className=" flex justify-start"
                             >
                               {" "}
                               <Icon
@@ -833,6 +833,18 @@ function Dashboard() {
                               />
                               View Profile
                             </Button>
+                            <Button
+                              variant={"ghost"}
+                              className=" flex justify-start"
+                            >
+                              {" "}
+                              <Icon
+                                icon="solar:pin-line-duotone"
+                                width="20"
+                                height="20"
+                              />
+                              Pinned Message
+                            </Button>
 
                             <DeleteUserChat
                               chatId={chatId}
@@ -840,6 +852,34 @@ function Dashboard() {
                               clearCurrentChat={clearChatId}
                             />
                           </div>
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                  </div>
+                )}
+
+                {getChatDisplayName(currentChat) === "Unknown User" && (
+                  <div className="flex justify-between items-center w-full">
+                    <div className="font-semibold text-gray-600 py-1.5">
+                      Unknown User
+                    </div>
+                    <div>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <button className="p-2 rounded-full bg-gray-200 hover:bg-gray-300 text-gray-800 transition">
+                            <Icon
+                              icon="solar:hamburger-menu-broken"
+                              width="20"
+                              height="20"
+                            />
+                          </button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-full p-0">
+                          <DeleteUserChat
+                            chatId={chatId}
+                            currentUserId={user.uid}
+                            clearCurrentChat={clearChatId}
+                          />
                         </PopoverContent>
                       </Popover>
                     </div>

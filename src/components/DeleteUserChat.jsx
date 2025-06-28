@@ -47,7 +47,7 @@ export const DeleteUserChat = ({ chatId, currentUserId, clearCurrentChat }) => {
     <>
       <Dialog>
         <DialogTrigger asChild>
-          <Button variant={"ghost"} className="text-red-500">
+          <Button variant={"ghost"} className="text-red-500 flex justify-start">
             {" "}
             <Icon icon="fluent:delete-48-regular" width="20" height="20" />
             Delete Chat
