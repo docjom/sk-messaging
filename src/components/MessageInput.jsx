@@ -137,7 +137,7 @@ export const MessageInput = ({
                   onClick={() => setIsFileDialogOpen(true)}
                   disabled={!chatId || messagesLoading || isMessagesSending}
                 >
-                  <Icon icon="solar:file-send-bold" width="24" height="24" />
+                  <Icon icon="solar:file-send-bold" width="20" height="20" />
                 </button>
               </div>
             )}
