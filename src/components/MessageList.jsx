@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useCallback } from "react";
+import React, { useRef, useState, useCallback } from "react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Icon } from "@iconify/react";
 import { Button } from "@/components/ui/button";
@@ -24,11 +24,6 @@ export const MessageList = ({
   chatId,
 }) => {
   const messagesEndRef = useRef(null);
-  const messagesContainerRef = useRef(null);
-  const [isUserScrolling, setIsUserScrolling] = useState(false);
-  const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
-  const scrollTimeoutRef = useRef(null);
-  const lastMessageCountRef = useRef(0);
   const [loadingStates, setLoadingStates] = useState({});
   const [openPopoverId, setOpenPopoverId] = useState(null);
   const { setEditMessage, setReplyTo } = useMessageActionStore();
@@ -44,47 +39,6 @@ export const MessageList = ({
       });
   };
 
-  const scrollToBottomInstant = useCallback(() => {
-    messagesEndRef.current?.scrollIntoView({
-      behavior: "auto",
-      block: "end",
-    });
-  }, []);
-
-  const scrollToBottomSmooth = useCallback(() => {
-    messagesEndRef.current?.scrollIntoView({
-      behavior: "smooth",
-      block: "end",
-    });
-  }, []);
-
-  const isNearBottom = useCallback(() => {
-    const container = messagesContainerRef.current;
-    if (!container) return true;
-
-    const { scrollTop, scrollHeight, clientHeight } = container;
-    const threshold = 150;
-    return scrollHeight - scrollTop - clientHeight < threshold;
-  }, []);
-
-  const handleScroll = useCallback(() => {
-    const container = messagesContainerRef.current;
-    if (!container) return;
-
-    if (scrollTimeoutRef.current) {
-      clearTimeout(scrollTimeoutRef.current);
-    }
-
-    setIsUserScrolling(true);
-
-    const nearBottom = isNearBottom();
-    setShouldAutoScroll(nearBottom);
-
-    scrollTimeoutRef.current = setTimeout(() => {
-      setIsUserScrolling(false);
-    }, 150);
-  }, [isNearBottom]);
-
   const handleImageLoad = useCallback((messageId) => {
     setLoadingStates((prev) => ({
       ...prev,
@@ -99,65 +53,8 @@ export const MessageList = ({
     }));
   }, []);
 
-  useEffect(() => {
-    if (messages.length > 0) {
-      setShouldAutoScroll(true);
-      setIsUserScrolling(false);
-      lastMessageCountRef.current = messages.length;
-
-      setTimeout(() => {
-        scrollToBottomInstant();
-      }, 0);
-    }
-  }, []);
-
-  useEffect(() => {
-    const currentMessageCount = messages.length;
-    const hasNewMessages = currentMessageCount > lastMessageCountRef.current;
-
-    if (hasNewMessages && currentMessageCount > 0) {
-      lastMessageCountRef.current = currentMessageCount;
-
-      if (shouldAutoScroll && !isUserScrolling) {
-        setTimeout(() => {
-          scrollToBottomSmooth();
-        }, 50);
-      }
-    }
-  }, [
-    messages.length,
-    shouldAutoScroll,
-    isUserScrolling,
-    scrollToBottomSmooth,
-  ]);
-
-  useEffect(() => {
-    const container = messagesContainerRef.current;
-    if (container) {
-      container.addEventListener("scroll", handleScroll, { passive: true });
-
-      return () => {
-        container.removeEventListener("scroll", handleScroll);
-        if (scrollTimeoutRef.current) {
-          clearTimeout(scrollTimeoutRef.current);
-        }
-      };
-    }
-  }, [handleScroll]);
-
-  useEffect(() => {
-    return () => {
-      if (scrollTimeoutRef.current) {
-        clearTimeout(scrollTimeoutRef.current);
-      }
-    };
-  }, []);
-
   return (
-    <div
-      ref={messagesContainerRef}
-      className="flex-1 overflow-y-auto scroll-smooth"
-    >
+    <div className="flex-1 overflow-y-auto scroll-smooth">
       {messages.map((msg) => (
         <div
           key={msg.id}

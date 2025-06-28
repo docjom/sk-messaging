@@ -37,7 +37,6 @@ import {
 } from "firebase/firestore";
 import { Button } from "@/components/ui/button";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
-
 import { useMessageActionStore } from "../stores/useMessageActionStore";
 import { MessageInput } from "@/components/MessageInput";
 
@@ -69,8 +68,8 @@ function Dashboard() {
   const [isUploadingFile, setIsUploadingFile] = useState(false);
 
   const messagesEndRef = useRef(null);
-  const messagesContainerRef = useRef(null);
   const textareaRef = useRef(null);
+  const prevMessageCountRef = useRef(0);
 
   const { replyTo, clearReply, editMessage, clearEdit } =
     useMessageActionStore();
@@ -91,30 +90,29 @@ function Dashboard() {
   }, [message]);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (messages.length > prevMessageCountRef.current) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+    prevMessageCountRef.current = messages.length;
   }, [messages]);
 
   const handleFileUpload = async ({ file, message, chatId }) => {
     setIsUploadingFile(true);
-
     try {
-      // Upload file to Firebase Storage
       const storage = getStorage();
       const timestamp = Date.now();
       const fileName = `${timestamp}_${file.name}`;
       const storageRef = ref(storage, `chat-files/${chatId}/${fileName}`);
 
-      // Upload the file
       const uploadResult = await uploadBytes(storageRef, file);
       const downloadURL = await getDownloadURL(uploadResult.ref);
 
-      // Send file message to chat
       const messagesRef = collection(db, "chats", chatId, "messages");
       const chatRef = doc(db, "chats", chatId);
 
       const messageData = {
         senderId: user.uid,
-        message: message || "", // Optional text message
+        message: message || "",
         timestamp: serverTimestamp(),
         seen: false,
         status: "sent",
@@ -127,17 +125,12 @@ function Dashboard() {
           fileName: fileName,
         },
       };
-
-      // Add the message
       await addDoc(messagesRef, messageData);
-
-      // Update chat last message
       const lastMessageText = message ? message : `📎 ${file.name}`;
       await updateDoc(chatRef, {
         lastMessage: lastMessageText,
         lastMessageTime: serverTimestamp(),
       });
-
       toast.success("File sent successfully!");
       setIsFileDialogOpen(false);
     } catch (error) {
@@ -147,14 +140,12 @@ function Dashboard() {
       setIsUploadingFile(false);
     }
   };
-
   const handleCancelEdit = () => {
     clearEdit();
     clearReply();
     setMessage("");
     textareaRef.current?.focus();
   };
-
   useEffect(() => {
     textareaRef.current?.focus();
     if (endOfMessagesRef.current) {
@@ -164,25 +155,20 @@ function Dashboard() {
 
   const sendMessage = async (chatId, senderId, message, reply, edit) => {
     if (!message.trim()) return;
-
     setIsMessagesSending(true);
-
     try {
       if (edit?.messageId) {
         const msgRef = doc(db, "chats", chatId, "messages", edit.messageId);
-
         await updateDoc(msgRef, {
           message: message,
           edited: true,
           timestamp: edit?.timestamp,
           editTimestamp: serverTimestamp(),
         });
-
         useMessageActionStore.getState().clearEdit();
       } else {
         const messagesRef = collection(db, "chats", chatId, "messages");
         const chatRef = doc(db, "chats", chatId);
-
         const messagePayload = {
           senderId,
           message,
@@ -208,7 +194,6 @@ function Dashboard() {
         });
 
         useMessageActionStore.getState().clearReply();
-        useMessageActionStore.getState().clearEdit();
         setIsMessagesSending(false);
       }
       textareaRef.current?.focus();
@@ -343,9 +328,7 @@ function Dashboard() {
         if (userDoc.exists()) {
           const profileData = { id: userDoc.id, ...userDoc.data() };
           setUserProfile(profileData);
-          //console.log("User profile updated:", profileData);
         } else {
-          // console.log("No user profile found in Firestore");
           setUserProfile(null);
         }
       });
@@ -496,22 +479,18 @@ function Dashboard() {
       console.error("Chat ID is not set.");
       return;
     }
-
     if (textareaRef.current) {
       textareaRef.current.style.height = "40px";
       textareaRef.current?.focus();
     }
     textareaRef.current?.focus();
-
     const msgToSend = message.trim();
     const reply = useMessageActionStore.getState().replyTo;
     const edit = useMessageActionStore.getState().editMessage;
     if (msgToSend === "") return;
-
     clearReply();
     clearEdit();
     setMessage("");
-
     const chatRef = doc(db, "chats", chatId);
     const chatDoc = await getDoc(chatRef);
 
@@ -523,11 +502,9 @@ function Dashboard() {
         return;
       }
     }
-
     await sendMessage(chatId, user.uid, msgToSend, reply, edit);
     textareaRef.current?.focus();
   };
-
   const handleKeyPress = (e) => {
     textareaRef.current?.focus();
     if (e.key === "Enter" && !e.shiftKey) {
@@ -535,7 +512,6 @@ function Dashboard() {
       handleSendMessage();
     }
   };
-
   const createChat = async (type, userIds, name = "") => {
     try {
       const chatsRef = collection(db, "chats");
@@ -560,10 +536,8 @@ function Dashboard() {
         });
       }
       const chatDoc = await addDoc(chatsRef, chatData);
-      //console.log(`${type} chat created successfully with ID:`, chatDoc.id);
       return chatDoc.id;
     } catch (e) {
-      // console.error("Error creating chat:", error);
       toast.error("Failed to create chat. Please try again.", e);
       return null;
     }
@@ -802,8 +776,6 @@ function Dashboard() {
                     height="24"
                   />
                 </div>
-
-                {/* back button */}
                 {/* Show group members if it's a group chat */}
                 {currentChat.type === "group" && (
                   <div className="flex justify-between items-center w-full">
@@ -872,10 +844,7 @@ function Dashboard() {
                 <MessagesLoading />
               ) : (
                 <>
-                  <div
-                    ref={messagesContainerRef}
-                    className="flex-1 overflow-y-auto h-96 py-4 px-2 bg-gray-50"
-                  >
+                  <div className="flex-1 overflow-y-auto h-96 py-4 px-2 bg-gray-50">
                     {messages.length > 0 ? (
                       <>
                         <MessageList
