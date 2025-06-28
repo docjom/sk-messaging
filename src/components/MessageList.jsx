@@ -190,7 +190,7 @@ export const MessageList = ({
 
               <div>
                 <div
-                  className={`relative max-w-md lg:max-w-lg ${
+                  className={`relative max-w-52 h-auto ${
                     msg.type === "system"
                       ? "bg-white/80 text-gray-600 text-center px-3 py-1.5 rounded-full shadow-sm text-xs"
                       : msg.senderId === user.uid && msg.type !== "file"

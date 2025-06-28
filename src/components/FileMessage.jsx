@@ -42,7 +42,7 @@ export const FileMessage = ({
           {/* Loading placeholder */}
           {!isImageLoaded && (
             <div
-              className={`w-40 h-80 bg-white border border-gray-200 flex items-center justify-center ${
+              className={`w-52 h-52 bg-white border border-gray-200 flex items-center justify-center ${
                 message.message !== "" ? "rounded-t-lg" : "rounded-lg"
               }`}
             >
@@ -61,7 +61,7 @@ export const FileMessage = ({
           <img
             src={fileData.url}
             alt={fileData.name}
-            className={`w-full h-auto max-h-80 object-cover cursor-pointer ${
+            className={`max-w-52 h-auto object-cover cursor-pointer ${
               message.message !== "" ? "rounded-t-lg" : "rounded-lg"
             } ${!isImageLoaded ? "hidden" : ""}`}
             onClick={() => window.open(fileData.url, "_blank")}
@@ -137,7 +137,7 @@ export const FileMessage = ({
           {/* Loading placeholder */}
           {!isVideoLoaded && (
             <div
-              className={`w-40 h-80 bg-white border border-gray-200 flex items-center justify-center ${
+              className={`w-52 h-52 bg-white border border-gray-200 flex items-center justify-center ${
                 message.message !== "" ? "rounded-t-lg" : "rounded-lg"
               }`}
             >
@@ -156,7 +156,7 @@ export const FileMessage = ({
           <video
             src={fileData.url}
             controls
-            className={`w-full h-auto max-h-80 object-cover cursor-pointer ${
+            className={`max-w-52 h-auto object-cover cursor-pointer ${
               message.message !== "" ? "rounded-t-lg" : "rounded-lg"
             } ${!isVideoLoaded ? "hidden" : ""}`}
             onLoadedData={() => handleVideoLoad(messageId)}
@@ -218,7 +218,7 @@ export const FileMessage = ({
       {!isImage && !isVideo && (
         <>
           <div
-            className={`border relative px-3 py-2 bg-gray-50 ${
+            className={`border max-w-52 relative px-3 py-2 bg-gray-50 ${
               message.message !== "" ? "rounded-t-lg pb-3" : "rounded-lg"
             }`}
           >
