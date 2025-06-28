@@ -77,7 +77,7 @@ export const MessageList = ({
                   <Button
                     variant={"ghost"}
                     size={"sm"}
-                    className="mr-2 rounded-full border"
+                    className="mr-2 rounded-full"
                   >
                     <Icon
                       icon="solar:menu-dots-bold-duotone"
@@ -313,7 +313,7 @@ export const MessageList = ({
                       <Button
                         variant={"ghost"}
                         size={"sm"}
-                        className="mr-2 rounded-full border"
+                        className="mr-2 rounded-full"
                       >
                         <Icon
                           icon="solar:menu-dots-bold-duotone"
