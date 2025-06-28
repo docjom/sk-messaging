@@ -233,7 +233,7 @@ export const MessageList = ({
                                 user.uid
                               ),
                             }}
-                            className="text-sm max-w-52 sm:max-w-80 whitespace-pre-wrap break-words "
+                            className="text-sm max-w-52 whitespace-pre-wrap break-words "
                           />
 
                           <div
