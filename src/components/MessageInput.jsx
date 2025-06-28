@@ -132,15 +132,13 @@ export const MessageInput = ({
           <div className="flex justify-center items-end gap-2">
             {!editMessage && (
               <div>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  className="text-blue-500 border"
+                <button
+                  className="text-blue-500 p-2 rounded-full border"
                   onClick={() => setIsFileDialogOpen(true)}
                   disabled={!chatId || messagesLoading || isMessagesSending}
                 >
                   <Icon icon="solar:file-send-bold" width="24" height="24" />
-                </Button>
+                </button>
               </div>
             )}
 
@@ -170,17 +168,13 @@ export const MessageInput = ({
 
             <Popover open={emojiPickerOpen} onOpenChange={setEmojiPickerOpen}>
               <PopoverTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="p-0 rounded-full bg-gray-200 hover:bg-gray-300 text-blue-500 transition"
-                >
+                <button className="p-2 rounded-full bg-gray-200 hover:bg-gray-300 text-blue-500 transition">
                   <Icon
                     icon="solar:emoji-funny-circle-broken"
                     width="20"
                     height="20"
                   />
-                </Button>
+                </button>
               </PopoverTrigger>
               <PopoverContent className="w-full p-0">
                 <Suspense
@@ -190,7 +184,11 @@ export const MessageInput = ({
                     </div>
                   }
                 >
-                  <LazyEmojiPicker onEmojiClick={handleEmojiClick} />
+                  <LazyEmojiPicker
+                    height={400}
+                    width={300}
+                    onEmojiClick={handleEmojiClick}
+                  />
                 </Suspense>
               </PopoverContent>
             </Popover>
