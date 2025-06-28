@@ -36,7 +36,7 @@ export function Contacts({ users, currentUserId, handleSelectUser }) {
               <div
                 key={u.id}
                 onClick={() => handleSelectUser(u)}
-                className="flex items-center gap-2 mb-0 hover:bg-gray-200 rounded-lg p-2"
+                className="flex items-center gap-2 mb-0 border max-w-96 overflow-hidden truncate my-1 hover:bg-gray-200 rounded-lg p-2"
               >
                 <Avatar className="w-8 h-8">
                   {u?.photoURL ? (

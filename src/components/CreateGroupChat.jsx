@@ -59,7 +59,8 @@ export function CreateGroupChat({
     }
   };
 
-  const isSubmitDisabled = !groupName.trim() || selectedUsers.length === 0 || isLoading;
+  const isSubmitDisabled =
+    !groupName.trim() || selectedUsers.length === 0 || isLoading;
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
@@ -68,7 +69,11 @@ export function CreateGroupChat({
           variant="ghost"
           className="w-full mb-1 flex justify-start gap-4 items-center"
         >
-         <Icon icon="solar:users-group-rounded-linear" width="24" height="24" />
+          <Icon
+            icon="solar:users-group-rounded-linear"
+            width="24"
+            height="24"
+          />
           New Group
         </Button>
       </DialogTrigger>
@@ -111,7 +116,7 @@ export function CreateGroupChat({
               return (
                 <div
                   key={u.id}
-                  className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer border transition-colors ${
+                  className={`flex items-center gap-3 p-3 max-w-96 truncate overflow-hidden rounded-lg cursor-pointer border transition-colors ${
                     isSelected
                       ? "bg-blue-50 border-blue-200"
                       : "hover:bg-gray-50 border-gray-200"
@@ -133,10 +138,10 @@ export function CreateGroupChat({
                     )}
                   </Avatar>
                   <div className="flex-1">
-                    <p className="font-medium capitalize text-sm">
+                    <p className="font-medium capitalize text-sm ">
                       {u?.displayName || "Unknown User"}
                     </p>
-                    <p className="text-xs text-gray-500">{u?.email}</p>
+                    <p className="text-xs text-gray-500 ">{u?.email}</p>
                     {u?.department && (
                       <p className="text-xs text-blue-600">{u?.department}</p>
                     )}
