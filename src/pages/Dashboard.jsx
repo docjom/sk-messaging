@@ -839,15 +839,6 @@ function Dashboard() {
                               currentUserId={user.uid}
                               clearCurrentChat={clearChatId}
                             />
-                            <Button variant={"ghost"} className="text-red-500">
-                              {" "}
-                              <Icon
-                                icon="fluent:delete-48-regular"
-                                width="20"
-                                height="20"
-                              />
-                              Delete Chat
-                            </Button>
                           </div>
                         </PopoverContent>
                       </Popover>
