@@ -18,6 +18,7 @@ import FileUploadDialog from "@/components/FileUploadDialog";
 import ErrorProfileImage from "../assets/error.png";
 import { UserInfo } from "@/components/UserInfo";
 import { Menu } from "@/components/Menu";
+import { DeleteUserChat } from "@/components/DeleteUserChat";
 import {
   addDoc,
   collection,
@@ -36,6 +37,11 @@ import { Button } from "@/components/ui/button";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useMessageActionStore } from "../stores/useMessageActionStore";
 import { MessageInput } from "@/components/MessageInput";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -614,7 +620,7 @@ function Dashboard() {
           const chatData = doc.data();
           const users = chatData.users || [];
           if (!users.includes(user.uid)) {
-            toast.error("You have been removed from this group.");
+            toast.error("This chat no longer exists.");
             clearChatId();
           }
         } else {
@@ -781,24 +787,72 @@ function Dashboard() {
 
                 {/* Show direct chat user info */}
                 {currentChat.type === "direct" && selectedUser && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    className="flex items-center p-0"
-                    onClick={() => setIfUserInfoOpen(true)}
-                  >
-                    <img
-                      src={selectedUser.photoURL}
-                      alt={selectedUser.displayName}
-                      className="w-10 h-10 rounded-full mr-2"
-                      onError={(e) => {
-                        e.target.src = ErrorProfileImage;
-                      }}
-                    />
-                    <span className="text-lg text-gray-800 font-semibold capitalize">
-                      {selectedUser.displayName}
-                    </span>
-                  </Button>
+                  <div className="flex justify-between items-center w-full">
+                    {" "}
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      className="flex items-center p-0"
+                      onClick={() => setIfUserInfoOpen(true)}
+                    >
+                      <img
+                        src={selectedUser.photoURL}
+                        alt={selectedUser.displayName}
+                        className="w-10 h-10 rounded-full mr-2"
+                        onError={(e) => {
+                          e.target.src = ErrorProfileImage;
+                        }}
+                      />
+                      <span className="text-lg text-gray-800 font-semibold capitalize">
+                        {selectedUser.displayName}
+                      </span>
+                    </Button>
+                    <div>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <button className="p-2 rounded-full bg-gray-200 hover:bg-gray-300 text-gray-800 transition">
+                            <Icon
+                              icon="solar:hamburger-menu-broken"
+                              width="20"
+                              height="20"
+                            />
+                          </button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-full p-0">
+                          <div className="grid grid-cols-1">
+                            <Button
+                              onClick={() => setIfUserInfoOpen(true)}
+                              variant={"ghost"}
+                              className=""
+                            >
+                              {" "}
+                              <Icon
+                                icon="hugeicons:profile-02"
+                                width="20"
+                                height="20"
+                              />
+                              View Profile
+                            </Button>
+
+                            <DeleteUserChat
+                              chatId={chatId}
+                              currentUserId={user.uid}
+                              clearCurrentChat={clearChatId}
+                            />
+                            <Button variant={"ghost"} className="text-red-500">
+                              {" "}
+                              <Icon
+                                icon="fluent:delete-48-regular"
+                                width="20"
+                                height="20"
+                              />
+                              Delete Chat
+                            </Button>
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                  </div>
                 )}
               </div>
             </div>
