@@ -899,7 +899,7 @@ function Dashboard() {
                 <MessagesLoading />
               ) : (
                 <>
-                  <div className="flex-1 overflow-y-auto h-96 py-4 px-2 bg-gray-50 ">
+                  <div className="flex-1 overflow-y-auto h-full py-4 px-2 bg-gray-50 ">
                     {messages.length > 0 ? (
                       <>
                         <MessageList
