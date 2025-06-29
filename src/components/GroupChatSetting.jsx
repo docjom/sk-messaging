@@ -9,6 +9,8 @@ import {
 import { Icon } from "@iconify/react";
 import { EditGroup } from "@/components/EditGroup";
 import { LeaveGroup } from "@/components/LeaveGroup";
+import { Button } from "./ui/button";
+import { PinnedMessages } from "../components/PinnedMessages";
 
 export default function ManageGroupChat({
   chatId,
@@ -30,6 +32,7 @@ export default function ManageGroupChat({
             currentUserId={currentUserId}
             onLeaveSuccess={clearCurrentChat}
           />
+          <PinnedMessages chatId={chatId} />
         </DropdownMenuContent>
       </DropdownMenu>
     </>

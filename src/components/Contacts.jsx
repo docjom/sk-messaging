@@ -9,7 +9,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"; // Firebase Storage imports
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"; 
 
 export function Contacts({ users, currentUserId, handleSelectUser }) {
   return (

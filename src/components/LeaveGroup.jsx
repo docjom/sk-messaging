@@ -29,6 +29,7 @@ import {
   serverTimestamp,
   writeBatch,
 } from "firebase/firestore";
+import { Icon } from "@iconify/react";
 
 export function LeaveGroup({ chatId, currentUserId, onLeaveSuccess }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -116,7 +117,7 @@ export function LeaveGroup({ chatId, currentUserId, onLeaveSuccess }) {
 
   const handleTransfer = async () => {
     if (!selectedNewAdmin) {
-     // toast.error("Select someone to transfer to");
+      // toast.error("Select someone to transfer to");
       return;
     }
     setLoading(true);
@@ -158,7 +159,8 @@ export function LeaveGroup({ chatId, currentUserId, onLeaveSuccess }) {
       }}
     >
       <DialogTrigger asChild>
-        <Button variant="ghost" className="w-full border">
+        <Button variant="ghost" className="w-full flex justify-start">
+          <Icon icon="solar:arrow-left-broken" width="20" height="20" />
           Leave Group
         </Button>
       </DialogTrigger>

@@ -108,7 +108,12 @@ export function EditGroup({ chatId, currentUserId }) {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" className="border w-full mb-1">
+        <Button variant="ghost" className=" flex justify-start w-full mb-1">
+          <Icon
+            icon="solar:settings-minimalistic-broken"
+            width="20"
+            height="20"
+          />
           Manage Group
         </Button>
       </DialogTrigger>

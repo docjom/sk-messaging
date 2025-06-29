@@ -18,7 +18,7 @@ import FileUploadDialog from "@/components/FileUploadDialog";
 import ErrorProfileImage from "../assets/error.png";
 import { UserInfo } from "@/components/UserInfo";
 import { Menu } from "@/components/Menu";
-import { DeleteUserChat } from "@/components/DeleteUserChat";
+import { PinnedMessages } from "@/components/PinnedMessages";
 import {
   addDoc,
   collection,
@@ -833,24 +833,13 @@ function Dashboard() {
                               />
                               View Profile
                             </Button>
-                            <Button
-                              variant={"ghost"}
-                              className=" flex justify-start"
-                            >
-                              {" "}
-                              <Icon
-                                icon="solar:pin-line-duotone"
-                                width="20"
-                                height="20"
-                              />
-                              Pinned Message
-                            </Button>
+                            <PinnedMessages chatId={chatId} />
 
-                            <DeleteUserChat
+                            {/* <DeleteUserChat
                               chatId={chatId}
                               currentUserId={user.uid}
                               clearCurrentChat={clearChatId}
-                            />
+                            /> */}
                           </div>
                         </PopoverContent>
                       </Popover>
@@ -858,7 +847,7 @@ function Dashboard() {
                   </div>
                 )}
 
-                {getChatDisplayName(currentChat) === "Unknown User" && (
+                {/* {getChatDisplayName(currentChat) === "Unknown User" && (
                   <div className="flex justify-between items-center w-full">
                     <div className="font-semibold text-gray-600 py-1.5">
                       Unknown User
@@ -884,7 +873,7 @@ function Dashboard() {
                       </Popover>
                     </div>
                   </div>
-                )}
+                )} */}
               </div>
             </div>
           </div>
@@ -909,6 +898,7 @@ function Dashboard() {
                           getSenderData={getSenderData}
                           getSenderDisplayName={getSenderDisplayName}
                           formatTimestamp={formatTimestamp}
+                          currentUserId={user.uid}
                         />
                         <div ref={messagesEndRef} />
                       </>

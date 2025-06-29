@@ -14,6 +14,15 @@ import { FileMessage } from "./FileMessage";
 import { EmojiReactions } from "./EmojiReactions";
 import { formatMessageWithLinks, formatFileSize } from "../composables/scripts";
 import { toast } from "sonner";
+import {
+  doc,
+  serverTimestamp,
+  getDoc,
+  writeBatch,
+  collection,
+  updateDoc,
+} from "firebase/firestore";
+import { db } from "../firebase";
 
 export const MessageList = ({
   messages,
@@ -22,11 +31,45 @@ export const MessageList = ({
   getSenderDisplayName,
   formatTimestamp,
   chatId,
+  currentUserId,
 }) => {
   const messagesEndRef = useRef(null);
   const [loadingStates, setLoadingStates] = useState({});
   const [openPopoverId, setOpenPopoverId] = useState(null);
   const { setEditMessage, setReplyTo } = useMessageActionStore();
+
+  const handlePinMessage = async (messageId) => {
+    try {
+      const messageRef = doc(db, "chats", chatId, "messages", messageId);
+      await updateDoc(messageRef, {
+        pinned: true,
+        pinnedAt: serverTimestamp(),
+      });
+
+      const chatRef = doc(db, "chats", chatId);
+      const userRef = doc(db, "users", currentUserId);
+      const userSnap = await getDoc(userRef);
+      const name = userSnap.data()?.displayName || "Someone";
+
+      const batch = writeBatch(db);
+      batch.update(chatRef, {
+        lastMessage: `${name} pinned a message`,
+        lastMessageTime: serverTimestamp(),
+      });
+      const msgRef = collection(db, "chats", chatId, "messages");
+      batch.set(doc(msgRef), {
+        senderId: currentUserId,
+        message: `${name} pinned a message`,
+        timestamp: serverTimestamp(),
+        type: "system",
+      });
+      await batch.commit();
+
+      setOpenPopoverId(null);
+    } catch (error) {
+      console.error("Failed to pin message:", error);
+    }
+  };
 
   const copy = (text) => {
     navigator.clipboard
@@ -104,6 +147,15 @@ export const MessageList = ({
                   >
                     <Icon icon="solar:reply-broken" width="24" height="24" />
                     Reply
+                  </Button>
+                  <Button
+                    onClick={() => handlePinMessage(msg.id)}
+                    variant={"ghost"}
+                    size={"sm"}
+                    className="flex w-full justify-start gap-2 items-center"
+                  >
+                    <Icon icon="solar:pin-broken" width="20" height="20" />
+                    Pin
                   </Button>
                   <Button
                     onClick={() => {
@@ -202,6 +254,12 @@ export const MessageList = ({
                       : `bg-white text-gray-800 px-3 py-2 shadow-sm border border-gray-100 ${"rounded-tl-md rounded-tr-2xl rounded-bl-2xl rounded-br-2xl"}`
                   }`}
                 >
+                  {msg.pinned && (
+                    <div className="absolute -top-1 right-0 text-red-500">
+                      <Icon icon="solar:pin-bold" width="14" height="14" />
+                    </div>
+                  )}
+
                   <ReplyMessageDisplay
                     message={msg}
                     getSenderDisplayName={getSenderDisplayName}
@@ -344,6 +402,15 @@ export const MessageList = ({
                           height="24"
                         />
                         Reply
+                      </Button>
+                      <Button
+                        onClick={() => handlePinMessage(msg.id)}
+                        variant={"ghost"}
+                        size={"sm"}
+                        className="flex w-full justify-start gap-2 items-center"
+                      >
+                        <Icon icon="solar:pin-broken" width="20" height="20" />
+                        Pin
                       </Button>
                       <Button
                         onClick={() => {
