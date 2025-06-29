@@ -70,6 +70,18 @@ export const MessageList = ({
       console.error("Failed to pin message:", error);
     }
   };
+  const handleRemovePinMessage = async (messageId) => {
+    try {
+      const msgRef = doc(db, "chats", chatId, "messages", messageId);
+      await updateDoc(msgRef, {
+        pinned: false,
+        pinnedAt: null,
+      });
+      setOpenPopoverId(null);
+    } catch (error) {
+      console.error("Error unpinning message:", error);
+    }
+  };
 
   const copy = (text) => {
     navigator.clipboard
@@ -148,15 +160,33 @@ export const MessageList = ({
                     <Icon icon="solar:reply-broken" width="24" height="24" />
                     Reply
                   </Button>
-                  <Button
-                    onClick={() => handlePinMessage(msg.id)}
-                    variant={"ghost"}
-                    size={"sm"}
-                    className="flex w-full justify-start gap-2 items-center"
-                  >
-                    <Icon icon="solar:pin-broken" width="20" height="20" />
-                    Pin
-                  </Button>
+                  {!msg.pinned ? (
+                    <>
+                      {" "}
+                      <Button
+                        onClick={() => handlePinMessage(msg.id)}
+                        variant={"ghost"}
+                        size={"sm"}
+                        className="flex w-full justify-start gap-2 items-center"
+                      >
+                        <Icon icon="solar:pin-broken" width="20" height="20" />
+                        Pin
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      {" "}
+                      <Button
+                        onClick={() => handleRemovePinMessage(msg.id)}
+                        variant={"ghost"}
+                        size={"sm"}
+                        className="flex w-full justify-start gap-2 items-center"
+                      >
+                        <Icon icon="solar:pin-broken" width="20" height="20" />
+                        Unpin
+                      </Button>
+                    </>
+                  )}
                   <Button
                     onClick={() => {
                       setOpenPopoverId(null);
@@ -403,15 +433,41 @@ export const MessageList = ({
                         />
                         Reply
                       </Button>
-                      <Button
-                        onClick={() => handlePinMessage(msg.id)}
-                        variant={"ghost"}
-                        size={"sm"}
-                        className="flex w-full justify-start gap-2 items-center"
-                      >
-                        <Icon icon="solar:pin-broken" width="20" height="20" />
-                        Pin
-                      </Button>
+                      {!msg.pinned ? (
+                        <>
+                          {" "}
+                          <Button
+                            onClick={() => handlePinMessage(msg.id)}
+                            variant={"ghost"}
+                            size={"sm"}
+                            className="flex w-full justify-start gap-2 items-center"
+                          >
+                            <Icon
+                              icon="solar:pin-broken"
+                              width="20"
+                              height="20"
+                            />
+                            Pin
+                          </Button>
+                        </>
+                      ) : (
+                        <>
+                          {" "}
+                          <Button
+                            onClick={() => handleRemovePinMessage(msg.id)}
+                            variant={"ghost"}
+                            size={"sm"}
+                            className="flex w-full justify-start gap-2 items-center"
+                          >
+                            <Icon
+                              icon="solar:pin-broken"
+                              width="20"
+                              height="20"
+                            />
+                            Unpin
+                          </Button>
+                        </>
+                      )}
                       <Button
                         onClick={() => {
                           setOpenPopoverId(null);
