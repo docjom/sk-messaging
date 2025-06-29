@@ -891,7 +891,7 @@ function Dashboard() {
         )}
 
         {/* Chat Messages */}
-        <div className="bg-white rounded overflow-y-auto flex-1 mt-13 mb-14 flex flex-col">
+        <div className="bg-white rounded overflow-y-auto flex-1 mt-13 mb-14 flex flex-col justify-end">
           {chatId ? (
             <>
               {/* Messages Area with Loading */}
@@ -899,7 +899,7 @@ function Dashboard() {
                 <MessagesLoading />
               ) : (
                 <>
-                  <div className="flex-1 overflow-y-auto h-96 py-4 px-2 bg-gray-50">
+                  <div className="flex-1 overflow-y-auto h-96 py-4 px-2 bg-gray-50 ">
                     {messages.length > 0 ? (
                       <>
                         <MessageList
