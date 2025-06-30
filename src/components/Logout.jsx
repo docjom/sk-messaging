@@ -12,9 +12,10 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { getAuth } from "firebase/auth";
+import { getAuth, signOut } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 import { getFirestore, doc, updateDoc } from "firebase/firestore";
+import { useUserStore } from "@/stores/useUserStore";
 
 export function Logout() {
   const navigate = useNavigate();
@@ -30,14 +31,14 @@ export function Logout() {
     try {
       const user = auth.currentUser;
       if (user) {
-        // 1️⃣ Mark them as inactive in Firestore
         const userRef = doc(db, "users", user.uid);
         await updateDoc(userRef, { active: false });
       }
 
-      auth.signOut().then(() => {
-        navigate("/");
-      });
+      useUserStore.getState().cleanup();
+      await signOut(auth);
+      setIsOpen(false);
+      navigate("/");
     } catch (e) {
       console.error("Error logging out: ", e);
       toast.error("Something went wrong. Please try again.");
@@ -49,8 +50,12 @@ export function Logout() {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" className="border bg-red-500 w-full">
-          <Icon icon="solar:logout-broken" width="24" height="24" /> Logout
+        <Button
+          variant="ghost"
+          className="w-full justify-start gap-2 text-red-600 hover:bg-red-100"
+        >
+          <Icon icon="solar:logout-broken" width="24" height="24" />
+          Logout
         </Button>
       </DialogTrigger>
 
@@ -65,11 +70,16 @@ export function Logout() {
 
           <DialogFooter>
             <DialogClose asChild>
-              <Button variant="outline" type="button" disabled={loading}>
+              <Button
+                variant="outline"
+                type="button"
+                onClick={() => setIsOpen(false)}
+                disabled={loading}
+              >
                 Cancel
               </Button>
             </DialogClose>
-            <Button type="submit" disabled={loading}>
+            <Button type="submit" variant="destructive" disabled={loading}>
               {loading ? "Logging out..." : "Confirm"}
             </Button>
           </DialogFooter>

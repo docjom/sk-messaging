@@ -116,13 +116,13 @@ export const MessageList = ({
           className={`flex mb-2 ${
             msg.type === "system"
               ? "justify-center"
-              : msg.senderId === user.uid
+              : msg.senderId === user?.uid
               ? "justify-end"
               : "justify-start"
           }`}
         >
           {/* Options button for current user messages */}
-          {msg.senderId === user.uid && msg.type !== "system" && (
+          {msg.senderId === user?.uid && msg.type !== "system" && (
             <div className="relative">
               <Popover
                 open={openPopoverId === msg.id}
@@ -230,7 +230,7 @@ export const MessageList = ({
                     <div className="relative">
                       <EmojiSet
                         messageId={msg.id}
-                        userId={user.uid}
+                        userId={user?.uid}
                         chatId={chatId}
                         onSelect={() => setOpenPopoverId(null)}
                       />
@@ -243,7 +243,7 @@ export const MessageList = ({
           {/* ------------------------------------------------ */}
           <div>
             {/* Header with sender info */}
-            {msg.senderId !== user.uid && msg.type !== "system" && (
+            {msg.senderId !== user?.uid && msg.type !== "system" && (
               <div className="flex gap-1.5 text-xs ml-7 items-center mb-0.5">
                 {getSenderDisplayName(msg.senderId) && (
                   <p className="capitalize font-semibold text-blue-600">
@@ -263,7 +263,7 @@ export const MessageList = ({
               </div>
             )}
             <div className="flex items-end gap-1.5">
-              {msg.senderId !== user.uid && msg.type !== "system" && (
+              {msg.senderId !== user?.uid && msg.type !== "system" && (
                 <Avatar className="h-5 w-5">
                   <AvatarImage src={getSenderData(msg.senderId)?.photoURL} />
                   <AvatarFallback>P</AvatarFallback>
@@ -275,11 +275,11 @@ export const MessageList = ({
                   className={`relative max-w-52 h-auto ${
                     msg.type === "system"
                       ? "bg-white/80 text-gray-600 text-center px-3 py-1.5 rounded-full shadow-sm text-xs"
-                      : msg.senderId === user.uid && msg.type !== "file"
+                      : msg.senderId === user?.uid && msg.type !== "file"
                       ? `bg-blue-500 text-white px-3 py-2 shadow-sm ${"rounded-tl-2xl rounded-tr-2xl rounded-bl-2xl rounded-br-lg"}`
-                      : msg.type === "file" && msg.senderId === user.uid
+                      : msg.type === "file" && msg.senderId === user?.uid
                       ? `bg-blue-500 text-white shadow-sm ${"rounded-tl-2xl rounded-tr-2xl rounded-bl-2xl rounded-br-lg"}`
-                      : msg.type === "file" && msg.senderId !== user.uid
+                      : msg.type === "file" && msg.senderId !== user?.uid
                       ? `bg-white text-gray-800 shadow-sm ${"rounded-tl-2xl rounded-tr-2xl rounded-bl-2xl rounded-br-lg"}`
                       : `bg-white text-gray-800 px-3 py-2 shadow-sm border border-gray-100 ${"rounded-tl-md rounded-tr-2xl rounded-bl-2xl rounded-br-2xl"}`
                   }`}
@@ -318,7 +318,7 @@ export const MessageList = ({
                               __html: formatMessageWithLinks(
                                 msg.message,
                                 msg.senderId,
-                                user.uid
+                                user?.uid
                               ),
                             }}
                             className="text-sm max-w-52 whitespace-pre-wrap break-words "
@@ -326,7 +326,7 @@ export const MessageList = ({
 
                           <div
                             className={`flex items-center gap-1 ${
-                              msg.senderId === user.uid
+                              msg.senderId === user?.uid
                                 ? "justify-end"
                                 : "justify-start"
                             }`}
@@ -342,7 +342,7 @@ export const MessageList = ({
 
                             <div
                               className={`text-[10px] ${
-                                msg.senderId === user.uid
+                                msg.senderId === user?.uid
                                   ? "text-white/70"
                                   : "text-gray-400"
                               }`}
@@ -352,9 +352,9 @@ export const MessageList = ({
                               )}
                               {formatTimestamp(msg.timestamp)}
                             </div>
-                            {msg.senderId === user.uid && (
+                            {msg.senderId === user?.uid && (
                               <div className="flex">
-                                {msg.senderId === user.uid && (
+                                {msg.senderId === user?.uid && (
                                   <div className="flex">
                                     {msg.status === "sending" ? (
                                       <Icon
@@ -389,7 +389,7 @@ export const MessageList = ({
               </div>
 
               {/* Options button for non-current user messages */}
-              {msg.senderId !== user.uid && msg.type !== "system" && (
+              {msg.senderId !== user?.uid && msg.type !== "system" && (
                 <>
                   <Popover
                     open={openPopoverId === msg.id}
@@ -485,7 +485,7 @@ export const MessageList = ({
                         <div className="relative">
                           <EmojiSet
                             messageId={msg.id}
-                            userId={user.uid}
+                            userId={user?.uid}
                             chatId={chatId}
                             onSelect={() => setOpenPopoverId(null)}
                           />

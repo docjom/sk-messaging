@@ -6,10 +6,17 @@ import Dashboard from "./pages/Dashboard";
 import { WelcomePage } from "./WelcomePage";
 import Register from "./pages/Register";
 import { NoInternetPage } from "./pages/NoInternet";
+import { useUserStore } from "@/stores/useUserStore";
 
 function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  const initAuthListener = useUserStore((s) => s.initAuthListener);
+
+  useEffect(() => {
+    initAuthListener();
+  }, []);
 
   useEffect(() => {
     const auth = getAuth();

@@ -24,18 +24,18 @@ import {
   getDownloadURL,
   deleteObject,
   getMetadata,
-} from "firebase/storage"; // Firebase Storage imports
+} from "firebase/storage";
 
 export function EditProfile({ currentUserId }) {
   const [name, setName] = useState("");
   const [department, setDepartment] = useState("");
   const [phone, setPhone] = useState("");
   const [position, setPosition] = useState("");
-  const [profilePhotoURL, setProfilePhotoURL] = useState(""); // Store profile photo URL
-  const [imagePreview, setImagePreview] = useState(""); // For image preview before upload
-  const [newProfilePhoto, setNewProfilePhoto] = useState(null); // For storing the new profile image
+  const [profilePhotoURL, setProfilePhotoURL] = useState("");
+  const [imagePreview, setImagePreview] = useState("");
+  const [newProfilePhoto, setNewProfilePhoto] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [isOpen, setIsOpen] = useState(false); // Dialog open state
+  const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
     async function loadUserProfile() {
@@ -46,20 +46,19 @@ export function EditProfile({ currentUserId }) {
         setDepartment(data.department || "");
         setPhone(data.phone || "");
         setPosition(data.position || "");
-        setProfilePhotoURL(data.photoURL || ""); // Set the current profile photo URL
-        setImagePreview(data.photoURL || ""); // Display existing profile photo as preview
+        setProfilePhotoURL(data.photoURL || "");
+        setImagePreview(data.photoURL || "");
       }
     }
     loadUserProfile();
   }, [currentUserId]);
 
-  // Handle selecting a new profile image
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
       setNewProfilePhoto(file);
       const fileUrl = URL.createObjectURL(file);
-      setImagePreview(fileUrl); // Preview the selected image
+      setImagePreview(fileUrl);
     }
   };
 
@@ -67,34 +66,29 @@ export function EditProfile({ currentUserId }) {
     e.preventDefault();
     setIsLoading(true);
 
-    let photoURL = profilePhotoURL; // Default to current photo if no new image
+    let photoURL = profilePhotoURL;
 
     if (newProfilePhoto) {
-      // If there’s a new profile photo, delete the old one and upload the new one
       try {
         const storage = getStorage();
         const oldImageRef = ref(storage, `profilePhotos/${currentUserId}`);
 
-        // Check if the old image exists
         try {
           await getMetadata(oldImageRef);
-          await deleteObject(oldImageRef); // Delete old image
+          await deleteObject(oldImageRef);
         } catch (error) {
           if (error.code === "storage/object-not-found") {
-            // If the object is not found, we skip the deletion
             console.log("Old profile photo does not exist. Skipping delete.");
           } else {
             throw error;
           }
         }
 
-        // Upload the new image
         const storageRef = ref(storage, `profilePhotos/${currentUserId}`);
         const uploadTask = uploadBytesResumable(storageRef, newProfilePhoto);
 
         await uploadTask;
 
-        // Get the download URL of the uploaded image
         photoURL = await getDownloadURL(storageRef);
         toast("Profile photo uploaded successfully!");
       } catch (error) {
@@ -105,7 +99,6 @@ export function EditProfile({ currentUserId }) {
       }
     }
 
-    // Update user profile in Firestore
     try {
       const userDocRef = doc(db, "users", currentUserId);
       await updateDoc(userDocRef, {
@@ -113,12 +106,12 @@ export function EditProfile({ currentUserId }) {
         department,
         phone,
         position,
-        photoURL, // Update photo URL in Firestore
-        updatedAt: new Date(), // Optional: Update timestamp of the last profile update
+        photoURL,
+        updatedAt: new Date(),
       });
 
       toast("Profile updated successfully!");
-      setIsOpen(false); // Close the dialog after saving
+      setIsOpen(false);
     } catch (error) {
       console.error("Error updating profile:", error);
       toast.error("Failed to update profile. Please try again.");

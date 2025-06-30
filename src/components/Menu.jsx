@@ -28,10 +28,10 @@ export const Menu = ({
             </h1>
           </div>
           <hr className="border border-gray-700 m-1" />
-          <EditProfile currentUserId={displayUser.uid} />
+          <EditProfile currentUserId={displayUser?.uid} />
           <CreateGroupChat
             users={users}
-            currentUserId={user.uid}
+            currentUserId={user?.uid}
             submitText="Create Group"
             isLoading={isCreatingGroup}
             onSubmit={createGroupChat}

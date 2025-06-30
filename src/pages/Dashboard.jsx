@@ -1,6 +1,4 @@
 import { useState, useEffect, useRef } from "react";
-import { getAuth, onAuthStateChanged } from "firebase/auth";
-import { useNavigate } from "react-router-dom";
 import { db } from "../firebase";
 import { toast } from "sonner";
 import { Icon } from "@iconify/react";
@@ -43,12 +41,11 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { ChatFiles } from "@/components/ChatFiles";
+import { useUserStore } from "@/stores/useUserStore";
 
 function Dashboard() {
-  const navigate = useNavigate();
-  const auth = getAuth();
-  const [user, setUser] = useState(null);
-  const [userProfile, setUserProfile] = useState(null);
+  const user = useUserStore((s) => s.user);
+  const userProfile = useUserStore((s) => s.userProfile);
   const [messages, setMessages] = useState([]);
   const [message, setMessage] = useState("");
   const [chatId, setChatId] = useState("");
@@ -115,7 +112,7 @@ function Dashboard() {
       const chatRef = doc(db, "chats", chatId);
 
       const messageData = {
-        senderId: user.uid,
+        senderId: user?.uid,
         message: message || "",
         timestamp: serverTimestamp(),
         seen: false,
@@ -308,42 +305,6 @@ function Dashboard() {
   };
 
   useEffect(() => {
-    const currentUserId = user?.uid;
-    if (!currentUserId) {
-      setUserProfile(null);
-      return;
-    }
-    let unsubscribe;
-    const setupListener = async () => {
-      unsubscribe = await fetchUserProfile(currentUserId);
-    };
-    setupListener();
-    return () => {
-      if (unsubscribe) {
-        unsubscribe();
-      }
-    };
-  }, [user?.uid]);
-
-  const fetchUserProfile = async (uid) => {
-    try {
-      const userDocRef = doc(db, "users", uid);
-      const unsubscribe = onSnapshot(userDocRef, (userDoc) => {
-        if (userDoc.exists()) {
-          const profileData = { id: userDoc.id, ...userDoc.data() };
-          setUserProfile(profileData);
-        } else {
-          setUserProfile(null);
-        }
-      });
-      return unsubscribe;
-    } catch (error) {
-      console.error("Error fetching user profile:", error);
-      return null;
-    }
-  };
-
-  useEffect(() => {
     if (!user) return;
     const usersRef = collection(db, "users");
     const unsubscribe = onSnapshot(
@@ -364,22 +325,9 @@ function Dashboard() {
   }, [user]);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      if (currentUser) {
-        setUser(currentUser);
-        await fetchUserProfile(currentUser.uid);
-      } else {
-        navigate("/");
-      }
-    });
-
-    return () => unsubscribe();
-  }, [auth, navigate]);
-
-  useEffect(() => {
     if (user) {
       const chatsRef = collection(db, "chats");
-      const q = query(chatsRef, where("users", "array-contains", user.uid));
+      const q = query(chatsRef, where("users", "array-contains", user?.uid));
       const unsubscribe = onSnapshot(q, (querySnapshot) => {
         const chatsArray = [];
         querySnapshot.forEach((doc) => {
@@ -415,7 +363,7 @@ function Dashboard() {
     if (!chatId || !messages.length) return;
     const batch = writeBatch(db);
     messages
-      .filter((m) => m.senderId !== user.uid && !m.seen)
+      .filter((m) => m.senderId !== user?.uid && !m.seen)
       .forEach((m) => {
         const msgRef = doc(db, "chats", chatId, "messages", m.id);
         batch.update(msgRef, { seen: true });
@@ -432,7 +380,7 @@ function Dashboard() {
     } else {
       const newChatId = await createChat(
         "direct",
-        [user.uid, selectedUserData.id],
+        [user?.uid, selectedUserData.id],
         selectedUserData.displayName
       );
       if (newChatId) {
@@ -453,7 +401,7 @@ function Dashboard() {
       for (const doc of querySnapshot.docs) {
         const chatData = doc.data();
         if (
-          chatData.users.includes(user.uid) &&
+          chatData.users.includes(user?.uid) &&
           chatData.users.includes(selectedUserId)
         ) {
           return { id: doc.id, ...chatData };
@@ -470,7 +418,7 @@ function Dashboard() {
     setChatId(chat.id);
     setCurrentChat(chat);
     if (chat.type === "direct") {
-      const otherUserId = chat.users.find((uid) => uid !== user.uid);
+      const otherUserId = chat.users.find((uid) => uid !== user?.uid);
       const otherUser = users.find((u) => u.id === otherUserId);
       setSelectedUser(otherUser);
     } else {
@@ -501,12 +449,12 @@ function Dashboard() {
     if (chatDoc.exists()) {
       const chatData = chatDoc.data();
       const users = chatData.users || [];
-      if (!users.includes(user.uid)) {
+      if (!users.includes(user?.uid)) {
         toast.error("You can't message in this group.");
         return;
       }
     }
-    await sendMessage(chatId, user.uid, msgToSend, reply, edit);
+    await sendMessage(chatId, user?.uid, msgToSend, reply, edit);
     textareaRef.current?.focus();
   };
   const handleKeyPress = (e) => {
@@ -528,15 +476,16 @@ function Dashboard() {
         lastMessageTime: null,
       };
       if (type === "direct") {
-        const otherUserId = userIds.find((id) => id !== user.uid);
+        const otherUserId = userIds.find((id) => id !== user?.uid);
         const otherUser = users.find((u) => u.id === otherUserId);
         chatData.photoURL = otherUser?.photoURL || ErrorProfileImage;
       } else if (type === "group") {
         chatData.photoURL = "";
-        chatData.admin = user.uid;
+        chatData.admin = user?.uid;
         chatData.userRoles = {};
         userIds.forEach((userId) => {
-          chatData.userRoles[userId] = userId === user.uid ? "admin" : "member";
+          chatData.userRoles[userId] =
+            userId === user?.uid ? "admin" : "member";
         });
       }
       const chatDoc = await addDoc(chatsRef, chatData);
@@ -559,7 +508,7 @@ function Dashboard() {
         toast.error("Please select at least one user.");
         return;
       }
-      const allUsers = [...selectedUsers, user.uid];
+      const allUsers = [...selectedUsers, user?.uid];
       const newChatId = await createChat("group", allUsers, groupName.trim());
       if (newChatId) {
         console.log("Group chat created with ID:", newChatId);
@@ -593,7 +542,7 @@ function Dashboard() {
   };
   const getChatDisplayName = (chat) => {
     if (chat.type === "direct") {
-      const otherUserId = chat.users.find((uid) => uid !== user.uid);
+      const otherUserId = chat.users.find((uid) => uid !== user?.uid);
       const otherUser = users.find((u) => u.id === otherUserId);
       return otherUser?.displayName || "Unknown User";
     }
@@ -601,7 +550,7 @@ function Dashboard() {
   };
   const getChatPhoto = (chat) => {
     if (chat.type === "direct") {
-      const otherUserId = chat.users.find((uid) => uid !== user.uid);
+      const otherUserId = chat.users.find((uid) => uid !== user?.uid);
       const otherUser = users.find((u) => u.id === otherUserId);
       return otherUser?.photoURL || ErrorProfileImage;
     }
@@ -620,7 +569,7 @@ function Dashboard() {
         if (doc.exists()) {
           const chatData = doc.data();
           const users = chatData.users || [];
-          if (!users.includes(user.uid)) {
+          if (!users.includes(user?.uid)) {
             toast.error("This chat no longer exists.");
             clearChatId();
           }
@@ -638,7 +587,7 @@ function Dashboard() {
   }, [chatId, user?.uid]);
   const getOtherUserInDirectChat = (chat) => {
     if (chat.type !== "direct") return null;
-    const otherUserId = chat.users.find((uid) => uid !== user.uid);
+    const otherUserId = chat.users.find((uid) => uid !== user?.uid);
     return getUserData(otherUserId);
   };
   return (
@@ -783,7 +732,7 @@ function Dashboard() {
                     <div className="flex items-center gap-2">
                       <AddUsersToGroup
                         users={users}
-                        currentUserId={user.uid}
+                        currentUserId={user?.uid}
                         currentChat={currentChat}
                         submitText="Add Members"
                         onSubmit={addUsersToGroup}
@@ -792,7 +741,7 @@ function Dashboard() {
                       <div>
                         <ManageGroupChat
                           chatId={currentChat.id}
-                          currentUserId={user.uid}
+                          currentUserId={user?.uid}
                           clearCurrentChat={clearChatId}
                         />
                       </div>
@@ -853,7 +802,7 @@ function Dashboard() {
 
                             {/* <DeleteUserChat
                               chatId={chatId}
-                              currentUserId={user.uid}
+                              currentUserId={user?.uid}
                               clearCurrentChat={clearChatId}
                             /> */}
                           </div>
@@ -882,7 +831,7 @@ function Dashboard() {
                         <PopoverContent className="w-full p-0">
                           <DeleteUserChat
                             chatId={chatId}
-                            currentUserId={user.uid}
+                            currentUserId={user?.uid}
                             clearCurrentChat={clearChatId}
                           />
                         </PopoverContent>
@@ -914,7 +863,7 @@ function Dashboard() {
                           getSenderData={getSenderData}
                           getSenderDisplayName={getSenderDisplayName}
                           formatTimestamp={formatTimestamp}
-                          currentUserId={user.uid}
+                          currentUserId={user?.uid}
                         />
                         <div ref={messagesEndRef} />
                       </>
