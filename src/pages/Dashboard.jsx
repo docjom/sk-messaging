@@ -775,7 +775,7 @@ function Dashboard() {
                         />
                         <AvatarFallback>P</AvatarFallback>
                       </Avatar>
-                      <span className="text-lg text-gray-800 font-semibold capitalize">
+                      <span className="text-lg text-gray-800 sm:max-w-52 max-w-40 truncate font-semibold capitalize">
                         {selectedUser.displayName}
                       </span>
                     </Button>

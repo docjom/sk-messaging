@@ -29,7 +29,7 @@ export const UserInfo = ({ user, isOpen, onClose }) => {
               </Avatar>
 
               <div>
-                <div className="flex gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-0.5 gap-x-2">
                   {user.department && (
                     <span
                       title="Department"

@@ -50,10 +50,7 @@ export function Logout() {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button
-          variant="ghost"
-          className="w-full justify-start gap-2 text-red-600 hover:bg-red-100"
-        >
+        <Button variant="ghost" className="w-full justify-center gap-2 border">
           <Icon icon="solar:logout-broken" width="24" height="24" />
           Logout
         </Button>

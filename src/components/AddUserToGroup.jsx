@@ -123,11 +123,13 @@ export function AddUsersToGroup({
                       </AvatarFallback>
                     )}
                   </Avatar>
-                  <div className="flex-1">
-                    <p className="font-medium capitalize text-sm">
+                  <div className="flex-1 max-w-96 overflow-hidden truncate">
+                    <p className="font-medium capitalize truncate max-w-96  text-sm">
                       {user?.displayName || "Unknown User"}
                     </p>
-                    <p className="text-xs text-gray-500">{user?.email}</p>
+                    <p className="text-xs text-gray-500 truncate max-w-96">
+                      {user?.email}
+                    </p>
                     {user?.department && (
                       <p className="text-xs text-blue-600">
                         {user?.department}
