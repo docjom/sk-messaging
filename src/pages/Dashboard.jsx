@@ -775,7 +775,7 @@ function Dashboard() {
                         <AvatarImage src={currentChat.photoURL} />
                         <AvatarFallback>GP</AvatarFallback>
                       </Avatar>
-                      <div className="text-gray-800 font-semibold text-sm sm:text-lg capitalize">
+                      <div className="text-gray-800 font-semibold text-sm sm:max-w-52 max-w-20 truncate sm:text-lg capitalize">
                         {getChatDisplayName(currentChat)}
                       </div>
                     </div>

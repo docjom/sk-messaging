@@ -66,8 +66,12 @@ export function AddUsersToGroup({
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        <Button variant="ghost" className="border rounded-full">
-         Add User
+        <Button
+          variant="ghost"
+          className="border flex justify-start rounded-full"
+        >
+          <Icon icon="solar:widget-add-broken" width="20" height="20" /> Add
+          user
         </Button>
       </DialogTrigger>
 

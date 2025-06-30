@@ -46,7 +46,7 @@ export const ChatList = ({
 
             <div className="w-full">
               <div
-                className={`text-sm capitalize truncate max-w-40 ${
+                className={`text-sm capitalize truncate max-w-40 sm:max-w-26 ${
                   chatId === chat.id ? "font-semibold " : ""
                 }`}
               >
