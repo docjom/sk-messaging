@@ -29,6 +29,7 @@ import {
   onSnapshot,
   where,
   writeBatch,
+  arrayUnion,
   getDoc,
 } from "firebase/firestore";
 import { Button } from "@/components/ui/button";
@@ -115,8 +116,8 @@ function Dashboard() {
         senderId: user?.uid,
         message: message || "",
         timestamp: serverTimestamp(),
-        seen: false,
         status: "sent",
+        seenBy: [],
         type: "file",
         fileData: {
           name: file.name,
@@ -173,8 +174,8 @@ function Dashboard() {
         const messagePayload = {
           senderId,
           message,
+          seenBy: [],
           timestamp: serverTimestamp(),
-          seen: false,
           status: "sending",
           ...(reply?.messageId && {
             replyTo: {
@@ -359,15 +360,23 @@ function Dashboard() {
       setMessagesLoading(false);
     }
   }, [chatId]);
+
   useEffect(() => {
-    if (!chatId || !messages.length) return;
+    if (!chatId || !messages.length || !user?.uid) return;
     const batch = writeBatch(db);
     messages
-      .filter((m) => m.senderId !== user?.uid && !m.seen)
+      .filter(
+        (m) =>
+          m.senderId !== user?.uid &&
+          (!Array.isArray(m.seenBy) || !m.seenBy.includes(user.uid))
+      )
       .forEach((m) => {
         const msgRef = doc(db, "chats", chatId, "messages", m.id);
-        batch.update(msgRef, { seen: true });
+        batch.update(msgRef, {
+          seenBy: arrayUnion(user.uid),
+        });
       });
+
     batch.commit();
   }, [chatId, messages, user?.uid]);
 
@@ -859,6 +868,7 @@ function Dashboard() {
                           messages={messages}
                           user={userProfile}
                           chatId={chatId}
+                          users={users}
                           getSenderData={getSenderData}
                           getSenderDisplayName={getSenderDisplayName}
                           formatTimestamp={formatTimestamp}

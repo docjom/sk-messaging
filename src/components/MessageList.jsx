@@ -31,6 +31,7 @@ export const MessageList = ({
   getSenderDisplayName,
   formatTimestamp,
   chatId,
+  users,
   currentUserId,
 }) => {
   const messagesEndRef = useRef(null);
@@ -142,6 +143,72 @@ export const MessageList = ({
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-52 p-1">
+                  {/* Seen Users Preview + Nested Popover */}
+                  {msg.seenBy?.length > 0 && (
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="flex items-center gap-2 w-full justify-between"
+                        >
+                          <div className="flex gap-1 justify-start items-center">
+                            <Icon
+                              icon="solar:check-read-broken"
+                              width="24"
+                              height="24"
+                            />
+                            <span>{msg.seenBy?.length} Seen</span>
+                          </div>
+                          <div className="flex -space-x-2">
+                            {msg.seenBy.slice(0, 3).map((uid) => {
+                              const user = users.find((u) => u.id === uid);
+                              return (
+                                <Avatar key={uid} className="w-6 h-6">
+                                  <AvatarImage
+                                    src={user?.photoURL}
+                                    alt={user?.displayName}
+                                  />
+                                  <AvatarFallback>P</AvatarFallback>
+                                </Avatar>
+                              );
+                            })}
+                            {msg.seenBy.length > 3 && (
+                              <span className="text-xs text-gray-500">
+                                +{msg.seenBy.length - 3}
+                              </span>
+                            )}
+                          </div>
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-48 p-2">
+                        <div className="max-h-40 overflow-y-auto space-y-1">
+                          {msg.seenBy.map((uid) => {
+                            const user = users.find((u) => u.id === uid);
+                            return (
+                              <div
+                                key={uid}
+                                className="flex items-center gap-2 hover:bg-gray-500/20 p-1 rounded-sm transition-colors cursor-pointer"
+                              >
+                                <Avatar className="w-6 h-6">
+                                  <AvatarImage
+                                    src={user?.photoURL}
+                                    alt={user?.displayName}
+                                  />
+                                  <AvatarFallback>P</AvatarFallback>
+                                </Avatar>
+
+                                <span className="text-sm">
+                                  {user?.displayName || "Unknown"}
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                  )}
+
                   <Button
                     onClick={() => {
                       setReplyTo({
@@ -369,7 +436,7 @@ export const MessageList = ({
                                         width="16"
                                         height="16"
                                       />
-                                    ) : msg.seen ? (
+                                    ) : msg.seenBy?.length > 0 ? (
                                       <Icon
                                         icon="solar:check-read-linear"
                                         width="20"
@@ -411,6 +478,71 @@ export const MessageList = ({
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-52 p-1">
+                      {/* Seen Users Preview + Nested Popover */}
+                      {msg.seenBy?.length > 0 && (
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="flex items-center gap-2 w-full justify-between"
+                            >
+                              <div className="flex gap-1 justify-start items-center">
+                                <Icon
+                                  icon="solar:check-read-broken"
+                                  width="24"
+                                  height="24"
+                                />
+                                <span>{msg.seenBy?.length} Seen</span>
+                              </div>
+                              <div className="flex -space-x-2">
+                                {msg.seenBy.slice(0, 3).map((uid) => {
+                                  const user = users.find((u) => u.id === uid);
+                                  return (
+                                    <Avatar key={uid} className="w-6 h-6">
+                                      <AvatarImage
+                                        src={user?.photoURL}
+                                        alt={user?.displayName}
+                                      />
+                                      <AvatarFallback>P</AvatarFallback>
+                                    </Avatar>
+                                  );
+                                })}
+                                {msg.seenBy.length > 3 && (
+                                  <span className="text-xs text-gray-500">
+                                    +{msg.seenBy.length - 3}
+                                  </span>
+                                )}
+                              </div>
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-48 p-2">
+                            <div className="max-h-40 overflow-y-auto space-y-1">
+                              {msg.seenBy.map((uid) => {
+                                const user = users.find((u) => u.id === uid);
+                                return (
+                                  <div
+                                    key={uid}
+                                    className="flex items-center gap-2 hover:bg-gray-500/20 p-1 rounded-sm transition-colors cursor-pointer"
+                                  >
+                                    <Avatar className="w-6 h-6">
+                                      <AvatarImage
+                                        src={user?.photoURL}
+                                        alt={user?.displayName}
+                                      />
+                                      <AvatarFallback>P</AvatarFallback>
+                                    </Avatar>
+
+                                    <span className="text-sm">
+                                      {user?.displayName || "Unknown"}
+                                    </span>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </PopoverContent>
+                        </Popover>
+                      )}
                       <Button
                         onClick={() => {
                           setReplyTo({
