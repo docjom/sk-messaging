@@ -11,6 +11,7 @@ import { EditGroup } from "@/components/EditGroup";
 import { LeaveGroup } from "@/components/LeaveGroup";
 import { Button } from "./ui/button";
 import { PinnedMessages } from "../components/PinnedMessages";
+import { ChatFiles } from "./ChatFiles";
 
 export default function ManageGroupChat({
   chatId,
@@ -33,6 +34,7 @@ export default function ManageGroupChat({
             onLeaveSuccess={clearCurrentChat}
           />
           <PinnedMessages chatId={chatId} />
+          <ChatFiles chatId={chatId} />
         </DropdownMenuContent>
       </DropdownMenu>
     </>

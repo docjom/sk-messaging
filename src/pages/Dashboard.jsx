@@ -42,6 +42,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { ChatFiles } from "@/components/ChatFiles";
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -680,17 +681,23 @@ function Dashboard() {
         {chatsLoading ? (
           <ChatListLoading />
         ) : (
-          <div className="space-y-2 mb-4 flex-1">
-            <ChatList
-              filteredChats={filteredChats}
-              chatId={chatId}
-              handleSelectChat={handleSelectChat}
-              getOtherUserInDirectChat={getOtherUserInDirectChat}
-              getChatPhoto={getChatPhoto}
-              getChatDisplayName={getChatDisplayName}
-              formatTimestamp={formatTimestamp}
-            />
-          </div>
+          <>
+            {filteredChats.length > 0 ? (
+              <ChatList
+                filteredChats={filteredChats}
+                chatId={chatId}
+                handleSelectChat={handleSelectChat}
+                getOtherUserInDirectChat={getOtherUserInDirectChat}
+                getChatPhoto={getChatPhoto}
+                getChatDisplayName={getChatDisplayName}
+                formatTimestamp={formatTimestamp}
+              />
+            ) : (
+              <div className=" mx-1 p-2 border-gray-600/50 rounded-lg border text-gray-500">
+                No Recent Chats
+              </div>
+            )}
+          </>
         )}
       </div>
       {/* Left Panel (Sidebar) End */}
@@ -719,15 +726,23 @@ function Dashboard() {
           {chatsLoading ? (
             <ChatListLoading />
           ) : (
-            <ChatList
-              filteredChats={filteredChats}
-              chatId={chatId}
-              handleSelectChat={handleSelectChat}
-              getOtherUserInDirectChat={getOtherUserInDirectChat}
-              getChatPhoto={getChatPhoto}
-              getChatDisplayName={getChatDisplayName}
-              formatTimestamp={formatTimestamp}
-            />
+            <>
+              {filteredChats.length > 0 ? (
+                <ChatList
+                  filteredChats={filteredChats}
+                  chatId={chatId}
+                  handleSelectChat={handleSelectChat}
+                  getOtherUserInDirectChat={getOtherUserInDirectChat}
+                  getChatPhoto={getChatPhoto}
+                  getChatDisplayName={getChatDisplayName}
+                  formatTimestamp={formatTimestamp}
+                />
+              ) : (
+                <div className=" mx-1 p-2 border-gray-600/50 rounded-lg border text-gray-500">
+                  No Recent Chats
+                </div>
+              )}
+            </>
           )}
         </div>
       )}
@@ -834,6 +849,7 @@ function Dashboard() {
                               View Profile
                             </Button>
                             <PinnedMessages chatId={chatId} />
+                            <ChatFiles chatId={chatId} />
 
                             {/* <DeleteUserChat
                               chatId={chatId}
