@@ -759,14 +759,13 @@ function Dashboard() {
                       className="flex items-center p-0"
                       onClick={() => setIfUserInfoOpen(true)}
                     >
-                      <img
-                        src={selectedUser.photoURL}
-                        alt={selectedUser.displayName}
-                        className="w-10 h-10 rounded-full mr-2"
-                        onError={(e) => {
-                          e.target.src = ErrorProfileImage;
-                        }}
-                      />
+                      <Avatar className="h-10 w-10">
+                        <AvatarImage
+                          src={selectedUser.photoURL}
+                          alt={selectedUser.displayName}
+                        />
+                        <AvatarFallback>P</AvatarFallback>
+                      </Avatar>
                       <span className="text-lg text-gray-800 font-semibold capitalize">
                         {selectedUser.displayName}
                       </span>
