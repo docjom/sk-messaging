@@ -76,6 +76,152 @@ function Dashboard() {
   const { replyTo, clearReply, editMessage, clearEdit } =
     useMessageActionStore();
 
+  const uploadImageToStorage = async (imageFile, chatId) => {
+    const storage = getStorage();
+    const timestamp = Date.now();
+    const imageRef = ref(
+      storage,
+      `chat-files/${chatId}/${timestamp}_${imageFile?.name}`
+    );
+    const snapshot = await uploadBytes(imageRef, imageFile);
+    const downloadURL = await getDownloadURL(snapshot.ref);
+    return downloadURL;
+  };
+
+  const sendMessage = async (
+    chatId,
+    senderId,
+    message,
+    reply,
+    edit,
+    pastedImage
+  ) => {
+    if (!message.trim() && !pastedImage) return;
+    setIsMessagesSending(true);
+    const tempMessageId = `temp-${Date.now()}`;
+    const tempMessage = {
+      id: tempMessageId,
+      senderId,
+      message,
+      status: "sending",
+      isTemporary: true,
+      ...(pastedImage && {
+        type: "file",
+        fileData: {
+          name: pastedImage.name,
+          type: pastedImage.type,
+          url: pastedImage.preview,
+          uploading: true,
+        },
+      }),
+    };
+
+    setMessages((prev) => [...prev, tempMessage]);
+    try {
+      let imageURL = null;
+      if (pastedImage) {
+        imageURL = await uploadImageToStorage(pastedImage.file, chatId);
+      }
+      if (edit?.messageId) {
+        const msgRef = doc(db, "chats", chatId, "messages", edit.messageId);
+        const updateData = {
+          message: message,
+          edited: true,
+          timestamp: edit?.timestamp,
+          editTimestamp: serverTimestamp(),
+        };
+        await updateDoc(msgRef, updateData);
+        useMessageActionStore.getState().clearEdit();
+      } else {
+        const messagesRef = collection(db, "chats", chatId, "messages");
+        const chatRef = doc(db, "chats", chatId);
+        const messagePayload = {
+          senderId,
+          message,
+          seenBy: [],
+          timestamp: serverTimestamp(),
+          status: "sending",
+          ...(reply?.messageId && {
+            replyTo: {
+              messageId: reply.messageId,
+              senderId: reply.senderId || null,
+              message: reply.message || null,
+              senderName: reply.name || null,
+              ...(reply.fileData && { fileData: reply.fileData }),
+            },
+          }),
+          ...(imageURL && {
+            type: "file",
+            fileData: {
+              fileName: pastedImage?.name,
+              url: imageURL,
+              name: pastedImage?.name,
+              type: pastedImage?.type,
+              size: pastedImage?.file.size,
+            },
+          }),
+        };
+        const msgRef = await addDoc(messagesRef, messagePayload);
+        await updateDoc(msgRef, { status: "sent" });
+        setMessages((prev) => prev.filter((msg) => msg.id !== tempMessageId));
+        const lastMessageText = message.trim()
+          ? message.trim()
+          : imageURL
+          ? `📎 ${pastedImage.name}`
+          : "";
+        await updateDoc(chatRef, {
+          lastMessage: lastMessageText,
+          lastMessageTime: serverTimestamp(),
+        });
+        useMessageActionStore.getState().clearReply();
+      }
+      textareaRef.current?.focus();
+    } catch (error) {
+      console.error("Error sending message:", error);
+      toast.error("Error sending message:", error);
+    } finally {
+      setIsMessagesSending(false);
+    }
+  };
+
+  const handleSendMessage = async () => {
+    if (!chatId) {
+      console.error("Chat ID is not set.");
+      return;
+    }
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "40px";
+      textareaRef.current?.focus();
+    }
+    const pastedImage = useMessageActionStore.getState().pastedImage;
+    const msgToSend = message.trim();
+    const reply = useMessageActionStore.getState().replyTo;
+    const edit = useMessageActionStore.getState().editMessage;
+
+    if (msgToSend === "" && !pastedImage) return;
+
+    clearReply();
+    clearEdit();
+    setMessage("");
+
+    // Fixed: Clear from the correct store
+    if (pastedImage) {
+      useMessageActionStore.getState().clearPastedImage();
+    }
+    const chatRef = doc(db, "chats", chatId);
+    const chatDoc = await getDoc(chatRef);
+    if (chatDoc.exists()) {
+      const chatData = chatDoc.data();
+      const users = chatData.users || [];
+      if (!users.includes(user?.uid)) {
+        toast.error("You can't message in this group.");
+        return;
+      }
+    }
+    await sendMessage(chatId, user?.uid, msgToSend, reply, edit, pastedImage);
+    textareaRef.current?.focus();
+  };
+
   useEffect(() => {
     if ((replyTo || editMessage) && textareaRef.current) {
       if (editMessage) {
@@ -84,7 +230,6 @@ function Dashboard() {
       textareaRef.current.focus();
     }
   }, [replyTo, editMessage]);
-
   useEffect(() => {
     if (textareaRef.current && message.trim() === "") {
       textareaRef.current.focus();
@@ -105,13 +250,10 @@ function Dashboard() {
       const timestamp = Date.now();
       const fileName = `${timestamp}_${file.name}`;
       const storageRef = ref(storage, `chat-files/${chatId}/${fileName}`);
-
       const uploadResult = await uploadBytes(storageRef, file);
       const downloadURL = await getDownloadURL(uploadResult.ref);
-
       const messagesRef = collection(db, "chats", chatId, "messages");
       const chatRef = doc(db, "chats", chatId);
-
       const messageData = {
         senderId: user?.uid,
         message: message || "",
@@ -142,6 +284,7 @@ function Dashboard() {
       setIsUploadingFile(false);
     }
   };
+
   const handleCancelEdit = () => {
     clearEdit();
     clearReply();
@@ -154,57 +297,6 @@ function Dashboard() {
       endOfMessagesRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages]);
-
-  const sendMessage = async (chatId, senderId, message, reply, edit) => {
-    if (!message.trim()) return;
-    setIsMessagesSending(true);
-    try {
-      if (edit?.messageId) {
-        const msgRef = doc(db, "chats", chatId, "messages", edit.messageId);
-        await updateDoc(msgRef, {
-          message: message,
-          edited: true,
-          timestamp: edit?.timestamp,
-          editTimestamp: serverTimestamp(),
-        });
-        useMessageActionStore.getState().clearEdit();
-      } else {
-        const messagesRef = collection(db, "chats", chatId, "messages");
-        const chatRef = doc(db, "chats", chatId);
-        const messagePayload = {
-          senderId,
-          message,
-          seenBy: [],
-          timestamp: serverTimestamp(),
-          status: "sending",
-          ...(reply?.messageId && {
-            replyTo: {
-              messageId: reply.messageId,
-              senderId: reply.senderId || null,
-              message: reply.message || null,
-              senderName: reply.name || null,
-              ...(reply.fileData && { fileData: reply.fileData }),
-            },
-          }),
-        };
-
-        const msgRef = await addDoc(messagesRef, messagePayload);
-        await updateDoc(msgRef, { status: "sent" });
-        await updateDoc(chatRef, {
-          lastMessage: message,
-          lastMessageTime: serverTimestamp(),
-        });
-
-        useMessageActionStore.getState().clearReply();
-        setIsMessagesSending(false);
-      }
-      textareaRef.current?.focus();
-    } catch (error) {
-      toast.error("Error sending message:", error);
-    } finally {
-      setIsMessagesSending(false);
-    }
-  };
 
   const displayUser = userProfile || user;
   const toggleMenu = () => {
@@ -435,37 +527,6 @@ function Dashboard() {
     }
   };
 
-  const handleSendMessage = async () => {
-    if (!chatId) {
-      console.error("Chat ID is not set.");
-      return;
-    }
-    if (textareaRef.current) {
-      textareaRef.current.style.height = "40px";
-      textareaRef.current?.focus();
-    }
-    textareaRef.current?.focus();
-    const msgToSend = message.trim();
-    const reply = useMessageActionStore.getState().replyTo;
-    const edit = useMessageActionStore.getState().editMessage;
-    if (msgToSend === "") return;
-    clearReply();
-    clearEdit();
-    setMessage("");
-    const chatRef = doc(db, "chats", chatId);
-    const chatDoc = await getDoc(chatRef);
-
-    if (chatDoc.exists()) {
-      const chatData = chatDoc.data();
-      const users = chatData.users || [];
-      if (!users.includes(user?.uid)) {
-        toast.error("You can't message in this group.");
-        return;
-      }
-    }
-    await sendMessage(chatId, user?.uid, msgToSend, reply, edit);
-    textareaRef.current?.focus();
-  };
   const handleKeyPress = (e) => {
     textareaRef.current?.focus();
     if (e.key === "Enter" && !e.shiftKey) {

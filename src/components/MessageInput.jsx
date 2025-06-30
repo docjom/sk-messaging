@@ -1,8 +1,6 @@
-import { Button } from "@/components/ui/button";
 import { Icon } from "@iconify/react";
-import EmojiPicker from "emoji-picker-react";
 import React, { lazy, Suspense, useState } from "react";
-
+import { useMessageActionStore } from "@/stores/useMessageActionStore";
 // Lazy load
 const LazyEmojiPicker = lazy(() => import("emoji-picker-react"));
 import {
@@ -15,16 +13,18 @@ export const MessageInput = ({
   messagesLoading,
   isMessagesSending,
   setIsFileDialogOpen,
-  handleKeyPress,
   handleSendMessage,
   handleCancelEdit,
   message,
   textareaRef,
+  handleKeyPress,
   replyTo,
   editMessage,
   setMessage,
 }) => {
   const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
+  const { pastedImage, setPastedImage, clearPastedImage } =
+    useMessageActionStore();
 
   const handleEmojiClick = (emojiData) => {
     const emoji = emojiData.emoji;
@@ -40,10 +40,68 @@ export const MessageInput = ({
     }, 0);
   };
 
+  const handlePaste = (e) => {
+    const items = e.clipboardData.items;
+
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+
+      if (item.type.indexOf("image") !== -1) {
+        e.preventDefault();
+        const file = item.getAsFile();
+
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            setPastedImage({
+              file: file,
+              preview: event.target.result,
+              name: `pasted-image-${Date.now()}.${file.type.split("/")[1]}`,
+              type: file.type,
+            });
+          };
+          reader.readAsDataURL(file);
+        }
+        break;
+      }
+    }
+  };
+
+  const handleCancelPastedImage = () => {
+    clearPastedImage();
+  };
+
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-gray-50 shadow-lg sm:ml-64 z-30">
       <div className="px-4 py-2 border-t border-gray-300">
         <div className="flex flex-col gap-1">
+          {/* Display pasted image */}
+          {pastedImage && (
+            <div className="flex justify-between border p-2 rounded-2xl items-start gap-2 bg-white">
+              <div className="flex gap-2 items-start">
+                <div className="relative">
+                  <img
+                    src={pastedImage.preview}
+                    alt="Pasted image"
+                    className="h-16 w-16 rounded-lg object-cover"
+                  />
+                </div>
+                <div className="flex flex-col">
+                  <p className="font-semibold text-sm">{pastedImage.name}</p>
+                  <p className="text-xs text-gray-500">
+                    {(pastedImage.file.size / 1024 / 1024).toFixed(2)} MB
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={handleCancelPastedImage}
+                className="text-gray-500 hover:text-red-500 transition text-sm"
+              >
+                <Icon icon="mdi:close" width="18" height="18" />
+              </button>
+            </div>
+          )}
+
           {(replyTo || editMessage) && (
             <div className="flex items-start justify-between bg-gray-100 border-l-4 border-blue-500 px-3 py-2 rounded-t-md w-full mb-1">
               <div className="text-sm text-gray-800 max-w-[80%]">
@@ -149,6 +207,7 @@ export const MessageInput = ({
               required
               onChange={(e) => setMessage(e.target.value)}
               onKeyPress={handleKeyPress}
+              onPaste={handlePaste}
               placeholder={
                 editMessage ? "Edit your message..." : "Write a message..."
               }
@@ -196,13 +255,17 @@ export const MessageInput = ({
             <button
               onClick={handleSendMessage}
               className={`p-2 rounded-full ${
-                !message.trim()
+                !message.trim() && !pastedImage
                   ? "bg-gray-400 text-white cursor-not-allowed"
                   : editMessage
                   ? "bg-green-500 text-white"
                   : "bg-blue-500 text-white"
               }`}
-              disabled={!message.trim() || messagesLoading || isMessagesSending}
+              disabled={
+                (!message.trim() && !pastedImage) ||
+                messagesLoading ||
+                isMessagesSending
+              }
             >
               <Icon
                 icon={
