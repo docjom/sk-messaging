@@ -1,7 +1,6 @@
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
@@ -9,7 +8,6 @@ import {
 import { Icon } from "@iconify/react";
 import { EditGroup } from "@/components/EditGroup";
 import { LeaveGroup } from "@/components/LeaveGroup";
-import { Button } from "./ui/button";
 import { PinnedMessages } from "../components/PinnedMessages";
 import { ChatFiles } from "./ChatFiles";
 
