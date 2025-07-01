@@ -158,11 +158,17 @@ export const ChatList = ({
                 )}
 
                 {chat.type === "group" && (
-                  <LeaveGroup
-                    chatId={chatId}
-                    currentUserId={currentUserId}
-                    onLeaveSuccess={clearCurrentChat}
-                  />
+                  <div
+                    onClick={(e) => {
+                      e.stopPropagation();
+                    }}
+                  >
+                    <LeaveGroup
+                      chatId={chatId}
+                      currentUserId={currentUserId}
+                      onLeaveSuccess={clearCurrentChat}
+                    />
+                  </div>
                 )}
               </PopoverContent>
             </Popover>
