@@ -43,7 +43,7 @@ export const ChatList = ({
                     />
                   </PopoverTrigger>
                   <PopoverContent className="w-40">
-                    Place content for the popover here.
+                    Chat Actions must be here {chat.id}
                   </PopoverContent>
                 </Popover>
               </div>
