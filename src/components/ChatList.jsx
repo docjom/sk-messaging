@@ -1,6 +1,12 @@
 import React from "react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Icon } from "@iconify/react";
+import { Button } from "@/components/ui/button";
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from "@/components/ui/popover";
 
 export const ChatList = ({
   filteredChats,
@@ -17,12 +23,32 @@ export const ChatList = ({
         <div
           key={chat.id}
           onClick={() => handleSelectChat(chat)}
-          className={`cursor-pointer p-2 rounded transition-colors ${
+          className={`cursor-pointer p-2 relative rounded transition-colors ${
             chatId === chat.id
               ? "bg-blue-500/30 hover:bg-blue-500/40"
               : " hover:bg-gray-700"
           }`}
         >
+          {chatId === chat.id && (
+            <>
+              {" "}
+              <div className="absolute top-0 right-0 z-10 ">
+                <Popover>
+                  <PopoverTrigger type="button" className="p-1">
+                    {" "}
+                    <Icon
+                      icon="solar:list-arrow-down-bold-duotone"
+                      width="16"
+                      height="16"
+                    />
+                  </PopoverTrigger>
+                  <PopoverContent className="w-40">
+                    Place content for the popover here.
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </>
+          )}
           <div className="flex items-end gap-2">
             <div className="relative">
               {chat.type === "direct" && (
