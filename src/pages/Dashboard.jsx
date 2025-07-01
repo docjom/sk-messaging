@@ -426,7 +426,12 @@ function Dashboard() {
         querySnapshot.forEach((doc) => {
           chatsArray.push({ id: doc.id, ...doc.data() });
         });
-        setChats(chatsArray);
+        const sortedChats = chatsArray.sort((a, b) => {
+          const aTime = a.lastMessageTime?.toMillis?.() || 0;
+          const bTime = b.lastMessageTime?.toMillis?.() || 0;
+          return bTime - aTime;
+        });
+        setChats(sortedChats);
         setChatsLoading(false);
       });
       return () => unsubscribe();
