@@ -553,6 +553,7 @@ function Dashboard() {
         type,
         name: name || (type === "direct" ? "Direct Chat" : "Group Chat"),
         users: userIds,
+        pin: [],
         createdAt: serverTimestamp(),
         lastMessage: null,
         lastMessageTime: null,
