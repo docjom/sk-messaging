@@ -170,6 +170,7 @@ function Dashboard() {
           ? `📎 ${pastedImage.name}`
           : "";
         await updateDoc(chatRef, {
+          seenBy: [],
           lastMessage: lastMessageText,
           lastMessageTime: serverTimestamp(),
         });
@@ -273,6 +274,7 @@ function Dashboard() {
       const lastMessageText = message ? message : `📎 ${file.name}`;
       await updateDoc(chatRef, {
         lastMessage: lastMessageText,
+        seenBy: [],
         lastMessageTime: serverTimestamp(),
       });
       toast.success("File sent successfully!");
@@ -471,8 +473,13 @@ function Dashboard() {
         const msgRef = doc(db, "chats", chatId, "messages", m.id);
         batch.update(msgRef, {
           seenBy: arrayUnion(user.uid),
+          seen: true,
         });
       });
+    const chatRef = doc(db, "chats", chatId);
+    updateDoc(chatRef, {
+      seenBy: arrayUnion(user.uid),
+    });
 
     batch.commit();
   }, [chatId, messages, user?.uid]);
@@ -715,6 +722,8 @@ function Dashboard() {
                 getChatPhoto={getChatPhoto}
                 getChatDisplayName={getChatDisplayName}
                 formatTimestamp={formatTimestamp}
+                currentUserId={user?.uid}
+                onLeaveSuccess={clearChatId}
               />
             ) : (
               <div className=" mx-1 p-2 border-gray-600/50 rounded-lg border text-gray-500">
@@ -760,6 +769,8 @@ function Dashboard() {
                   getChatPhoto={getChatPhoto}
                   getChatDisplayName={getChatDisplayName}
                   formatTimestamp={formatTimestamp}
+                  currentUserId={user?.uid}
+                  onLeaveSuccess={clearChatId}
                 />
               ) : (
                 <div className=" mx-1 p-2 border-gray-600/50 rounded-lg border text-gray-500">

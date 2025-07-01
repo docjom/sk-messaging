@@ -7,6 +7,9 @@ import {
   PopoverTrigger,
   PopoverContent,
 } from "@/components/ui/popover";
+import { LeaveGroup } from "./LeaveGroup";
+import { doc, updateDoc, arrayUnion, arrayRemove } from "firebase/firestore";
+import { db } from "../firebase";
 
 export const ChatList = ({
   filteredChats,
@@ -16,39 +19,92 @@ export const ChatList = ({
   getChatPhoto,
   getChatDisplayName,
   formatTimestamp,
+  currentUserId,
+  clearCurrentChat,
 }) => {
+  const markAsRead = async (chatId) => {
+    const chatRef = doc(db, "chats", chatId);
+    await updateDoc(chatRef, {
+      seenBy: arrayUnion(currentUserId),
+    });
+  };
+
+  const markAsUnread = async (chatId) => {
+    const chatRef = doc(db, "chats", chatId);
+    await updateDoc(chatRef, {
+      seenBy: arrayRemove(currentUserId),
+    });
+  };
+
   return (
     <div className="space-y-2 mb-4 flex-1">
       {filteredChats.map((chat) => (
         <div
           key={chat.id}
           onClick={() => handleSelectChat(chat)}
-          className={`cursor-pointer p-2 relative rounded transition-colors ${
+          className={`group cursor-pointer p-2 relative rounded transition-colors ${
             chatId === chat.id
               ? "bg-blue-500/30 hover:bg-blue-500/40"
               : " hover:bg-gray-700"
           }`}
         >
-          {chatId === chat.id && (
-            <>
-              {" "}
-              <div className="absolute top-0 right-0 z-10 ">
-                <Popover>
-                  <PopoverTrigger type="button" className="p-1">
-                    {" "}
+          <div className="absolute top-0 right-0 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-150 backdrop-blur-sm">
+            <Popover>
+              <PopoverTrigger
+                onClick={(e) => {
+                  e.stopPropagation();
+                }}
+                className="p-1 border border-gray-500 m-0.5 rounded-full"
+              >
+                {" "}
+                <Icon icon="uiw:down" width="12" height="12" />
+              </PopoverTrigger>
+              <PopoverContent className="w-40 p-1">
+                {chat.seenBy?.includes(currentUserId) ? (
+                  <Button
+                    variant="ghost"
+                    className="w-full flex justify-start"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      markAsUnread(chat.id);
+                    }}
+                  >
                     <Icon
-                      icon="solar:list-arrow-down-bold-duotone"
-                      width="16"
-                      height="16"
+                      icon="solar:chat-unread-broken"
+                      width="20"
+                      height="20"
                     />
-                  </PopoverTrigger>
-                  <PopoverContent className="w-40">
-                    Chat Actions must be here {chat.id}
-                  </PopoverContent>
-                </Popover>
-              </div>
-            </>
-          )}
+                    Mark as unread
+                  </Button>
+                ) : (
+                  <Button
+                    variant="ghost"
+                    className="w-full flex justify-start"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      markAsRead(chat.id);
+                    }}
+                  >
+                    <Icon
+                      icon="solar:chat-unread-bold-duotone"
+                      width="20"
+                      height="20"
+                    />
+                    Mark as read
+                  </Button>
+                )}
+
+                {chat.type === "group" && (
+                  <LeaveGroup
+                    chatId={chatId}
+                    currentUserId={currentUserId}
+                    onLeaveSuccess={clearCurrentChat}
+                  />
+                )}
+              </PopoverContent>
+            </Popover>
+          </div>
+
           <div className="flex items-end gap-2">
             <div className="relative">
               {chat.type === "direct" && (
@@ -72,23 +128,31 @@ export const ChatList = ({
 
             <div className="w-full">
               <div
-                className={`text-sm capitalize truncate max-w-40 sm:max-w-26 ${
+                className={`text-sm capitalize flex justify-start items-center gap-1.5 truncate max-w-40 sm:max-w-26 ${
                   chatId === chat.id ? "font-semibold " : ""
                 }`}
               >
+                {chat.type === "group" && (
+                  <span>
+                    <Icon
+                      icon="solar:users-group-two-rounded-bold"
+                      width="16"
+                      height="16"
+                    />
+                  </span>
+                )}
                 {getChatDisplayName(chat)}
               </div>
-              <div className="text-xs w-52 sm:w-28 capitalize text-gray-400 flex items-center gap-1">
-                {chat.type}
+              <div
+                className={`text-xs w-52 sm:w-28 capitalize flex items-center gap-1 ${
+                  !chat.seenBy?.includes(currentUserId)
+                    ? "font-bold text-white"
+                    : "text-gray-400"
+                }`}
+              >
                 {/* Show last message preview */}
                 {chat.lastMessage && (
-                  <div
-                    className={`text-xs w-full overflow-hidden truncate ${
-                      formatTimestamp(chat.lastMessageTime) === "Just now"
-                        ? "font-bold text-white"
-                        : "text-gray-300"
-                    }`}
-                  >
+                  <div className="text-xs w-full overflow-hidden truncate">
                     {chat.lastMessage}
                   </div>
                 )}
@@ -98,9 +162,9 @@ export const ChatList = ({
             {/* Show timestamp */}
             {chat.lastMessageTime && (
               <div
-                className={`text-xs min-w-18 sm:min-w-15 flex justify-end ${
-                  formatTimestamp(chat.lastMessageTime) === "Just now"
-                    ? "font-bold text-gray-200"
+                className={`text-[10px] min-w-18 sm:min-w-15 flex justify-end ${
+                  !chat.seenBy?.includes(currentUserId)
+                    ? " text-gray-200"
                     : "text-gray-400"
                 }`}
               >
