@@ -37,7 +37,7 @@ export const ChatList = ({
   };
 
   return (
-    <div className="space-y-2 mb-4 flex-1">
+    <div className=" flex-1">
       {filteredChats.map((chat) => (
         <div
           key={chat.id}
@@ -105,7 +105,7 @@ export const ChatList = ({
             </Popover>
           </div>
 
-          <div className="flex items-end gap-2">
+          <div className="flex items-center gap-2">
             <div className="relative">
               {chat.type === "direct" && (
                 <Icon
@@ -127,11 +127,7 @@ export const ChatList = ({
             </div>
 
             <div className="w-full">
-              <div
-                className={`text-sm capitalize flex justify-start items-center gap-1.5 truncate max-w-40 sm:max-w-26 ${
-                  chatId === chat.id ? "font-semibold " : ""
-                }`}
-              >
+              <div className="text-sm capitalize flex justify-start items-center gap-1.5 font-semibold">
                 {chat.type === "group" && (
                   <span>
                     <Icon
@@ -141,10 +137,12 @@ export const ChatList = ({
                     />
                   </span>
                 )}
-                {getChatDisplayName(chat)}
+                <h1 className="max-w-40 sm:max-w-32 truncate">
+                  {getChatDisplayName(chat)}
+                </h1>
               </div>
               <div
-                className={`text-xs w-52 sm:w-28 capitalize flex items-center gap-1 ${
+                className={`text-xs max-w-32 capitalize flex items-center gap-1 ${
                   !chat.seenBy?.includes(currentUserId)
                     ? "font-bold text-white"
                     : "text-gray-400"
@@ -152,26 +150,25 @@ export const ChatList = ({
               >
                 {/* Show last message preview */}
                 {chat.lastMessage && (
-                  <div className="text-xs w-full overflow-hidden truncate">
+                  <div className="text-[10px] w-full overflow-hidden truncate">
                     {chat.lastMessage}
                   </div>
                 )}
               </div>
             </div>
-
-            {/* Show timestamp */}
-            {chat.lastMessageTime && (
-              <div
-                className={`text-[10px] min-w-18 sm:min-w-15 flex justify-end ${
-                  !chat.seenBy?.includes(currentUserId)
-                    ? " text-gray-200"
-                    : "text-gray-400"
-                }`}
-              >
-                {formatTimestamp(chat.lastMessageTime)}
-              </div>
-            )}
           </div>
+          {/* Show timestamp */}
+          {chat.lastMessageTime && (
+            <div
+              className={`text-[10px] absolute bottom-2 right-2 ${
+                !chat.seenBy?.includes(currentUserId)
+                  ? " text-gray-200"
+                  : "text-gray-400"
+              }`}
+            >
+              {formatTimestamp(chat.lastMessageTime)}
+            </div>
+          )}
         </div>
       ))}
     </div>

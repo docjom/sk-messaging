@@ -23,7 +23,7 @@ export const Menu = ({
               <AvatarImage src={displayUser?.photoURL} />
               <AvatarFallback>P</AvatarFallback>
             </Avatar>
-            <h1 className="text-lg font-semibold capitalize">
+            <h1 className="text-lg font-semibold max-w-32 truncate capitalize">
               {displayUser?.displayName}
             </h1>
           </div>
