@@ -71,6 +71,7 @@ export const MessageList = ({
       console.error("Failed to pin message:", error);
     }
   };
+
   const handleRemovePinMessage = async (messageId) => {
     try {
       const msgRef = doc(db, "chats", chatId, "messages", messageId);
@@ -91,8 +92,90 @@ export const MessageList = ({
         toast("Text copied!");
       })
       .catch(() => {
-        toast.error("Failed to copy ");
+        toast.error("Failed to copy");
       });
+  };
+
+  // Fixed download function for Firebase Storage URLs
+  const downloadFile = async (url, fileName) => {
+    try {
+      // For Firebase Storage URLs or CORS-enabled URLs, fetch and create blob
+      const response = await fetch(url);
+      if (!response.ok) throw new Error("Failed to fetch file");
+
+      const blob = await response.blob();
+
+      // Create blob URL
+      const blobUrl = URL.createObjectURL(blob);
+
+      // Create temporary anchor element for download
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.download = fileName;
+      // Remove target="_blank" - this was causing the new tab behavior
+
+      // Append to body, click, and remove
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      // Clean up blob URL
+      URL.revokeObjectURL(blobUrl);
+
+      toast.success("Download started");
+    } catch (err) {
+      console.error("Download failed:", err);
+
+      // Fallback: try direct download (might open in new tab for some file types)
+      try {
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        toast.success("Download started");
+      } catch (e) {
+        toast.error(
+          "Download failed - file may not support direct download",
+          e
+        );
+      }
+    }
+  };
+
+  // Copy image to clipboard
+  const copyImageToClipboard = async (imageUrl) => {
+    try {
+      // Fetch the image as blob
+      const response = await fetch(imageUrl, { mode: "cors" });
+      if (!response.ok) throw new Error("Failed to fetch image");
+
+      const blob = await response.blob();
+
+      console.log("Blob type:", blob.type);
+
+      // Check if clipboard API supports writing images
+      if (navigator.clipboard && window.ClipboardItem) {
+        const clipboardItem = new ClipboardItem({ [blob.type]: blob });
+        await navigator.clipboard.write([clipboardItem]);
+        toast.success("Image copied to clipboard!");
+      } else {
+        // Fallback: copy image URL to clipboard
+        await navigator.clipboard.writeText(imageUrl);
+        toast.success("Image URL copied to clipboard!");
+      }
+    } catch (err) {
+      console.error("Failed to copy image:", err);
+      // Fallback: copy image URL
+      try {
+        await navigator.clipboard.writeText(imageUrl);
+        toast.success("Image URL copied to clipboard!");
+      } catch (e) {
+        toast.error("Failed to copy image");
+        console.log(e);
+      }
+    }
   };
 
   const handleImageLoad = useCallback((messageId) => {
@@ -254,18 +337,106 @@ export const MessageList = ({
                       </Button>
                     </>
                   )}
-                  <Button
-                    onClick={() => {
-                      setOpenPopoverId(null);
-                      copy(msg.message);
-                    }}
-                    variant={"ghost"}
-                    size={"sm"}
-                    className="flex w-full justify-start gap-2 items-center"
-                  >
-                    <Icon icon="solar:copy-broken" width="24" height="24" />
-                    Copy
-                  </Button>
+
+                  {msg.message && msg.fileData && (
+                    <Button
+                      onClick={() => {
+                        copy(msg.message);
+                        setOpenPopoverId(null);
+                      }}
+                      variant={"ghost"}
+                      size={"sm"}
+                      className="flex w-full justify-start gap-2 items-center"
+                    >
+                      <Icon icon="solar:copy-broken" width="24" height="24" />
+                      Copy text
+                    </Button>
+                  )}
+                  {msg.message && !msg.fileData && (
+                    <Button
+                      onClick={() => {
+                        copy(msg.message);
+                        setOpenPopoverId(null);
+                      }}
+                      variant={"ghost"}
+                      size={"sm"}
+                      className="flex w-full justify-start gap-2 items-center"
+                    >
+                      <Icon icon="solar:copy-broken" width="24" height="24" />
+                      Copy text
+                    </Button>
+                  )}
+
+                  {/* File/Media options for current user */}
+                  {msg.fileData && (
+                    <>
+                      {msg.fileData.type?.startsWith("image/") && (
+                        <>
+                          <Button
+                            onClick={() => {
+                              copyImageToClipboard(msg.fileData.url);
+                              setOpenPopoverId(null);
+                            }}
+                            variant={"ghost"}
+                            size={"sm"}
+                            className="flex w-full justify-start gap-2 items-center"
+                          >
+                            <Icon
+                              icon="solar:copy-broken"
+                              width="24"
+                              height="24"
+                            />
+                            Copy image address
+                          </Button>
+                        </>
+                      )}
+
+                      {msg.fileData.type?.startsWith("video/") && (
+                        <Button
+                          onClick={() => {
+                            downloadFile(
+                              msg.fileData.url,
+                              msg.fileData.name || "video.mp4"
+                            );
+                            setOpenPopoverId(null);
+                          }}
+                          variant={"ghost"}
+                          size={"sm"}
+                          className="flex w-full justify-start gap-2 items-center"
+                        >
+                          <Icon
+                            icon="solar:chat-round-video-broken"
+                            width="24"
+                            height="24"
+                          />
+                          Save video
+                        </Button>
+                      )}
+
+                      {!msg.fileData.type?.startsWith("image/") &&
+                        !msg.fileData.type?.startsWith("video/") && (
+                          <Button
+                            onClick={() => {
+                              downloadFile(
+                                msg.fileData.url,
+                                msg.fileData.name || "file"
+                              );
+                              setOpenPopoverId(null);
+                            }}
+                            variant={"ghost"}
+                            size={"sm"}
+                            className="flex w-full justify-start gap-2 items-center"
+                          >
+                            <Icon
+                              icon="solar:folder-download-broken"
+                              width="24"
+                              height="24"
+                            />
+                            Download file
+                          </Button>
+                        )}
+                    </>
+                  )}
 
                   {msg.message && (
                     <Button
@@ -565,6 +736,7 @@ export const MessageList = ({
                         />
                         Reply
                       </Button>
+
                       {!msg.pinned ? (
                         <>
                           {" "}
@@ -600,18 +772,114 @@ export const MessageList = ({
                           </Button>
                         </>
                       )}
-                      <Button
-                        onClick={() => {
-                          setOpenPopoverId(null);
-                          copy(msg.message);
-                        }}
-                        variant={"ghost"}
-                        size={"sm"}
-                        className="flex w-full justify-start gap-2 items-center"
-                      >
-                        <Icon icon="solar:copy-broken" width="24" height="24" />
-                        Copy
-                      </Button>
+
+                      {msg.message && msg.fileData && (
+                        <Button
+                          onClick={() => {
+                            copy(msg.message);
+                            setOpenPopoverId(null);
+                          }}
+                          variant={"ghost"}
+                          size={"sm"}
+                          className="flex w-full justify-start gap-2 items-center"
+                        >
+                          <Icon
+                            icon="solar:copy-broken"
+                            width="24"
+                            height="24"
+                          />
+                          Copy text
+                        </Button>
+                      )}
+                      {msg.message && !msg.fileData && (
+                        <Button
+                          onClick={() => {
+                            copy(msg.message);
+                            setOpenPopoverId(null);
+                          }}
+                          variant={"ghost"}
+                          size={"sm"}
+                          className="flex w-full justify-start gap-2 items-center"
+                        >
+                          <Icon
+                            icon="solar:copy-broken"
+                            width="24"
+                            height="24"
+                          />
+                          Copy text
+                        </Button>
+                      )}
+
+                      {/* File / Media Download Options */}
+                      {msg.fileData && (
+                        <>
+                          {msg.fileData.type?.startsWith("image/") && (
+                            <>
+                              <Button
+                                onClick={() => {
+                                  copyImageToClipboard(msg.fileData.url);
+                                  setOpenPopoverId(null);
+                                }}
+                                variant={"ghost"}
+                                size={"sm"}
+                                className="flex w-full justify-start gap-2 items-center"
+                              >
+                                <Icon
+                                  icon="solar:copy-broken"
+                                  width="24"
+                                  height="24"
+                                />
+                                Copy image address
+                              </Button>
+                            </>
+                          )}
+
+                          {msg.fileData.type?.startsWith("video/") && (
+                            <Button
+                              onClick={() => {
+                                downloadFile(
+                                  msg.fileData.url,
+                                  msg.fileData.name || "video.mp4"
+                                );
+                                setOpenPopoverId(null);
+                              }}
+                              variant={"ghost"}
+                              size={"sm"}
+                              className="flex w-full justify-start gap-2 items-center"
+                            >
+                              <Icon
+                                icon="solar:chat-round-video-broken"
+                                width="24"
+                                height="24"
+                              />
+                              Save video
+                            </Button>
+                          )}
+
+                          {!msg.fileData.type?.startsWith("image/") &&
+                            !msg.fileData.type?.startsWith("video/") && (
+                              <Button
+                                onClick={() => {
+                                  downloadFile(
+                                    msg.fileData.url,
+                                    msg.fileData.name || "file"
+                                  );
+                                  setOpenPopoverId(null);
+                                }}
+                                variant={"ghost"}
+                                size={"sm"}
+                                className="flex w-full justify-start gap-2 items-center"
+                              >
+                                <Icon
+                                  icon="solar:folder-download-broken"
+                                  width="24"
+                                  height="24"
+                                />
+                                Download File
+                              </Button>
+                            )}
+                        </>
+                      )}
 
                       <div className="absolute w-52 -top-13 left-0 mb-2">
                         <div className="relative">

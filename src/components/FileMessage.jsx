@@ -166,7 +166,7 @@ export const FileMessage = ({
             <div
               className={`absolute border-gray-200/50 border backdrop-blur-sm rounded-full max-w-32 gap-1 px-2 ${
                 message.senderId === user.uid && !message.reactions
-                  ? "justify-end bottom-1 right-1 bg-gray-500/50"
+                  ? "justify-end bottom-1 right-1 bg-gray-200"
                   : "justify-start top-1 left-1 bg-gray-200"
               }`}
             >
