@@ -75,7 +75,53 @@ const Sidebar = ({ toggleMenu, handleSelectChat }) => {
 
   return (
     <>
-      <div className="sm:w-64  bg-gray-800 text-white sm:fixed lg:sticky top-0 left-0 z-10 overflow-y-auto p-2 flex flex-col h-full">
+      {!chatId && (
+        <div className="w-screen bg-gray-800 text-white sm:hidden fixed lg:sticky top-0 left-0 z-30 overflow-y-auto p-2 flex flex-col h-full">
+          <div className="flex items-center justify-start gap-2 mb-4">
+            <div
+              onClick={() => toggleMenu()}
+              className="rounded-full bg-gray-700/50 p-2"
+            >
+              <Icon icon="duo-icons:menu" width="24" height="24" />
+            </div>
+            <div className="w-full">
+              <Input
+                type="search"
+                placeholder="Search..."
+                className="w-full rounded-full border border-gray-600"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+          </div>
+          {/* Chat List with Loading */}
+          {chatsLoading ? (
+            <ChatListLoading />
+          ) : (
+            <>
+              {filteredChats.length > 0 ? (
+                <ChatList
+                  filteredChats={filteredChats}
+                  chatId={chatId}
+                  handleSelectChat={handleSelectChat}
+                  getOtherUserInDirectChat={getOtherUserInDirectChat}
+                  getChatPhoto={getChatPhoto}
+                  getChatDisplayName={getChatDisplayName}
+                  formatTimestamp={formatTimestamp}
+                  currentUserId={user?.uid}
+                  onLeaveSuccess={clearChat}
+                />
+              ) : (
+                <div className=" mx-1 p-2 border-gray-600/50 rounded-lg border text-gray-500">
+                  No Recent Chats
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      )}
+
+      <div className="w-64 hidden  bg-gray-800 text-white sm:fixed lg:sticky top-0 left-0 z-10 overflow-y-auto p-2 sm:flex flex-col h-full">
         <div className="flex items-center justify-start gap-2 mb-4">
           <div
             onClick={() => toggleMenu()}

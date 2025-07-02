@@ -10,19 +10,19 @@ import {
 import { LeaveGroup } from "./LeaveGroup";
 import { doc, updateDoc, arrayUnion, arrayRemove } from "firebase/firestore";
 import { db } from "../firebase";
+import { useMessageActionStore } from "../stores/useMessageActionStore";
+import { formatTimestamp } from "../composables/scripts";
 
 const ChatList = ({
   filteredChats,
-  chatId,
   handleSelectChat,
   getOtherUserInDirectChat,
   getChatPhoto,
   getChatDisplayName,
-  formatTimestamp,
   currentUserId,
   clearCurrentChat,
 }) => {
-  console.log("render");
+  const { chatId } = useMessageActionStore();
 
   const markAsRead = async (chatId) => {
     const chatRef = doc(db, "chats", chatId);

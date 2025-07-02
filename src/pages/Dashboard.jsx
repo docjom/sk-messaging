@@ -215,7 +215,6 @@ function Dashboard() {
       clearEdit();
       setMessage("");
 
-      // Fixed: Clear from the correct store
       if (pastedImage) {
         useMessageActionStore.getState().clearPastedImage();
       }
@@ -240,7 +239,7 @@ function Dashboard() {
         }
         textareaRef.current.focus();
       }
-    }, [replyTo, editMessage]);
+    }, []);
 
     useEffect(() => {
       if (textareaRef.current && message.trim() === "") {
@@ -468,7 +467,7 @@ function Dashboard() {
       }
     );
     return () => unsubscribe();
-  }, [user]);
+  }, [user, setUsers]);
 
   useEffect(() => {
     if (chatId) {
