@@ -9,11 +9,15 @@ export const useMessageActionStore = create((set, get) => ({
   chats: [],
   users: [],
   selectedUser: null,
-  currentChat: [],
+  currentChat: null,
 
   setUsers: (data) => set({ users: data }),
+
   setSelectedUser: (data) => set({ selectedUser: data }),
+  clearSelectedUser: () => set({ selectedUser: null }),
+
   setCurrentChat: (data) => set({ currentChat: data }),
+  clearCurrentChat: () => set({ currentChat: null }),
 
   setChatIdTo: (data) => set({ chatId: data }),
   clearChat: () => set({ chatId: null }),

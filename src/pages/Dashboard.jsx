@@ -79,6 +79,8 @@ function Dashboard() {
     setCurrentChat,
     currentChat,
     selectedUser,
+    clearCurrentChat,
+    clearSelectedUser,
   } = useMessageActionStore();
 
   const uploadImageToStorage = async (imageFile, chatId) => {
@@ -349,7 +351,20 @@ function Dashboard() {
   };
   const clearChatId = () => {
     clearChat();
-    setCurrentChat("");
+    clearCurrentChat();
+    clearSelectedUser();
+  };
+
+  const handleSelectChat = (chat) => {
+    setChatIdTo(chat.id);
+    setCurrentChat(chat);
+    if (chat.type === "direct") {
+      const otherUserId = chat.users.find((uid) => uid !== user?.uid);
+      const otherUser = users.find((u) => u.id === otherUserId);
+      setSelectedUser(otherUser);
+    } else {
+      clearSelectedUser();
+    }
   };
 
   const addUsersToGroup = async (selectedUsersToAdd) => {
@@ -379,11 +394,7 @@ function Dashboard() {
             userRoles: updatedUserRoles,
             updatedAt: serverTimestamp(),
           });
-          setCurrentChat((prev) => ({
-            ...prev,
-            users: updatedUsers,
-            userRoles: updatedUserRoles,
-          }));
+
           const usersRef = collection(db, "users");
           const newUsersData = await Promise.all(
             newUsers.map(async (userId) => {
@@ -677,13 +688,13 @@ function Dashboard() {
       {/* Menu End */}
 
       {/* Left Panel (Sidebar) */}
-      <Sidebar toggleMenu={toggleMenu} />
+      <Sidebar toggleMenu={toggleMenu} handleSelectChat={handleSelectChat} />
       {/* Left Panel (Sidebar) End */}
 
       {/* Center Chat Area */}
       <div className="flex-1 bg-gray-white  sm:ml-64 lg:ml-0 sticky top-0 left-0 z-20 overflow-y-hidden flex flex-col h-full">
         {/* Header */}
-        {currentChat && (
+        {chatId && (
           <div className="fixed top-0 left-0 right-0 bg-white  sm:ml-64 z-30">
             <div className="bg-white px-4 py-2 rounded shadow w-full flex items-center">
               <div className="w-full flex justify-start items-center  gap-2">

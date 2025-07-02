@@ -10,32 +10,17 @@ import { db } from "../firebase";
 import { collection, query, onSnapshot, where } from "firebase/firestore";
 import { useUserStore } from "@/stores/useUserStore";
 
-const Sidebar = ({ toggleMenu }) => {
+const Sidebar = ({ toggleMenu, handleSelectChat }) => {
   const {
     chats,
     setChats,
-    setChatIdTo,
     clearChat,
     chatId,
     users,
-    setSelectedUser,
-    setCurrentChat,
   } = useMessageActionStore();
   const [searchTerm, setSearchTerm] = useState("");
   const user = useUserStore((s) => s.user);
   const [chatsLoading, setChatsLoading] = useState(true);
-
-  const handleSelectChat = (chat) => {
-    setChatIdTo(chat.id);
-    setCurrentChat(chat);
-    if (chat.type === "direct") {
-      const otherUserId = chat.users.find((uid) => uid !== user?.uid);
-      const otherUser = users.find((u) => u.id === otherUserId);
-      setSelectedUser(otherUser);
-    } else {
-      setSelectedUser(null);
-    }
-  };
 
   const getUserData = (userId) => {
     if (!userId) return null;
