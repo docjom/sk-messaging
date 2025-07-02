@@ -684,11 +684,7 @@ function Dashboard() {
           closeMenu={closeMenu}
         />
       )}
-      {/* Menu End */}
-
-      {/* Left Panel (Sidebar) */}
       <Sidebar toggleMenu={toggleMenu} handleSelectChat={handleSelectChat} />
-      {/* Left Panel (Sidebar) End */}
 
       {/* Center Chat Area */}
       <div className="flex-1 bg-gray-white  sm:ml-64 lg:ml-0 sticky top-0 left-0 z-20 overflow-y-hidden flex flex-col h-full">
@@ -802,34 +798,6 @@ function Dashboard() {
                     </div>
                   </div>
                 )}
-
-                {/* {getChatDisplayName(currentChat) === "Unknown User" && (
-                  <div className="flex justify-between items-center w-full">
-                    <div className="font-semibold text-gray-600 py-1.5">
-                      Unknown User
-                    </div>
-                    <div>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <button className="p-2 rounded-full bg-gray-200 hover:bg-gray-300 text-gray-800 transition">
-                            <Icon
-                              icon="solar:hamburger-menu-broken"
-                              width="20"
-                              height="20"
-                            />
-                          </button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-full p-0">
-                          <DeleteUserChat
-                            chatId={chatId}
-                            currentUserId={user?.uid}
-                            clearCurrentChat={clearChatId}
-                          />
-                        </PopoverContent>
-                      </Popover>
-                    </div>
-                  </div>
-                )} */}
               </div>
             </div>
           </div>

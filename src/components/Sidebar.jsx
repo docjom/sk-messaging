@@ -93,7 +93,6 @@ const Sidebar = ({ toggleMenu, handleSelectChat }) => {
               />
             </div>
           </div>
-          {/* Chat List with Loading */}
           {chatsLoading ? (
             <ChatListLoading />
           ) : (
@@ -136,7 +135,6 @@ const Sidebar = ({ toggleMenu, handleSelectChat }) => {
             />
           </div>
         </div>
-        {/* Chat List with Loading */}
         {chatsLoading ? (
           <ChatListLoading />
         ) : (
