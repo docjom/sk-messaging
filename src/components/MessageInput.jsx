@@ -56,7 +56,7 @@ export const MessageInput = ({
             setPastedImage({
               file: file,
               preview: event.target.result,
-              name: `pasted-image-${Date.now()}.${file.type.split("/")[1]}`,
+              name: `${Date.now()}.${file.type.split("/")[1]}`,
               type: file.type,
             });
           };

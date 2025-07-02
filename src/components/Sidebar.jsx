@@ -11,13 +11,7 @@ import { collection, query, onSnapshot, where } from "firebase/firestore";
 import { useUserStore } from "@/stores/useUserStore";
 
 const Sidebar = ({ toggleMenu, handleSelectChat }) => {
-  const {
-    chats,
-    setChats,
-    clearChat,
-    chatId,
-    users,
-  } = useMessageActionStore();
+  const { chats, setChats, clearChat, chatId, users } = useMessageActionStore();
   const [searchTerm, setSearchTerm] = useState("");
   const user = useUserStore((s) => s.user);
   const [chatsLoading, setChatsLoading] = useState(true);
@@ -81,7 +75,7 @@ const Sidebar = ({ toggleMenu, handleSelectChat }) => {
 
   return (
     <>
-      <div className="w-64 bg-gray-800 text-white fixed lg:sticky top-0 left-0 z-10 overflow-y-auto p-2 flex flex-col h-full">
+      <div className="sm:w-64  bg-gray-800 text-white sm:fixed lg:sticky top-0 left-0 z-10 overflow-y-auto p-2 flex flex-col h-full">
         <div className="flex items-center justify-start gap-2 mb-4">
           <div
             onClick={() => toggleMenu()}
