@@ -46,7 +46,6 @@ function Dashboard() {
   const user = useUserStore((s) => s.user);
   const userProfile = useUserStore((s) => s.userProfile);
   const [messages, setMessages] = useState([]);
-
   const [menu, setMenu] = useState(false);
   const endOfMessagesRef = useRef(null);
 
