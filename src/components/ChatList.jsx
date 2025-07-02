@@ -11,7 +11,7 @@ import { LeaveGroup } from "./LeaveGroup";
 import { doc, updateDoc, arrayUnion, arrayRemove } from "firebase/firestore";
 import { db } from "../firebase";
 
-export const ChatList = ({
+const ChatList = ({
   filteredChats,
   chatId,
   handleSelectChat,
@@ -22,6 +22,8 @@ export const ChatList = ({
   currentUserId,
   clearCurrentChat,
 }) => {
+  console.log("render");
+
   const markAsRead = async (chatId) => {
     const chatRef = doc(db, "chats", chatId);
     await updateDoc(chatRef, {
@@ -266,3 +268,5 @@ export const ChatList = ({
     </>
   );
 };
+
+export default React.memo(ChatList);

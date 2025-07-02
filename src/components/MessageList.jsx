@@ -97,50 +97,76 @@ export const MessageList = ({
   };
 
   // Fixed download function for Firebase Storage URLs
-  const downloadFile = async (url, fileName) => {
+  // const downloadFile = async (url, fileName) => {
+  //   try {
+  //     // For Firebase Storage URLs or CORS-enabled URLs, fetch and create blob
+  //     const response = await fetch(url);
+  //     if (!response.ok) throw new Error("Failed to fetch file");
+
+  //     const blob = await response.blob();
+
+  //     // Create blob URL
+  //     const blobUrl = URL.createObjectURL(blob);
+
+  //     // Create temporary anchor element for download
+  //     const link = document.createElement("a");
+  //     link.href = blobUrl;
+  //     link.download = fileName;
+  //     // Remove target="_blank" - this was causing the new tab behavior
+
+  //     // Append to body, click, and remove
+  //     document.body.appendChild(link);
+  //     link.click();
+  //     document.body.removeChild(link);
+
+  //     // Clean up blob URL
+  //     URL.revokeObjectURL(blobUrl);
+
+  //     toast.success("Download started");
+  //   } catch (err) {
+  //     console.error("Download failed:", err);
+
+  //     // Fallback: try direct download (might open in new tab for some file types)
+  //     try {
+  //       const link = document.createElement("a");
+  //       link.href = url;
+  //       link.download = fileName;
+  //       document.body.appendChild(link);
+  //       link.click();
+  //       document.body.removeChild(link);
+  //       toast.success("Download started");
+  //     } catch (e) {
+  //       toast.error(
+  //         "Download failed - file may not support direct download",
+  //         e
+  //       );
+  //     }
+  //   }
+  // };
+
+  const downloadFile = async (imageUrl) => {
     try {
-      // For Firebase Storage URLs or CORS-enabled URLs, fetch and create blob
-      const response = await fetch(url);
-      if (!response.ok) throw new Error("Failed to fetch file");
+      const response = await fetch(imageUrl, {
+        method: "GET",
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+        },
+        mode: "cors",
+      });
+
+      if (!response.ok) throw new Error("Network response was not ok");
 
       const blob = await response.blob();
-
-      // Create blob URL
-      const blobUrl = URL.createObjectURL(blob);
-
-      // Create temporary anchor element for download
+      const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
-      link.href = blobUrl;
-      link.download = fileName;
-      // Remove target="_blank" - this was causing the new tab behavior
-
-      // Append to body, click, and remove
+      link.href = url;
+      link.download = imageUrl.name;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-
-      // Clean up blob URL
-      URL.revokeObjectURL(blobUrl);
-
-      toast.success("Download started");
-    } catch (err) {
-      console.error("Download failed:", err);
-
-      // Fallback: try direct download (might open in new tab for some file types)
-      try {
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = fileName;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        toast.success("Download started");
-      } catch (e) {
-        toast.error(
-          "Download failed - file may not support direct download",
-          e
-        );
-      }
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Download failed:", error);
     }
   };
 
@@ -387,6 +413,22 @@ export const MessageList = ({
                               height="24"
                             />
                             Copy image address
+                          </Button>
+                          <Button
+                            onClick={() => {
+                              downloadFile(msg.fileData.url);
+                              setOpenPopoverId(null);
+                            }}
+                            variant={"ghost"}
+                            size={"sm"}
+                            className="flex w-full justify-start gap-2 items-center"
+                          >
+                            <Icon
+                              icon="solar:copy-broken"
+                              width="24"
+                              height="24"
+                            />
+                            Save image
                           </Button>
                         </>
                       )}

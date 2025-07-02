@@ -1,22 +1,20 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { db } from "../firebase";
 import { toast } from "sonner";
 import { Icon } from "@iconify/react";
 import { formatTimestamp } from "../composables/scripts";
-import { Input } from "@/components/ui/input";
 import { Toaster } from "@/components/ui/sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import ManageGroupChat from "../components/GroupChatSetting";
-import { ChatListLoading } from "../components/ChatListLoading";
 import { MessagesLoading } from "../components/MessagesLoading";
 import { AddUsersToGroup } from "@/components/AddUserToGroup";
 import { MessageList } from "@/components/MessageList";
-import { ChatList } from "@/components/ChatList";
 import FileUploadDialog from "@/components/FileUploadDialog";
 import ErrorProfileImage from "../assets/error.png";
 import { UserInfo } from "@/components/UserInfo";
 import { Menu } from "@/components/Menu";
 import { PinnedMessages } from "@/components/PinnedMessages";
+import Sidebar from "@/components/Sidebar";
 import {
   addDoc,
   collection,
@@ -48,18 +46,11 @@ function Dashboard() {
   const user = useUserStore((s) => s.user);
   const userProfile = useUserStore((s) => s.userProfile);
   const [messages, setMessages] = useState([]);
-  const [message, setMessage] = useState("");
-  const [chatId, setChatId] = useState("");
-  const [chats, setChats] = useState([]);
-  const [users, setUsers] = useState([]);
-  const [selectedUser, setSelectedUser] = useState(null);
-  const [currentChat, setCurrentChat] = useState(null);
+
   const [menu, setMenu] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
   const endOfMessagesRef = useRef(null);
 
   // Loading states
-  const [chatsLoading, setChatsLoading] = useState(true);
   const [messagesLoading, setMessagesLoading] = useState(false);
   const [isAddingUsers, setIsAddingUsers] = useState(false);
   const [isCreatingGroup, setIsCreatingGroup] = useState(false);
@@ -73,8 +64,22 @@ function Dashboard() {
   const textareaRef = useRef(null);
   const prevMessageCountRef = useRef(0);
 
-  const { replyTo, clearReply, editMessage, clearEdit } =
-    useMessageActionStore();
+  const {
+    replyTo,
+    clearReply,
+    editMessage,
+    clearEdit,
+    chatId,
+    chats,
+    setChatIdTo,
+    clearChat,
+    users,
+    setUsers,
+    setSelectedUser,
+    setCurrentChat,
+    currentChat,
+    selectedUser,
+  } = useMessageActionStore();
 
   const uploadImageToStorage = async (imageFile, chatId) => {
     const storage = getStorage();
@@ -88,154 +93,193 @@ function Dashboard() {
     return downloadURL;
   };
 
-  const sendMessage = async (
-    chatId,
-    senderId,
-    message,
-    reply,
-    edit,
-    pastedImage
-  ) => {
-    if (!message.trim() && !pastedImage) return;
-    setIsMessagesSending(true);
-    const tempMessageId = `temp-${Date.now()}`;
-    const tempMessage = {
-      id: tempMessageId,
+  const MessageInputContainer = () => {
+    const [message, setMessage] = useState("");
+
+    const sendMessage = async (
+      chatId,
       senderId,
       message,
-      status: "sending",
-      isTemporary: true,
-      ...(pastedImage && {
-        type: "file",
-        fileData: {
-          name: pastedImage.name,
-          type: pastedImage.type,
-          url: pastedImage.preview,
-          uploading: true,
-        },
-      }),
+      reply,
+      edit,
+      pastedImage
+    ) => {
+      if (!message.trim() && !pastedImage) return;
+      setIsMessagesSending(true);
+      const tempMessageId = `temp-${Date.now()}`;
+      const tempMessage = {
+        id: tempMessageId,
+        senderId,
+        message,
+        status: "sending",
+        isTemporary: true,
+        ...(pastedImage && {
+          type: "file",
+          fileData: {
+            name: pastedImage.name,
+            type: pastedImage.type,
+            url: pastedImage.preview,
+            uploading: true,
+          },
+        }),
+      };
+
+      setMessages((prev) => [...prev, tempMessage]);
+      try {
+        let imageURL = null;
+        if (pastedImage) {
+          imageURL = await uploadImageToStorage(pastedImage.file, chatId);
+        }
+        if (edit?.messageId) {
+          const msgRef = doc(db, "chats", chatId, "messages", edit.messageId);
+          const updateData = {
+            message: message,
+            edited: true,
+            timestamp: edit?.timestamp,
+            editTimestamp: serverTimestamp(),
+          };
+          await updateDoc(msgRef, updateData);
+          useMessageActionStore.getState().clearEdit();
+        } else {
+          const messagesRef = collection(db, "chats", chatId, "messages");
+          const chatRef = doc(db, "chats", chatId);
+          const messagePayload = {
+            senderId,
+            message,
+            seenBy: [],
+            timestamp: serverTimestamp(),
+            status: "sending",
+            ...(reply?.messageId && {
+              replyTo: {
+                messageId: reply.messageId,
+                senderId: reply.senderId || null,
+                message: reply.message || null,
+                senderName: reply.name || null,
+                ...(reply.fileData && { fileData: reply.fileData }),
+              },
+            }),
+            ...(imageURL && {
+              type: "file",
+              fileData: {
+                fileName: pastedImage?.name,
+                url: imageURL,
+                name: pastedImage?.name,
+                type: pastedImage?.type,
+                size: pastedImage?.file.size,
+              },
+            }),
+          };
+          const msgRef = await addDoc(messagesRef, messagePayload);
+          await updateDoc(msgRef, { status: "sent" });
+          setMessages((prev) => prev.filter((msg) => msg.id !== tempMessageId));
+          const lastMessageText = message.trim()
+            ? message.trim()
+            : imageURL
+            ? `📎 ${pastedImage.name}`
+            : "";
+          await updateDoc(chatRef, {
+            seenBy: [],
+            lastMessage: lastMessageText,
+            lastMessageTime: serverTimestamp(),
+          });
+          useMessageActionStore.getState().clearReply();
+        }
+        textareaRef.current?.focus();
+      } catch (error) {
+        console.error("Error sending message:", error);
+        toast.error("Error sending message:", error);
+      } finally {
+        setIsMessagesSending(false);
+      }
     };
 
-    setMessages((prev) => [...prev, tempMessage]);
-    try {
-      let imageURL = null;
-      if (pastedImage) {
-        imageURL = await uploadImageToStorage(pastedImage.file, chatId);
-      }
-      if (edit?.messageId) {
-        const msgRef = doc(db, "chats", chatId, "messages", edit.messageId);
-        const updateData = {
-          message: message,
-          edited: true,
-          timestamp: edit?.timestamp,
-          editTimestamp: serverTimestamp(),
-        };
-        await updateDoc(msgRef, updateData);
-        useMessageActionStore.getState().clearEdit();
-      } else {
-        const messagesRef = collection(db, "chats", chatId, "messages");
-        const chatRef = doc(db, "chats", chatId);
-        const messagePayload = {
-          senderId,
-          message,
-          seenBy: [],
-          timestamp: serverTimestamp(),
-          status: "sending",
-          ...(reply?.messageId && {
-            replyTo: {
-              messageId: reply.messageId,
-              senderId: reply.senderId || null,
-              message: reply.message || null,
-              senderName: reply.name || null,
-              ...(reply.fileData && { fileData: reply.fileData }),
-            },
-          }),
-          ...(imageURL && {
-            type: "file",
-            fileData: {
-              fileName: pastedImage?.name,
-              url: imageURL,
-              name: pastedImage?.name,
-              type: pastedImage?.type,
-              size: pastedImage?.file.size,
-            },
-          }),
-        };
-        const msgRef = await addDoc(messagesRef, messagePayload);
-        await updateDoc(msgRef, { status: "sent" });
-        setMessages((prev) => prev.filter((msg) => msg.id !== tempMessageId));
-        const lastMessageText = message.trim()
-          ? message.trim()
-          : imageURL
-          ? `📎 ${pastedImage.name}`
-          : "";
-        await updateDoc(chatRef, {
-          seenBy: [],
-          lastMessage: lastMessageText,
-          lastMessageTime: serverTimestamp(),
-        });
-        useMessageActionStore.getState().clearReply();
-      }
-      textareaRef.current?.focus();
-    } catch (error) {
-      console.error("Error sending message:", error);
-      toast.error("Error sending message:", error);
-    } finally {
-      setIsMessagesSending(false);
-    }
-  };
-
-  const handleSendMessage = async () => {
-    if (!chatId) {
-      console.error("Chat ID is not set.");
-      return;
-    }
-    if (textareaRef.current) {
-      textareaRef.current.style.height = "40px";
-      textareaRef.current?.focus();
-    }
-    const pastedImage = useMessageActionStore.getState().pastedImage;
-    const msgToSend = message.trim();
-    const reply = useMessageActionStore.getState().replyTo;
-    const edit = useMessageActionStore.getState().editMessage;
-
-    if (msgToSend === "" && !pastedImage) return;
-
-    clearReply();
-    clearEdit();
-    setMessage("");
-
-    // Fixed: Clear from the correct store
-    if (pastedImage) {
-      useMessageActionStore.getState().clearPastedImage();
-    }
-    const chatRef = doc(db, "chats", chatId);
-    const chatDoc = await getDoc(chatRef);
-    if (chatDoc.exists()) {
-      const chatData = chatDoc.data();
-      const users = chatData.users || [];
-      if (!users.includes(user?.uid)) {
-        toast.error("You can't message in this group.");
+    const handleSendMessage = async () => {
+      if (!chatId) {
+        console.error("Chat ID is not set.");
         return;
       }
-    }
-    await sendMessage(chatId, user?.uid, msgToSend, reply, edit, pastedImage);
-    textareaRef.current?.focus();
-  };
-
-  useEffect(() => {
-    if ((replyTo || editMessage) && textareaRef.current) {
-      if (editMessage) {
-        setMessage(editMessage.message);
+      if (textareaRef.current) {
+        textareaRef.current.style.height = "40px";
+        textareaRef.current?.focus();
       }
-      textareaRef.current.focus();
-    }
-  }, [replyTo, editMessage]);
-  useEffect(() => {
-    if (textareaRef.current && message.trim() === "") {
-      textareaRef.current.focus();
-    }
-  }, [message]);
+      const pastedImage = useMessageActionStore.getState().pastedImage;
+      const msgToSend = message.trim();
+      const reply = useMessageActionStore.getState().replyTo;
+      const edit = useMessageActionStore.getState().editMessage;
+
+      if (msgToSend === "" && !pastedImage) return;
+
+      clearReply();
+      clearEdit();
+      setMessage("");
+
+      // Fixed: Clear from the correct store
+      if (pastedImage) {
+        useMessageActionStore.getState().clearPastedImage();
+      }
+      const chatRef = doc(db, "chats", chatId);
+      const chatDoc = await getDoc(chatRef);
+      if (chatDoc.exists()) {
+        const chatData = chatDoc.data();
+        const users = chatData.users || [];
+        if (!users.includes(user?.uid)) {
+          toast.error("You can't message in this group.");
+          return;
+        }
+      }
+      await sendMessage(chatId, user?.uid, msgToSend, reply, edit, pastedImage);
+      textareaRef.current?.focus();
+    };
+
+    useEffect(() => {
+      if ((replyTo || editMessage) && textareaRef.current) {
+        if (editMessage) {
+          setMessage(editMessage.message);
+        }
+        textareaRef.current.focus();
+      }
+    }, [replyTo, editMessage]);
+
+    useEffect(() => {
+      if (textareaRef.current && message.trim() === "") {
+        textareaRef.current.focus();
+      }
+    }, [message]);
+
+    const handleKeyPress = (e) => {
+      textareaRef.current?.focus();
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        handleSendMessage();
+      }
+    };
+
+    const handleCancelEdit = () => {
+      clearEdit();
+      clearReply();
+      setMessage("");
+      textareaRef.current?.focus();
+    };
+    return (
+      <>
+        {" "}
+        <MessageInput
+          chatId={chatId}
+          messagesLoading={messagesLoading}
+          isMessagesSending={isMessagesSending}
+          setIsFileDialogOpen={setIsFileDialogOpen}
+          handleKeyPress={handleKeyPress}
+          handleSendMessage={handleSendMessage}
+          handleCancelEdit={handleCancelEdit}
+          message={message}
+          textareaRef={textareaRef}
+          replyTo={replyTo}
+          editMessage={editMessage}
+          setMessage={setMessage}
+        />
+      </>
+    );
+  };
 
   useEffect(() => {
     if (messages.length > prevMessageCountRef.current) {
@@ -287,12 +331,6 @@ function Dashboard() {
     }
   };
 
-  const handleCancelEdit = () => {
-    clearEdit();
-    clearReply();
-    setMessage("");
-    textareaRef.current?.focus();
-  };
   useEffect(() => {
     textareaRef.current?.focus();
     if (endOfMessagesRef.current) {
@@ -301,14 +339,16 @@ function Dashboard() {
   }, [messages]);
 
   const displayUser = userProfile || user;
-  const toggleMenu = () => {
-    setMenu(true);
-  };
+
+  const toggleMenu = useCallback(() => {
+    setMenu((prev) => !prev);
+  }, []);
+
   const closeMenu = () => {
     setMenu(false);
   };
   const clearChatId = () => {
-    setChatId("");
+    clearChat();
     setCurrentChat("");
   };
 
@@ -420,27 +460,6 @@ function Dashboard() {
   }, [user]);
 
   useEffect(() => {
-    if (user) {
-      const chatsRef = collection(db, "chats");
-      const q = query(chatsRef, where("users", "array-contains", user?.uid));
-      const unsubscribe = onSnapshot(q, (querySnapshot) => {
-        const chatsArray = [];
-        querySnapshot.forEach((doc) => {
-          chatsArray.push({ id: doc.id, ...doc.data() });
-        });
-        const sortedChats = chatsArray.sort((a, b) => {
-          const aTime = a.lastMessageTime?.toMillis?.() || 0;
-          const bTime = b.lastMessageTime?.toMillis?.() || 0;
-          return bTime - aTime;
-        });
-        setChats(sortedChats);
-        setChatsLoading(false);
-      });
-      return () => unsubscribe();
-    }
-  }, [user]);
-
-  useEffect(() => {
     if (chatId) {
       setMessagesLoading(true);
       const messagesRef = collection(db, "chats", chatId, "messages");
@@ -488,7 +507,7 @@ function Dashboard() {
     setSelectedUser(selectedUserData);
     const existingChat = await checkExistingDirectChat(selectedUserData.id);
     if (existingChat) {
-      setChatId(existingChat.id);
+      setChatIdTo(existingChat.id);
       setCurrentChat(existingChat);
     } else {
       const newChatId = await createChat(
@@ -497,7 +516,7 @@ function Dashboard() {
         selectedUserData.displayName
       );
       if (newChatId) {
-        setChatId(newChatId);
+        setChatIdTo(newChatId);
         const newChat = chats.find((chat) => chat.id === newChatId);
         setCurrentChat(newChat);
       }
@@ -527,25 +546,6 @@ function Dashboard() {
     }
   };
 
-  const handleSelectChat = (chat) => {
-    setChatId(chat.id);
-    setCurrentChat(chat);
-    if (chat.type === "direct") {
-      const otherUserId = chat.users.find((uid) => uid !== user?.uid);
-      const otherUser = users.find((u) => u.id === otherUserId);
-      setSelectedUser(otherUser);
-    } else {
-      setSelectedUser(null);
-    }
-  };
-
-  const handleKeyPress = (e) => {
-    textareaRef.current?.focus();
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage();
-    }
-  };
   const createChat = async (type, userIds, name = "") => {
     try {
       const chatsRef = collection(db, "chats");
@@ -595,7 +595,8 @@ function Dashboard() {
       const newChatId = await createChat("group", allUsers, groupName.trim());
       if (newChatId) {
         console.log("Group chat created with ID:", newChatId);
-        setChatId(newChatId);
+        setChatIdTo(newChatId);
+        setCurrentChat(currentChat);
         toast.success(`Group "${groupName}" created successfully!`);
         setMenu(false);
       } else {
@@ -613,36 +614,25 @@ function Dashboard() {
     const sender = users.find((u) => u.id === senderId);
     return sender?.displayName || "Unknown User";
   };
-  const getUserData = (userId) => {
-    if (!userId) return null;
-    const user = users.find((u) => u.id === userId);
-    return user || null;
-  };
+
   const getSenderData = (senderId) => {
     if (!senderId) return null;
     const sender = users.find((u) => u.id === senderId);
     return sender || null;
   };
-  const getChatDisplayName = (chat) => {
-    if (chat.type === "direct") {
-      const otherUserId = chat.users.find((uid) => uid !== user?.uid);
-      const otherUser = users.find((u) => u.id === otherUserId);
-      return otherUser?.displayName || "Unknown User";
-    }
-    return chat.name;
-  };
-  const getChatPhoto = (chat) => {
-    if (chat.type === "direct") {
-      const otherUserId = chat.users.find((uid) => uid !== user?.uid);
-      const otherUser = users.find((u) => u.id === otherUserId);
-      return otherUser?.photoURL || ErrorProfileImage;
-    }
-    return chat.photoURL || ErrorProfileImage;
-  };
-  const filteredChats = chats.filter((chat) => {
-    const name = getChatDisplayName(chat).toLowerCase();
-    return name.includes(searchTerm.toLowerCase());
-  });
+
+  const getChatDisplayName = useCallback(
+    (chat) => {
+      if (chat.type === "direct") {
+        const otherUserId = chat.users.find((uid) => uid !== user?.uid);
+        const otherUser = users.find((u) => u.id === otherUserId);
+        return otherUser?.displayName || "Unknown User";
+      }
+      return chat.name;
+    },
+    [user, users]
+  );
+
   useEffect(() => {
     if (!chatId || !user?.uid) return;
     const chatRef = doc(db, "chats", chatId);
@@ -654,11 +644,11 @@ function Dashboard() {
           const users = chatData.users || [];
           if (!users.includes(user?.uid)) {
             toast.error("This chat no longer exists.");
-            clearChatId();
+            clearChat();
           }
         } else {
           toast.error("This chat no longer exists.");
-          clearChatId();
+          clearChat();
         }
       },
       (error) => {
@@ -667,12 +657,8 @@ function Dashboard() {
       }
     );
     return () => unsubscribe();
-  }, [chatId, user?.uid]);
-  const getOtherUserInDirectChat = (chat) => {
-    if (chat.type !== "direct") return null;
-    const otherUserId = chat.users.find((uid) => uid !== user?.uid);
-    return getUserData(otherUserId);
-  };
+  }, [chatId, user?.uid, clearChat]);
+
   return (
     <div className="h-screen flex flex-col lg:flex-row">
       <Toaster />
@@ -691,99 +677,8 @@ function Dashboard() {
       {/* Menu End */}
 
       {/* Left Panel (Sidebar) */}
-      <div className="w-64 bg-gray-800 text-white fixed lg:sticky top-0 left-0 z-10 overflow-y-auto p-2 flex flex-col h-full">
-        <div className="flex items-center justify-start gap-2 mb-4">
-          <div
-            onClick={() => toggleMenu()}
-            className="rounded-full bg-gray-700/50 p-2"
-          >
-            <Icon icon="duo-icons:menu" width="24" height="24" />
-          </div>
-          <div className="w-full">
-            <Input
-              type="search"
-              placeholder="Search..."
-              className="w-full rounded-full border border-gray-600"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-        </div>
-        {/* Chat List with Loading */}
-        {chatsLoading ? (
-          <ChatListLoading />
-        ) : (
-          <>
-            {filteredChats.length > 0 ? (
-              <ChatList
-                filteredChats={filteredChats}
-                chatId={chatId}
-                handleSelectChat={handleSelectChat}
-                getOtherUserInDirectChat={getOtherUserInDirectChat}
-                getChatPhoto={getChatPhoto}
-                getChatDisplayName={getChatDisplayName}
-                formatTimestamp={formatTimestamp}
-                currentUserId={user?.uid}
-                onLeaveSuccess={clearChatId}
-              />
-            ) : (
-              <div className=" mx-1 p-2 border-gray-600/50 rounded-lg border text-gray-500">
-                No Recent Chats
-              </div>
-            )}
-          </>
-        )}
-      </div>
+      <Sidebar toggleMenu={toggleMenu} />
       {/* Left Panel (Sidebar) End */}
-
-      {/* mobile */}
-      {!chatId && (
-        <div className="w-screen bg-gray-800 sm:hidden text-white fixed lg:sticky top-0 left-0 z-30 overflow-y-auto p-2 flex flex-col h-full">
-          <div className="flex items-center justify-start gap-2 mb-4">
-            <div
-              onClick={() => toggleMenu()}
-              className="rounded-full bg-gray-700/50 p-2"
-            >
-              <Icon icon="duo-icons:menu" width="24" height="24" />
-            </div>
-            <div className="w-full">
-              <Input
-                type="search"
-                placeholder="Search..."
-                className="w-full rounded-full border border-gray-600"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-          </div>
-          {/* Chat List with Loading */}
-          {chatsLoading ? (
-            <ChatListLoading />
-          ) : (
-            <>
-              {filteredChats.length > 0 ? (
-                <ChatList
-                  filteredChats={filteredChats}
-                  chatId={chatId}
-                  handleSelectChat={handleSelectChat}
-                  getOtherUserInDirectChat={getOtherUserInDirectChat}
-                  getChatPhoto={getChatPhoto}
-                  getChatDisplayName={getChatDisplayName}
-                  formatTimestamp={formatTimestamp}
-                  currentUserId={user?.uid}
-                  onLeaveSuccess={clearChatId}
-                />
-              ) : (
-                <div className=" mx-1 p-2 border-gray-600/50 rounded-lg border text-gray-500">
-                  No Recent Chats
-                </div>
-              )}
-            </>
-          )}
-        </div>
-      )}
-
-      {/* mobile end */}
 
       {/* Center Chat Area */}
       <div className="flex-1 bg-gray-white  sm:ml-64 lg:ml-0 sticky top-0 left-0 z-20 overflow-y-hidden flex flex-col h-full">
@@ -968,20 +863,7 @@ function Dashboard() {
               )}
 
               {/* Message Input */}
-              <MessageInput
-                chatId={chatId}
-                messagesLoading={messagesLoading}
-                isMessagesSending={isMessagesSending}
-                setIsFileDialogOpen={setIsFileDialogOpen}
-                handleKeyPress={handleKeyPress}
-                handleSendMessage={handleSendMessage}
-                handleCancelEdit={handleCancelEdit}
-                message={message}
-                textareaRef={textareaRef}
-                replyTo={replyTo}
-                editMessage={editMessage}
-                setMessage={setMessage}
-              />
+              <MessageInputContainer />
             </>
           ) : (
             <div className="hidden sm:flex items-center justify-center h-full text-gray-800 ">
