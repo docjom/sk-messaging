@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import ChatList from "@/components/ChatList";
 import { Input } from "@/components/ui/input";
 import { ChatListLoading } from "../components/ChatListLoading";
-import { formatTimestamp } from "../composables/scripts";
 import { useMessageActionStore } from "../stores/useMessageActionStore";
 import { db } from "../firebase";
 import { collection, query, onSnapshot, where } from "firebase/firestore";
@@ -102,12 +101,10 @@ const Sidebar = ({ toggleMenu, handleSelectChat }) => {
               {filteredChats.length > 0 ? (
                 <ChatList
                   filteredChats={filteredChats}
-                  chatId={chatId}
                   handleSelectChat={handleSelectChat}
                   getOtherUserInDirectChat={getOtherUserInDirectChat}
                   getChatPhoto={getChatPhoto}
                   getChatDisplayName={getChatDisplayName}
-                  formatTimestamp={formatTimestamp}
                   currentUserId={user?.uid}
                   onLeaveSuccess={clearChat}
                 />
@@ -147,12 +144,10 @@ const Sidebar = ({ toggleMenu, handleSelectChat }) => {
             {filteredChats.length > 0 ? (
               <ChatList
                 filteredChats={filteredChats}
-                chatId={chatId}
                 handleSelectChat={handleSelectChat}
                 getOtherUserInDirectChat={getOtherUserInDirectChat}
                 getChatPhoto={getChatPhoto}
                 getChatDisplayName={getChatDisplayName}
-                formatTimestamp={formatTimestamp}
                 currentUserId={user?.uid}
                 onLeaveSuccess={clearChat}
               />
