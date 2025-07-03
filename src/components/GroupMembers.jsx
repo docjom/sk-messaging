@@ -88,7 +88,7 @@ export function GroupMembers({ chatId }) {
             members.map((m) => (
               <div
                 key={m.id}
-                className="flex items-center justify-between gap-3 p-2 hover:bg-gray-100 rounded"
+                className="flex items-center justify-between gap-3 p-2 hover:bg-gray-100 hover:dark:bg-gray-700 rounded"
               >
                 <div className="flex items-center gap-3">
                   <Avatar className="w-8 h-8">
@@ -100,10 +100,12 @@ export function GroupMembers({ chatId }) {
                   </Avatar>
                   <div>
                     <p className="font-medium capitalize">{m.displayName}</p>
-                    <p className="text-xs text-gray-500">{m.email}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      {m.email}
+                    </p>
                   </div>
                 </div>
-                <span className="text-xs font-semibold uppercase text-gray-600">
+                <span className="text-xs font-semibold uppercase text-gray-600 dark:text-gray-400">
                   {m.role}
                 </span>
               </div>

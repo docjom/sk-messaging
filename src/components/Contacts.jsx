@@ -9,7 +9,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"; 
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export function Contacts({ users, currentUserId, handleSelectUser }) {
   return (
@@ -36,7 +36,7 @@ export function Contacts({ users, currentUserId, handleSelectUser }) {
               <div
                 key={u.id}
                 onClick={() => handleSelectUser(u)}
-                className="flex items-center gap-2 mb-0 border max-w-96 overflow-hidden truncate my-1 hover:bg-gray-200 rounded-lg p-2"
+                className="flex items-center gap-2 mb-0 border max-w-96 overflow-hidden truncate my-1 hover:dark:bg-gray-700 hover:bg-gray-200 rounded-lg p-2"
               >
                 <Avatar className="w-8 h-8">
                   {u?.photoURL ? (
@@ -47,7 +47,9 @@ export function Contacts({ users, currentUserId, handleSelectUser }) {
                 </Avatar>
                 <div>
                   <p className="font-medium capitalize">{u?.displayName}</p>
-                  <p className="text-xs text-gray-500">{u?.email}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    {u?.email}
+                  </p>
                 </div>
               </div>
             ))}

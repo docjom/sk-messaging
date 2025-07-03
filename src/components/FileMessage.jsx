@@ -42,7 +42,7 @@ export const FileMessage = ({
           {/* Loading placeholder */}
           {!isImageLoaded && (
             <div
-              className={`w-52 h-52 bg-white border border-gray-200 flex items-center justify-center ${
+              className={`w-52 h-52  border border-gray-200 flex items-center justify-center ${
                 message.message !== "" ? "rounded-t-lg" : "rounded-lg"
               }`}
             >
@@ -137,7 +137,7 @@ export const FileMessage = ({
           {/* Loading placeholder */}
           {!isVideoLoaded && (
             <div
-              className={`w-52 h-52 bg-white border border-gray-200 flex items-center justify-center ${
+              className={`w-52 h-52  border border-gray-200 flex items-center justify-center ${
                 message.message !== "" ? "rounded-t-lg" : "rounded-lg"
               }`}
             >

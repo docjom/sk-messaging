@@ -100,7 +100,7 @@ export function AddUsersToGroup({
                   className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer border transition-colors ${
                     isSelected
                       ? "bg-blue-50 border-blue-200"
-                      : "hover:bg-gray-50 border-gray-200"
+                      : "hover:bg-gray-50 hover:dark:bg-gray-700 border-gray-200"
                   }`}
                   onClick={() => handleUserSelection(user.id, !isSelected)}
                 >

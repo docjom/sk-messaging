@@ -119,7 +119,7 @@ export function CreateGroupChat({
                   className={`flex items-center gap-3 p-3 max-w-96 truncate overflow-hidden rounded-lg cursor-pointer border transition-colors ${
                     isSelected
                       ? "bg-blue-50 border-blue-200"
-                      : "hover:bg-gray-50 border-gray-200"
+                      : "hover:bg-gray-50 hover:dark:bg-gray-700 border-gray-200"
                   }`}
                   onClick={() => handleUserSelection(u.id, !isSelected)}
                 >
@@ -141,7 +141,9 @@ export function CreateGroupChat({
                     <p className="font-medium capitalize text-sm ">
                       {u?.displayName || "Unknown User"}
                     </p>
-                    <p className="text-xs text-gray-500 ">{u?.email}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 ">
+                      {u?.email}
+                    </p>
                     {u?.department && (
                       <p className="text-xs text-blue-600">{u?.department}</p>
                     )}

@@ -146,7 +146,7 @@ export function ManageGroupMembers({ chatId, currentUserId }) {
                 .map((m) => (
                   <div
                     key={m.id}
-                    className="flex items-center justify-between gap-3 p-2 hover:bg-gray-100 rounded"
+                    className="flex items-center justify-between gap-3 p-2 hover:bg-gray-100 hover:dark:bg-gray-700 rounded"
                   >
                     <div className="flex items-center gap-3">
                       <Avatar className="w-8 h-8">
