@@ -604,8 +604,21 @@ function Dashboard() {
       const newChatId = await createChat("group", allUsers, groupName.trim());
       if (newChatId) {
         console.log("Group chat created with ID:", newChatId);
+        const newChat = {
+          id: newChatId,
+          type: "group",
+          name: groupName.trim(),
+          users: allUsers,
+          photoURL: "",
+          admin: user?.uid,
+          userRoles: Object.fromEntries(
+            allUsers.map((uid) => [uid, uid === user?.uid ? "admin" : "member"])
+          ),
+        };
         setChatIdTo(newChatId);
-        setCurrentChat(currentChat);
+        setCurrentChat(newChat);
+        setSelectedUser(newChat);
+
         toast.success(`Group "${groupName}" created successfully!`);
         setMenu(false);
       } else {
@@ -704,7 +717,7 @@ function Dashboard() {
                   />
                 </div>
                 {/* Show group members if it's a group chat */}
-                {currentChat.type === "group" && (
+                {currentChat?.type === "group" && (
                   <div className="flex justify-between items-center w-full">
                     <div className="flex justify-start gap-3 items-center w-full">
                       <Avatar className="h-10 w-10">
@@ -737,7 +750,7 @@ function Dashboard() {
                 )}
 
                 {/* Show direct chat user info */}
-                {currentChat.type === "direct" && selectedUser && (
+                {currentChat?.type === "direct" && selectedUser && (
                   <div className="flex justify-between items-center w-full">
                     {" "}
                     <Button
