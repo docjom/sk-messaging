@@ -115,12 +115,12 @@ const MessageInput = memo(
       !chatId || messagesLoading || isMessagesSending;
 
     return (
-      <div className="fixed bottom-0 left-0 right-0 bg-gray-50 shadow-lg sm:ml-64 z-30">
-        <div className="px-4 py-2 border-t border-gray-300">
+      <div className="fixed bottom-0 left-0 right-0  shadow-lg sm:ml-64 z-30">
+        <div className="px-4 py-2 border-t border-gray-300 dark:border-gray-700">
           <div className="flex flex-col gap-1">
             {/* Display pasted image */}
             {pastedImage && (
-              <div className="flex justify-between border p-2 rounded-2xl items-start gap-2 bg-white">
+              <div className="flex justify-between border p-2 rounded-2xl items-start gap-2 ">
                 <div className="flex gap-2 items-start">
                   <div className="relative">
                     <img
@@ -173,7 +173,7 @@ const MessageInput = memo(
                         {replyTo?.message || (
                           <>
                             {replyTo?.fileData && (
-                              <div className="p-2 bg-white rounded border flex items-center gap-2">
+                              <div className="p-2  rounded border flex items-center gap-2">
                                 {replyTo?.fileData.type?.startsWith(
                                   "image/"
                                 ) ? (

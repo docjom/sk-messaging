@@ -702,18 +702,18 @@ function Dashboard() {
       <div className="flex-1 bg-gray-white  sm:ml-64 lg:ml-0 sticky top-0 left-0 z-20 overflow-y-hidden flex flex-col h-full">
         {/* Header */}
         {chatId && (
-          <div className="fixed top-0 left-0 right-0 bg-white  sm:ml-64 z-30">
-            <div className="bg-white px-4 py-2 rounded shadow w-full flex items-center">
+          <div className="fixed top-0 left-0 right-0 border-b  sm:ml-64 z-30">
+            <div className=" px-4 py-2 rounded shadow w-full flex items-center">
               <div className="w-full flex justify-start items-center  gap-2">
                 {/* Back button */}
                 <div
                   onClick={clearChatId}
-                  className="rounded-full sm:hidden bg-gray-200/50 p-2 text-gray-800 shadow"
+                  className="rounded-full sm:hidden bg-gray-200/50 dark:bg-gray-700 p-2 shadow"
                 >
                   <Icon
-                    icon="solar:rewind-back-bold-duotone"
-                    width="24"
-                    height="24"
+                    icon="solar:rewind-back-broken"
+                    width="20"
+                    height="20"
                   />
                 </div>
                 {/* Show group members if it's a group chat */}
@@ -724,7 +724,7 @@ function Dashboard() {
                         <AvatarImage src={currentChat.photoURL} />
                         <AvatarFallback>GP</AvatarFallback>
                       </Avatar>
-                      <div className="text-gray-800 font-semibold text-sm sm:max-w-52 max-w-20 truncate sm:text-lg capitalize">
+                      <div className="font-semibold text-sm sm:max-w-52 max-w-20 truncate sm:text-lg capitalize">
                         {getChatDisplayName(currentChat)}
                       </div>
                     </div>
@@ -766,14 +766,14 @@ function Dashboard() {
                         />
                         <AvatarFallback>P</AvatarFallback>
                       </Avatar>
-                      <span className="text-lg text-gray-800 sm:max-w-52 max-w-40 truncate font-semibold capitalize">
+                      <span className="text-lg sm:max-w-52 max-w-40 truncate font-semibold capitalize">
                         {selectedUser.displayName}
                       </span>
                     </Button>
                     <div>
                       <Popover>
                         <PopoverTrigger asChild>
-                          <button className="p-2 rounded-full bg-gray-200 hover:bg-gray-300 text-gray-800 transition">
+                          <button className="p-2 rounded-full bg-gray-200 hover:bg-gray-300 transition">
                             <Icon
                               icon="solar:hamburger-menu-broken"
                               width="20"
@@ -816,7 +816,7 @@ function Dashboard() {
         )}
 
         {/* Chat Messages */}
-        <div className="bg-white rounded overflow-y-auto flex-1 mt-13 mb-14 flex flex-col justify-end">
+        <div className=" dark:bg-gray-800 rounded overflow-y-auto flex-1 mt-14 mb-14 flex flex-col justify-end">
           {chatId ? (
             <>
               {/* Messages Area with Loading */}
@@ -824,7 +824,7 @@ function Dashboard() {
                 <MessagesLoading />
               ) : (
                 <>
-                  <div className="flex-1 overflow-y-auto h-full py-4 px-2 bg-gray-50 ">
+                  <div className="flex-1 overflow-y-auto h-full py-4 px-2 ">
                     {messages.length > 0 ? (
                       <>
                         <MessageList
@@ -840,7 +840,7 @@ function Dashboard() {
                         <div ref={messagesEndRef} />
                       </>
                     ) : (
-                      <div className="flex items-center justify-center h-full text-gray-800">
+                      <div className="flex items-center justify-center h-full">
                         <div className="border rounded-full px-4 py-1">
                           <h1 className=" text-sm font-semibold">
                             No messages yet. Start the conversation!
@@ -856,8 +856,8 @@ function Dashboard() {
               <MessageInputContainer />
             </>
           ) : (
-            <div className="hidden sm:flex items-center justify-center h-full text-gray-800 ">
-              <div className="flex items-center justify-center h-full text-gray-800">
+            <div className="hidden sm:flex items-center justify-center h-full  ">
+              <div className="flex items-center justify-center h-full ">
                 <div className="border rounded-full px-4 py-1">
                   <h1 className=" text-sm font-semibold">
                     Select a chat to start messaging!

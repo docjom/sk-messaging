@@ -526,17 +526,17 @@ export const MessageList = ({
             {msg.senderId !== user?.uid && msg.type !== "system" && (
               <div className="flex gap-1.5 text-xs ml-7 items-center mb-0.5">
                 {getSenderDisplayName(msg.senderId) && (
-                  <p className="capitalize font-semibold text-blue-600">
+                  <p className="capitalize font-semibold text-blue-600 dark:text-white">
                     {getSenderDisplayName(msg.senderId)}
                   </p>
                 )}
                 {getSenderData(msg.senderId)?.department && (
-                  <span className="text-[10px] bg-blue-100 text-blue-700 rounded-full px-2 py-0.5 font-medium">
+                  <span className="text-[10px] bg-blue-100 dark:bg-gray-500 dark:text-white text-blue-700 rounded-full px-2 py-0.5 font-medium">
                     {getSenderData(msg.senderId)?.department}
                   </span>
                 )}
                 {getSenderData(msg.senderId)?.position && (
-                  <span className="text-[10px] bg-gray-100 text-gray-600 rounded-full border px-2 py-0.5 font-medium">
+                  <span className="text-[10px] dark:bg-gray-100 text-gray-600 rounded-full border px-2 py-0.5 font-medium">
                     {getSenderData(msg.senderId)?.position}
                   </span>
                 )}
@@ -554,14 +554,14 @@ export const MessageList = ({
                 <div
                   className={`relative max-w-52 h-auto ${
                     msg.type === "system"
-                      ? "bg-white/80 text-gray-600 text-center px-3 py-1.5 rounded-full shadow-sm text-xs"
+                      ? "bg-white/80 dark:bg-transparent dark:border  text-center px-3 py-1.5 rounded-full shadow-sm text-xs"
                       : msg.senderId === user?.uid && msg.type !== "file"
                       ? `bg-blue-500 text-white px-3 py-2 shadow-sm ${"rounded-tl-2xl rounded-tr-2xl rounded-bl-2xl rounded-br-lg"}`
                       : msg.type === "file" && msg.senderId === user?.uid
                       ? `bg-blue-500 text-white shadow-sm ${"rounded-tl-2xl rounded-tr-2xl rounded-bl-2xl rounded-br-lg"}`
                       : msg.type === "file" && msg.senderId !== user?.uid
-                      ? `bg-white text-gray-800 shadow-sm ${"rounded-tl-2xl rounded-tr-2xl rounded-bl-2xl rounded-br-lg"}`
-                      : `bg-white text-gray-800 px-3 py-2 shadow-sm border border-gray-100 ${"rounded-tl-md rounded-tr-2xl rounded-bl-2xl rounded-br-2xl"}`
+                      ? ` shadow-sm ${"rounded-tl-2xl rounded-tr-2xl rounded-bl-2xl rounded-br-lg"}`
+                      : ` px-3 py-2 shadow-sm border border-gray-100/10 ${"rounded-tl-md rounded-tr-2xl rounded-bl-2xl rounded-br-2xl"}`
                   }`}
                 >
                   {msg.pinned && (

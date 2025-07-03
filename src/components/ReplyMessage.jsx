@@ -65,7 +65,7 @@ export const ReplyMessageDisplay = ({ message }) => {
     }
 
     return (
-      <div className="flex items-center gap-2 mt-1 p-2 bg-white bg-opacity-50 rounded border">
+      <div className="flex items-center gap-2 mt-1 p-2  bg-opacity-50 rounded border">
         {getFileIcon(fileData.type)}
         <span className="text-xs text-gray-600 truncate max-w-[100px]">
           {fileData.name}
@@ -75,16 +75,14 @@ export const ReplyMessageDisplay = ({ message }) => {
   };
 
   return (
-    <div className="mb-2 border-l-4 border-blue-400 bg-blue-50 bg-opacity-60 p-2 rounded-r-xl rounded-l-lg">
+    <div className="mb-2 border-l-4 border border-blue-400  bg-opacity-60 p-2 rounded-r-xl rounded-l-lg">
       {/* Reply header */}
       <div className="flex items-center gap-1 mb-1">
-        <span className="text-sm font-semibold text-blue-600">
-          {replyTo.senderName}
-        </span>
+        <span className="text-sm font-semibold ">{replyTo.senderName}</span>
       </div>
 
       {/* Original message content */}
-      <div className="text-xs text-gray-600">
+      <div className="text-xs">
         {/* File preview if exists */}
         {replyTo.fileData && renderFilePreview(replyTo.fileData)}
 

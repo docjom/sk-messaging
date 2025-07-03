@@ -59,7 +59,9 @@ export const EmojiReactions = ({ msg, getSenderData, user }) => {
         )}
         <div
           className={`pointer-events-none absolute inset-y-0 -right-1 w-1/3 bg-gradient-to-l  ${
-            msg.senderId === user.uid ? " from-blue-500 " : " from-white"
+            msg.senderId === user.uid
+              ? " from-blue-500 "
+              : " from-white dark:from-gray-800"
           }`}
         ></div>
       </div>

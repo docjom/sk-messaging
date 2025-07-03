@@ -9,6 +9,12 @@
   scrollbar-width: none;     /* Firefox */
 }
 
+body {
+  @apply bg-white text-gray-800 transition-colors duration-200;
+}
+.dark body {
+  @apply bg-gray-800 text-white;
+}
 
 
 @custom-variant dark (&:is(.dark *));
