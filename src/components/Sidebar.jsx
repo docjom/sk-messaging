@@ -76,11 +76,11 @@ const Sidebar = ({ toggleMenu, handleSelectChat }) => {
   return (
     <>
       {!chatId && (
-        <div className="w-screen bg-gray-800 text-white sm:hidden fixed lg:sticky top-0 left-0 z-30 overflow-y-auto p-2 flex flex-col h-full">
+        <div className="w-screen bg-white dark:bg-gray-800 border-r sm:hidden fixed lg:sticky top-0 left-0 z-30 overflow-y-auto p-2 flex flex-col h-full">
           <div className="flex items-center justify-start gap-2 mb-4">
             <div
               onClick={() => toggleMenu()}
-              className="rounded-full bg-gray-700/50 p-2"
+              className="rounded-full dark:bg-gray-700/20 p-2"
             >
               <Icon icon="duo-icons:menu" width="24" height="24" />
             </div>
@@ -118,11 +118,11 @@ const Sidebar = ({ toggleMenu, handleSelectChat }) => {
         </div>
       )}
 
-      <div className="w-64 hidden  bg-gray-800 text-white sm:fixed lg:sticky top-0 left-0 z-10 overflow-y-auto p-2 sm:flex flex-col h-full">
+      <div className="w-64 hidden  bg-white dark:bg-gray-800 border-r sm:fixed lg:sticky top-0 left-0 z-10 overflow-y-auto p-2 sm:flex flex-col h-full">
         <div className="flex items-center justify-start gap-2 mb-4">
           <div
             onClick={() => toggleMenu()}
-            className="rounded-full bg-gray-700/50 p-2"
+            className="rounded-full dark:bg-gray-700/20 p-2"
           >
             <Icon icon="duo-icons:menu" width="24" height="24" />
           </div>

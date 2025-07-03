@@ -68,11 +68,11 @@ const ChatList = ({
   ${
     chatId === chat.id
       ? "bg-blue-500/30 hover:bg-blue-500/40"
-      : "hover:bg-gray-700"
+      : "hover:dark:bg-gray-700 hover:bg-gray-200"
   }
   ${
     chat.pin?.includes(currentUserId)
-      ? "border bg-blue-500/5 my-0.5 border-gray-700"
+      ? "border bg-blue-500/5 my-0.5 dark:border-gray-700 border-gray-300"
       : ""
   }
 `}
@@ -175,7 +175,7 @@ const ChatList = ({
           <div className="relative">
             {chat.type === "direct" && (
               <div
-                className={`absolute top-0 right-0 z-50 border-2 rounded-full border-gray-800 ${
+                className={`absolute top-0 right-0 z-50 border-2 rounded-full dark:border-gray-800 ${
                   getOtherUserInDirectChat(chat)?.active
                     ? "text-green-500"
                     : " text-gray-500"
@@ -223,7 +223,7 @@ const ChatList = ({
               className={`text-xs max-w-32 capitalize flex items-center gap-1 ${
                 !chat.seenBy?.includes(currentUserId)
                   ? "font-bold text-white"
-                  : "text-gray-400"
+                  : "dark:text-gray-400 text-gray-700"
               }`}
             >
               {/* Show last message preview */}
