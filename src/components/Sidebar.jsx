@@ -60,10 +60,11 @@ const Sidebar = ({ toggleMenu, handleSelectChat }) => {
       return () => unsubscribe();
     }
   }, [user, setChats]);
-
   const sortedChats = chats.sort((a, b) => {
-    const aTime = a.lastMessageTime?.toMillis?.() || 0;
-    const bTime = b.lastMessageTime?.toMillis?.() || 0;
+    const aTime =
+      a.lastMessageTime?.toMillis?.() || (a.id === chatId ? Date.now() : 0);
+    const bTime =
+      b.lastMessageTime?.toMillis?.() || (b.id === chatId ? Date.now() : 0);
     return bTime - aTime;
   });
 

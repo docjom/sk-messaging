@@ -26,7 +26,6 @@ const MessageInput = memo(
     editMessage,
     setMessage,
   }) => {
-    console.log("render");
     const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
 
     // Use the store directly to avoid selector issues
