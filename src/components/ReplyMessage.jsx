@@ -75,7 +75,7 @@ export const ReplyMessageDisplay = ({ message }) => {
   };
 
   return (
-    <div className="mb-2 border-l-4 border border-blue-400  bg-opacity-60 p-2 rounded-r-xl rounded-l-lg">
+    <div className="mb-2 border-l-4 border border-blue-400   bg-opacity-60 p-2 rounded-r-xl rounded-l-lg">
       {/* Reply header */}
       <div className="flex items-center gap-1 mb-1">
         <span className="text-sm font-semibold ">{replyTo.senderName}</span>

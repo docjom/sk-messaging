@@ -222,8 +222,8 @@ const ChatList = ({
             <div
               className={`text-xs max-w-32 capitalize flex items-center gap-1 ${
                 !chat.seenBy?.includes(currentUserId)
-                  ? "font-bold text-white"
-                  : "dark:text-gray-400 text-gray-700"
+                  ? "font-bold text-blue-500 dark:text-white"
+                  : "dark:text-gray-400 "
               }`}
             >
               {/* Show last message preview */}

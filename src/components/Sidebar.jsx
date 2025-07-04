@@ -60,6 +60,7 @@ const Sidebar = ({ toggleMenu, handleSelectChat }) => {
       return () => unsubscribe();
     }
   }, [user, setChats]);
+
   const sortedChats = chats.sort((a, b) => {
     const aTime =
       a.lastMessageTime?.toMillis?.() || (a.id === chatId ? Date.now() : 0);

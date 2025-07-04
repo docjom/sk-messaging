@@ -12,7 +12,7 @@ export const SendButton = ({
         onClick={handleSendMessage}
         className={`p-2 rounded-full ${
           !message.trim() && !pastedImage
-            ? "bg-gray-400 text-white cursor-not-allowed"
+            ? "bg-gray-400 dark:bg-gray-700 text-white cursor-not-allowed"
             : editMessage
             ? "bg-green-500 text-white"
             : "bg-blue-500 text-white"
