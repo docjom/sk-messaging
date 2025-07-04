@@ -273,9 +273,7 @@ export const FileMessage = ({
                 <div className="flex items-center space-x-2">
                   <p
                     className={`text-xs py-0.5 ${
-                      message.senderId === user.uid
-                        ? "text-white"
-                        : "text-gray-800"
+                      message.senderId === user.uid ? "text-white " : ""
                     }`}
                   >
                     {formatTimestamp(message.timestamp)}
