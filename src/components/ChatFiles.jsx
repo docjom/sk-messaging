@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { db } from "../firebase";
-import { collection, query, where, getDocs, orderBy } from "firebase/firestore";
+import { collection, query, getDocs, orderBy } from "firebase/firestore";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@iconify/react";
 import {
@@ -17,39 +17,29 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 export const ChatFiles = ({ chatId }) => {
   const [mediaFiles, setMediaFiles] = useState([]);
   const [documentFiles, setDocumentFiles] = useState([]);
+  const [linkList, setLinkList] = useState([]);
 
   useEffect(() => {
     const fetchFiles = async () => {
       const messagesRef = collection(db, "chats", chatId, "messages");
-      const q = query(
-        messagesRef,
-        where("fileData", "!=", null),
-        orderBy("timestamp", "desc")
-      );
+      const q = query(messagesRef, orderBy("timestamp", "desc"));
 
       const snapshot = await getDocs(q);
-
       const media = [];
       const docs = [];
+      const links = [];
 
       snapshot.forEach((doc) => {
         const data = doc.data();
         const file = data.fileData;
 
+        // Media or Docs
         if (file) {
           const mimeType = file.type;
-
-          if (mimeType.startsWith("image/")) {
+          if (mimeType.startsWith("image/") || mimeType.startsWith("video/")) {
             media.push({
               url: file.url,
-              type: "image",
-              name: file.name || "Untitled",
-              timestamp: data.timestamp?.toDate(),
-            });
-          } else if (mimeType.startsWith("video/")) {
-            media.push({
-              url: file.url,
-              type: "video",
+              type: mimeType.startsWith("image/") ? "image" : "video",
               name: file.name || "Untitled",
               timestamp: data.timestamp?.toDate(),
             });
@@ -62,10 +52,21 @@ export const ChatFiles = ({ chatId }) => {
             });
           }
         }
+
+        if (data.message) {
+          const urlRegex = /(https?:\/\/[^\s]+)/g;
+          const foundLinks = data.message.match(urlRegex);
+          if (foundLinks) {
+            foundLinks.forEach((url) =>
+              links.push({ url, timestamp: data.timestamp?.toDate() })
+            );
+          }
+        }
       });
 
       setMediaFiles(media);
       setDocumentFiles(docs);
+      setLinkList(links);
     };
 
     fetchFiles();
@@ -89,6 +90,7 @@ export const ChatFiles = ({ chatId }) => {
           <TabsList className="w-full justify-around">
             <TabsTrigger value="imageAndVideos">Images & Videos</TabsTrigger>
             <TabsTrigger value="files">Files</TabsTrigger>
+            <TabsTrigger value="links">Links</TabsTrigger>
           </TabsList>
 
           <TabsContent value="imageAndVideos">
@@ -113,6 +115,9 @@ export const ChatFiles = ({ chatId }) => {
                         src={file.url}
                       />
                     )}
+                    <p className="text-[10px] text-gray-500">
+                      {file.timestamp?.toLocaleString()}
+                    </p>
                   </div>
                 ))
               )}
@@ -131,17 +136,23 @@ export const ChatFiles = ({ chatId }) => {
                     key={index}
                     className="flex justify-between items-center border p-2 rounded"
                   >
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 justify-start items-center">
                       <Icon
                         icon="solar:file-text-bold"
                         width="20"
                         height="20"
                         className="text-blue-500"
                       />
-                      <div className="text-sm font-medium truncate max-w-[240px]">
-                        {file.name}
+                      <div>
+                        <div className="text-sm font-medium truncate max-w-[240px]">
+                          {file.name}
+                        </div>
+                        <div className="text-[10px] text-gray-400">
+                          {file.timestamp?.toLocaleString()}
+                        </div>
                       </div>
                     </div>
+
                     <a
                       href={file.url}
                       target="_blank"
@@ -154,6 +165,42 @@ export const ChatFiles = ({ chatId }) => {
                         height="20"
                       />
                     </a>
+                  </div>
+                ))
+              )}
+            </div>
+          </TabsContent>
+          <TabsContent value="links">
+            <div className="space-y-2 max-h-80 overflow-y-auto p-1">
+              {linkList.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center">
+                  No links found.
+                </p>
+              ) : (
+                linkList.map((link, index) => (
+                  <div
+                    key={index}
+                    className="flex justify-between items-center border p-2 rounded"
+                  >
+                    <div className="text-sm truncate max-w-[240px] text-blue-600">
+                      <a
+                        href={link.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {link.url}
+                      </a>
+                      <div className="text-[10px] text-gray-400">
+                        {link.timestamp?.toLocaleString()}
+                      </div>
+                    </div>
+
+                    <Icon
+                      icon="solar:link-round-bold"
+                      className="text-blue-500"
+                      width="20"
+                      height="20"
+                    />
                   </div>
                 ))
               )}
