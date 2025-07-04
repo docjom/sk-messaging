@@ -280,7 +280,7 @@ const MessageInput = memo(
 
               <Popover open={emojiPickerOpen} onOpenChange={setEmojiPickerOpen}>
                 <PopoverTrigger asChild>
-                  <button className="p-2 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 text-blue-500 transition">
+                  <button className="p-2 rounded-full bg-gray-200 dark:bg-gray-700  hover:bg-gray-300 text-blue-500 transition">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       width="20"
