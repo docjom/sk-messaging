@@ -739,8 +739,16 @@ function Dashboard() {
                         <AvatarImage src={currentChat.photoURL} />
                         <AvatarFallback>GP</AvatarFallback>
                       </Avatar>
-                      <div className="font-semibold text-sm sm:max-w-52 max-w-20 truncate sm:text-lg capitalize">
-                        {getChatDisplayName(currentChat)}
+                      <div className="relative sm:max-w-52 max-w-20">
+                        <div className="font-semibold text-sm sm:max-w-52 max-w-20 truncate sm:text-lg capitalize">
+                          {getChatDisplayName(currentChat)}
+                          <div className="absolute -bottom-2.5 text-xs left-0">
+                            <TypingIndicator
+                              chatId={chatId}
+                              getName={getSenderDisplayName}
+                            />
+                          </div>
+                        </div>
                       </div>
                     </div>
                     {/* Add new user to group button */}
