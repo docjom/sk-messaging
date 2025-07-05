@@ -1,57 +1,73 @@
-import { useMemo } from "react";
+import React from "react";
 import { useTypingStatus } from "@/stores/useTypingStatus";
-import { useUserStore } from "@/stores/useUserStore";
 
-const TypingIndicator = ({ getUserData }) => {
+export const TypingIndicator = ({ chatId, getName }) => {
   const { typingUsers } = useTypingStatus();
-  const { user } = useUserStore();
 
-  const typingUsersArray = useMemo(() => {
-    if (!typingUsers || !user?.uid) return [];
+  const getTypingMessage = () => {
+    const chatTypingUsers = typingUsers?.[chatId];
+    if (!Array.isArray(chatTypingUsers) || chatTypingUsers.length === 0)
+      return null;
 
-    return Object.entries(typingUsers)
-      .filter(([uid, typing]) => typing && uid !== user.uid)
-      .map(([uid]) => {
-        const u = getUserData(uid);
-        return {
-          uid,
-          displayName: u?.displayName || u?.name || "Someone",
-        };
-      });
-  }, [typingUsers, user?.uid, getUserData]);
+    const names = chatTypingUsers
+      .filter((u) => u.isTyping)
+      .map((u) => getName(u.userId) || "Someone");
 
-  if (typingUsersArray.length === 0) return null;
-
-  // Handle multiple users typing
-  const renderTypingText = () => {
-    if (typingUsersArray.length === 1) {
-      return `${typingUsersArray[0].displayName} is typing...`;
-    } else if (typingUsersArray.length === 2) {
-      return `${typingUsersArray[0].displayName} and ${typingUsersArray[1].displayName} are typing...`;
-    } else {
-      return `${typingUsersArray.length} people are typing...`;
-    }
+    if (names.length === 0) return null;
+    if (names.length === 1) return `${names[0]} is typing`;
+    if (names.length === 2) return `${names[0]} and ${names[1]} are typing`;
+    return `${names[0]} and ${names.length - 1} others are typing`;
   };
 
   return (
-    <div className="px-4 py-2">
-      <div className="text-sm text-gray-500 px-2 flex items-center gap-2">
-        <span>{renderTypingText()}</span>
-        {/* Optional: Add typing animation dots */}
-        <div className="flex space-x-1">
-          <div className="w-1 h-1 bg-gray-400 rounded-full animate-pulse"></div>
-          <div
-            className="w-1 h-1 bg-gray-400 rounded-full animate-pulse"
-            style={{ animationDelay: "0.2s" }}
-          ></div>
-          <div
-            className="w-1 h-1 bg-gray-400 rounded-full animate-pulse"
-            style={{ animationDelay: "0.4s" }}
-          ></div>
+    <>
+      {getTypingMessage() && (
+        <div className="flex items-center">
+          <span className=" text-gray-700 dark:text-gray-300 ">
+            {getTypingMessage()}
+          </span>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+          >
+            <circle cx="18" cy="12" r="0" fill="currentColor">
+              <animate
+                attributeName="r"
+                begin=".67"
+                calcMode="spline"
+                dur="1.5s"
+                keySplines="0.2 0.2 0.4 0.8;0.2 0.2 0.4 0.8;0.2 0.2 0.4 0.8"
+                repeatCount="indefinite"
+                values="0;2;0;0"
+              />
+            </circle>
+            <circle cx="12" cy="12" r="0" fill="currentColor">
+              <animate
+                attributeName="r"
+                begin=".33"
+                calcMode="spline"
+                dur="1.5s"
+                keySplines="0.2 0.2 0.4 0.8;0.2 0.2 0.4 0.8;0.2 0.2 0.4 0.8"
+                repeatCount="indefinite"
+                values="0;2;0;0"
+              />
+            </circle>
+            <circle cx="6" cy="12" r="0" fill="currentColor">
+              <animate
+                attributeName="r"
+                begin="0"
+                calcMode="spline"
+                dur="1.5s"
+                keySplines="0.2 0.2 0.4 0.8;0.2 0.2 0.4 0.8;0.2 0.2 0.4 0.8"
+                repeatCount="indefinite"
+                values="0;2;0;0"
+              />
+            </circle>
+          </svg>
         </div>
-      </div>
-    </div>
+      )}
+    </>
   );
 };
-
-export default TypingIndicator;

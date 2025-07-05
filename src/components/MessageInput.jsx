@@ -2,7 +2,7 @@ import { Icon } from "@iconify/react";
 import React, { lazy, Suspense, useState, useCallback, memo } from "react";
 import { useMessageActionStore } from "@/stores/useMessageActionStore";
 import { SendButton } from "./MessageInputUi/SendButton";
-
+import { useUserStore } from "@/stores/useUserStore";
 // Lazy load
 const LazyEmojiPicker = lazy(() => import("emoji-picker-react"));
 import {
@@ -10,6 +10,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { useTypingForChat } from "../hooks/userTypingForChat";
 
 const MessageInput = memo(
   ({
@@ -28,6 +29,9 @@ const MessageInput = memo(
   }) => {
     const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
 
+
+    const { setTyping } = useTypingForChat(chatId);
+    const user = useUserStore((s) => s.user);
     // Use the store directly to avoid selector issues
     const pastedImage = useMessageActionStore((state) => state.pastedImage);
     const setPastedImage = useMessageActionStore(
@@ -36,6 +40,8 @@ const MessageInput = memo(
     const clearPastedImage = useMessageActionStore(
       (state) => state.clearPastedImage
     );
+
+
 
     // Memoize event handlers - FIXED dependencies
     const handleEmojiClick = useCallback(
@@ -105,9 +111,13 @@ const MessageInput = memo(
 
     const handleTextareaChange = useCallback(
       (e) => {
-        setMessage(e.target.value);
+        const newMessage = e.target.value;
+        setMessage(newMessage);
+        if (newMessage.trim() && user?.uid && user?.displayName && chatId) {
+          setTyping(user.uid, user.displayName);
+        }
       },
-      [setMessage]
+      [setMessage, setTyping, user?.uid, user?.displayName, chatId]
     );
 
     const isInputDisabled = messagesLoading || isMessagesSending;
@@ -231,7 +241,6 @@ const MessageInput = memo(
                 </button>
               </div>
             )}
-
             <div className="flex justify-center items-end gap-2">
               {!editMessage && (
                 <div>
@@ -267,7 +276,7 @@ const MessageInput = memo(
                 ref={textareaRef}
                 required
                 onChange={handleTextareaChange}
-                onKeyPress={handleKeyPress}
+                onKeyDown={handleKeyPress}
                 onPaste={handlePaste}
                 placeholder={
                   editMessage ? "Edit your message..." : "Write a message..."

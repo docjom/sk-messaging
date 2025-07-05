@@ -34,13 +34,15 @@ import { Button } from "@/components/ui/button";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useMessageActionStore } from "../stores/useMessageActionStore";
 import { MessageInput } from "@/components/MessageInput";
+import { TypingIndicator } from "../components/TypingIndicator";
+import { useUserStore } from "@/stores/useUserStore";
+import { useTypingStatus } from "@/stores/useTypingStatus";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { ChatFiles } from "@/components/ChatFiles";
-import { useUserStore } from "@/stores/useUserStore";
 
 function Dashboard() {
   const user = useUserStore((s) => s.user);
@@ -82,6 +84,14 @@ function Dashboard() {
     clearSelectedUser,
   } = useMessageActionStore();
 
+  const cleanup = useTypingStatus((state) => state.cleanup);
+
+  useEffect(() => {
+    return () => {
+      cleanup();
+    };
+  }, [cleanup]);
+
   const uploadImageToStorage = async (imageFile, chatId) => {
     const storage = getStorage();
     const timestamp = Date.now();
@@ -92,6 +102,11 @@ function Dashboard() {
     const snapshot = await uploadBytes(imageRef, imageFile);
     const downloadURL = await getDownloadURL(snapshot.ref);
     return downloadURL;
+  };
+
+  const getSenderDisplayName = (senderId) => {
+    const sender = users.find((u) => u.id === senderId);
+    return sender?.displayName || "Unknown User";
   };
 
   const MessageInputContainer = () => {
@@ -276,6 +291,7 @@ function Dashboard() {
           replyTo={replyTo}
           editMessage={editMessage}
           setMessage={setMessage}
+          getName={getSenderDisplayName}
         />
       </>
     );
@@ -632,11 +648,6 @@ function Dashboard() {
     }
   };
 
-  const getSenderDisplayName = (senderId) => {
-    const sender = users.find((u) => u.id === senderId);
-    return sender?.displayName || "Unknown User";
-  };
-
   const getSenderData = (senderId) => {
     if (!senderId) return null;
     const sender = users.find((u) => u.id === senderId);
@@ -696,7 +707,11 @@ function Dashboard() {
           closeMenu={closeMenu}
         />
       )}
-      <Sidebar toggleMenu={toggleMenu} handleSelectChat={handleSelectChat} />
+      <Sidebar
+        toggleMenu={toggleMenu}
+        handleSelectChat={handleSelectChat}
+        getSenderDisplayName={getSenderDisplayName}
+      />
 
       {/* Center Chat Area */}
       <div className="flex-1 bg-gray-white  sm:ml-64 lg:ml-0 sticky top-0 left-0 z-20 overflow-y-hidden flex flex-col h-full">
@@ -766,9 +781,17 @@ function Dashboard() {
                         />
                         <AvatarFallback>P</AvatarFallback>
                       </Avatar>
-                      <span className="text-lg sm:max-w-52 max-w-40 truncate font-semibold capitalize">
-                        {selectedUser.displayName}
-                      </span>
+                      <div className="relative">
+                        <span className="text-lg sm:max-w-52 max-w-40 truncate font-semibold capitalize">
+                          {selectedUser.displayName}
+                        </span>
+                        <div className="absolute -bottom-2 text-xs left-0">
+                          <TypingIndicator
+                            chatId={chatId}
+                            getName={getSenderDisplayName}
+                          />
+                        </div>
+                      </div>
                     </Button>
                     <div>
                       <Popover>

@@ -9,7 +9,7 @@ import { db } from "../firebase";
 import { collection, query, onSnapshot, where } from "firebase/firestore";
 import { useUserStore } from "@/stores/useUserStore";
 
-const Sidebar = ({ toggleMenu, handleSelectChat }) => {
+const Sidebar = ({ toggleMenu, handleSelectChat, getSenderDisplayName }) => {
   const { chats, setChats, clearChat, chatId, users } = useMessageActionStore();
   const [searchTerm, setSearchTerm] = useState("");
   const user = useUserStore((s) => s.user);
@@ -108,6 +108,7 @@ const Sidebar = ({ toggleMenu, handleSelectChat }) => {
                   getChatDisplayName={getChatDisplayName}
                   currentUserId={user?.uid}
                   onLeaveSuccess={clearChat}
+                  getSenderDisplayName={getSenderDisplayName}
                 />
               ) : (
                 <div className=" mx-1 p-2 border-gray-600/50 rounded-lg border text-gray-500">
@@ -150,6 +151,7 @@ const Sidebar = ({ toggleMenu, handleSelectChat }) => {
                 getChatDisplayName={getChatDisplayName}
                 currentUserId={user?.uid}
                 onLeaveSuccess={clearChat}
+                getSenderDisplayName={getSenderDisplayName}
               />
             ) : (
               <div className=" mx-1 p-2 border-gray-600/50 rounded-lg border text-gray-500">
