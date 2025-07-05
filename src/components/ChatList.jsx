@@ -26,9 +26,11 @@ const ChatList = ({
   clearCurrentChat,
 }) => {
   const { chatId } = useMessageActionStore();
-  const { typingUsers } = useTypingStatus();
+  const { userNames } = useTypingStatus();
 
-  const chatTypingUsers = typingUsers?.[chatId];
+  const chatTypingUsers = userNames;
+
+  console.log(chatTypingUsers);
 
   const markAsRead = async (chatId) => {
     const chatRef = doc(db, "chats", chatId);
@@ -242,16 +244,13 @@ const ChatList = ({
                   : "dark:text-gray-400 "
               }`}
             >
-              {chatTypingUsers?.length !== 0 && (
-                <>
-                  <div className=" max-w-32 absolute bottom-0 left-0 bg-inherit backdrop-blur-xl truncate  text-[10px]">
-                    <TypingIndicator
-                      chatId={chat.id}
-                      getName={getSenderDisplayName}
-                    />
-                  </div>
-                </>
-              )}
+              <div className=" max-w-32 absolute bottom-0 left-0 bg-inherit backdrop-blur-xl truncate  text-[10px]">
+                <TypingIndicator
+                  chatId={chat.id}
+                  getName={getSenderDisplayName}
+                />
+              </div>
+
               {chat.lastMessage && (
                 <div className="text-[10px] w-full overflow-hidden truncate">
                   {chat.lastMessage}
