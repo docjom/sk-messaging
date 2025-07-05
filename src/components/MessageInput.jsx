@@ -29,7 +29,6 @@ const MessageInput = memo(
   }) => {
     const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
 
-
     const { setTyping } = useTypingForChat(chatId);
     const user = useUserStore((s) => s.user);
     // Use the store directly to avoid selector issues
@@ -40,8 +39,6 @@ const MessageInput = memo(
     const clearPastedImage = useMessageActionStore(
       (state) => state.clearPastedImage
     );
-
-
 
     // Memoize event handlers - FIXED dependencies
     const handleEmojiClick = useCallback(
@@ -62,39 +59,42 @@ const MessageInput = memo(
           }
         });
       },
-      [message, setMessage]
+      [message, setMessage, textareaRef]
     ); // Removed textareaRef from deps
 
-    const handlePaste = useCallback((e) => {
-      const items = e.clipboardData.items;
+    const handlePaste = useCallback(
+      (e) => {
+        const items = e.clipboardData.items;
 
-      for (let i = 0; i < items.length; i++) {
-        const item = items[i];
+        for (let i = 0; i < items.length; i++) {
+          const item = items[i];
 
-        if (item.type.indexOf("image") !== -1) {
-          e.preventDefault();
-          const file = item.getAsFile();
+          if (item.type.indexOf("image") !== -1) {
+            e.preventDefault();
+            const file = item.getAsFile();
 
-          if (file) {
-            const reader = new FileReader();
-            reader.onload = (event) => {
-              setPastedImage({
-                file: file,
-                preview: event.target.result,
-                name: `${Date.now()}.${file.type.split("/")[1]}`,
-                type: file.type,
-              });
-            };
-            reader.readAsDataURL(file);
+            if (file) {
+              const reader = new FileReader();
+              reader.onload = (event) => {
+                setPastedImage({
+                  file: file,
+                  preview: event.target.result,
+                  name: `${Date.now()}.${file.type.split("/")[1]}`,
+                  type: file.type,
+                });
+              };
+              reader.readAsDataURL(file);
+            }
+            break;
           }
-          break;
         }
-      }
-    }, []);
+      },
+      [setPastedImage]
+    );
 
     const handleCancelPastedImage = useCallback(() => {
       clearPastedImage();
-    }, []);
+    }, [clearPastedImage]);
 
     const handleFileDialogOpen = useCallback(() => {
       setIsFileDialogOpen(true);
@@ -126,11 +126,11 @@ const MessageInput = memo(
 
     return (
       <div className="fixed bottom-0 left-0 right-0  shadow-lg sm:ml-64 z-30">
-        <div className="px-4 py-2 border-t border-gray-300 dark:border-gray-700">
+        <div className="px-4 py-2 border-t backdrop-blur-sm border-gray-300 dark:border-gray-700">
           <div className="flex flex-col gap-1">
             {/* Display pasted image */}
             {pastedImage && (
-              <div className="flex justify-between border p-2 rounded-2xl items-start gap-2 ">
+              <div className="flex justify-between border backdrop-blur-sm p-2 rounded-2xl items-start gap-2 ">
                 <div className="flex gap-2 items-start">
                   <div className="relative">
                     <img

@@ -324,7 +324,7 @@ export const FileMessage = ({
               ),
             }}
             className={`text-sm max-w-52 sm:max-w-80 px-2 whitespace-pre-wrap break-words  ${
-              message.senderId === user.uid ? "text-white" : "text-gray-800"
+              message.senderId === user.uid ? "text-white" : ""
             }`}
           />
 
