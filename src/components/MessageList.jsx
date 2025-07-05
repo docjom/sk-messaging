@@ -18,6 +18,7 @@ import {
   doc,
   serverTimestamp,
   getDoc,
+  addDoc,
   writeBatch,
   collection,
   updateDoc,
@@ -82,6 +83,49 @@ export const MessageList = ({
       setOpenPopoverId(null);
     } catch (error) {
       console.error("Error unpinning message:", error);
+    }
+  };
+
+  const handleBumpMessage = async (messageId) => {
+    try {
+      // Get user's name
+      const userRef = doc(db, "users", currentUserId);
+      const userSnap = await getDoc(userRef);
+      const name = userSnap.data()?.displayName || "Someone";
+
+      // Get the original message
+      const originalMsgRef = doc(db, "chats", chatId, "messages", messageId);
+      const originalMsgSnap = await getDoc(originalMsgRef);
+      const originalMsg = originalMsgSnap.data();
+
+      if (!originalMsg) throw new Error("Message not found.");
+
+      // Create a new bumped message with updated timestamp
+      const messagesRef = collection(db, "chats", chatId, "messages");
+      await addDoc(messagesRef, {
+        ...originalMsg,
+        bumpedFrom: messageId, // Optional trace
+        timestamp: serverTimestamp(),
+      });
+
+      // Update the chat's last message to reflect bump
+      const chatRef = doc(db, "chats", chatId);
+      await updateDoc(chatRef, {
+        lastMessage: `${name} bumped a message`,
+        lastMessageTime: serverTimestamp(),
+      });
+
+      // // Optional: Add system log message
+      // await addDoc(messagesRef, {
+      //   senderId: "system",
+      //   message: `${name} bumped a message.`,
+      //   timestamp: serverTimestamp(),
+      //   type: "system",
+      // });
+
+      setOpenPopoverId(null);
+    } catch (error) {
+      console.error("Error bumping message:", error);
     }
   };
 
@@ -363,6 +407,19 @@ export const MessageList = ({
                       </Button>
                     </>
                   )}
+                  <Button
+                    onClick={() => handleBumpMessage(msg.id)}
+                    variant={"ghost"}
+                    size={"sm"}
+                    className="flex w-full justify-start gap-2 items-center"
+                  >
+                    <Icon
+                      icon="solar:shield-up-broken"
+                      width="20"
+                      height="20"
+                    />
+                    Bump
+                  </Button>
 
                   {msg.message && msg.fileData && (
                     <Button
@@ -630,6 +687,9 @@ export const MessageList = ({
                               {msg.edited && (
                                 <span className="px-1">Edited</span>
                               )}
+                              {msg.bumpedFrom && (
+                                <span className="px-1">Bump</span>
+                              )}
                               {formatTimestamp(msg.timestamp)}
                             </div>
                             {msg.senderId === user?.uid && (
@@ -814,6 +874,19 @@ export const MessageList = ({
                           </Button>
                         </>
                       )}
+                      <Button
+                        onClick={() => handleBumpMessage(msg.id)}
+                        variant={"ghost"}
+                        size={"sm"}
+                        className="flex w-full justify-start gap-2 items-center"
+                      >
+                        <Icon
+                          icon="solar:shield-up-broken"
+                          width="20"
+                          height="20"
+                        />
+                        Bump
+                      </Button>
 
                       {msg.message && msg.fileData && (
                         <Button

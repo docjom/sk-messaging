@@ -77,15 +77,17 @@ export const FileMessage = ({
               }`}
             >
               <div className="flex items-center space-x-2">
-                <p
+                <div
                   className={`text-xs py-0.5 ${
                     message.senderId === user.uid
                       ? "text-gray-800"
                       : "text-gray-800"
                   }`}
                 >
+                  {" "}
+                  {message.bumpedFrom && <span className="px-1">Bump</span>}
                   {formatTimestamp(message.timestamp)}
-                </p>
+                </div>
 
                 {message.senderId === user.uid && (
                   <div className="flex text-gray-800">
@@ -171,9 +173,10 @@ export const FileMessage = ({
               }`}
             >
               <div className="flex items-center space-x-2 text-gray-800">
-                <p className="text-xs py-0.5">
+                <div className="text-xs py-0.5 flex">
+                  {message.bumpedFrom && <span className="px-1">Bump</span>}
                   {formatTimestamp(message.timestamp)}
-                </p>
+                </div>
 
                 {message.senderId === user.uid && (
                   <div className="flex">
@@ -276,6 +279,8 @@ export const FileMessage = ({
                       message.senderId === user.uid ? "text-white " : ""
                     }`}
                   >
+                    {" "}
+                    {message.bumpedFrom && <span className="px-1">Bump</span>}
                     {formatTimestamp(message.timestamp)}
                   </p>
                   {message.senderId === user.uid && (
@@ -350,6 +355,8 @@ export const FileMessage = ({
                   : "text-gray-400"
               }`}
             >
+              {" "}
+              {message.bumpedFrom && <span className="px-1">Bump</span>}
               {formatTimestamp(message.timestamp)}
             </p>
 
