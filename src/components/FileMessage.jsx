@@ -70,7 +70,7 @@ export const FileMessage = ({
 
           {!message.message && isImageLoaded && (
             <div
-              className={`absolute border-gray-200/50 border backdrop-blur-sm rounded-full max-w-32 gap-1 px-2 ${
+              className={`absolute border-gray-200/50 border backdrop-blur-sm rounded-full max-w-52 gap-1 px-2 ${
                 message.senderId === user.uid && !message.reactions
                   ? "justify-end bottom-1 right-1 bg-gray-200"
                   : "justify-start top-1 left-1 bg-gray-200"
@@ -166,7 +166,7 @@ export const FileMessage = ({
 
           {!message.message && isVideoLoaded && (
             <div
-              className={`absolute border-gray-200/50 border backdrop-blur-sm rounded-full max-w-32 gap-1 px-2 ${
+              className={`absolute border-gray-200/50 border backdrop-blur-sm rounded-full max-w-52 gap-1 px-2 ${
                 message.senderId === user.uid && !message.reactions
                   ? "justify-end bottom-1 right-1 bg-gray-200"
                   : "justify-start top-1 left-1 bg-gray-200"
@@ -175,7 +175,7 @@ export const FileMessage = ({
               <div className="flex items-center space-x-2 text-gray-800">
                 <div className="text-xs py-0.5 flex">
                   {message.bumpedFrom && <span className="px-1">Bump</span>}
-                  {formatTimestamp(message.timestamp)}
+                  <p>{formatTimestamp(message.timestamp)}</p>
                 </div>
 
                 {message.senderId === user.uid && (

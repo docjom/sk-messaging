@@ -527,9 +527,9 @@ export const MessageList = ({
                             className="flex w-full justify-start gap-2 items-center"
                           >
                             <Icon
-                              icon="solar:folder-download-broken"
-                              width="24"
-                              height="24"
+                              icon="solar:file-download-broken"
+                              width="20"
+                              height="20"
                             />
                             Download file
                           </Button>
@@ -986,9 +986,9 @@ export const MessageList = ({
                                 className="flex w-full justify-start gap-2 items-center"
                               >
                                 <Icon
-                                  icon="solar:folder-download-broken"
-                                  width="24"
-                                  height="24"
+                                  icon="solar:file-download-broken"
+                                  width="20"
+                                  height="20"
                                 />
                                 Download File
                               </Button>
