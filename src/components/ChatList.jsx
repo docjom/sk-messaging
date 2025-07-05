@@ -13,7 +13,7 @@ import { db } from "../firebase";
 import { useMessageActionStore } from "../stores/useMessageActionStore";
 import { formatTimestamp } from "../composables/scripts";
 import { TypingIndicator } from "./TypingIndicator";
-import { useTypingStatus } from "@/stores/useTypingStatus";
+//import { useTypingStatus } from "@/stores/useTypingStatus";
 
 const ChatList = ({
   filteredChats,
@@ -26,11 +26,9 @@ const ChatList = ({
   clearCurrentChat,
 }) => {
   const { chatId } = useMessageActionStore();
-  const { userNames } = useTypingStatus();
-
-  const chatTypingUsers = userNames;
-
-  console.log(chatTypingUsers);
+  //const { userNames } = useTypingStatus();
+  //const chatTypingUsers = userNames;
+  //console.log(chatTypingUsers);
 
   const markAsRead = async (chatId) => {
     const chatRef = doc(db, "chats", chatId);
