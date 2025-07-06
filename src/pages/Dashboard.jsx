@@ -256,7 +256,6 @@ function Dashboard() {
           id: doc.id,
           ...doc.data(),
         }));
-        //  .filter((u) => u.id !== user?.uid);
         setUsers(usersList);
       },
       (error) => {
@@ -477,6 +476,7 @@ function Dashboard() {
   return (
     <div className="h-screen flex flex-col lg:flex-row">
       <Toaster />
+
       {/* Menu */}
       {menu && (
         <Menu
