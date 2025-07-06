@@ -67,9 +67,7 @@ export const ReplyMessageDisplay = ({ message }) => {
     return (
       <div className="flex items-center gap-2 mt-1 p-2  bg-opacity-50 rounded border">
         {getFileIcon(fileData.type)}
-        <span className="text-xs text-gray-600 truncate max-w-[100px]">
-          {fileData.name}
-        </span>
+        <span className="text-xs  truncate max-w-[100px]">{fileData.name}</span>
       </div>
     );
   };

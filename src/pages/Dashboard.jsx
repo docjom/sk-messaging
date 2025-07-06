@@ -1,20 +1,15 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { db } from "../firebase";
 import { toast } from "sonner";
-import { Icon } from "@iconify/react";
-
+import ChatHeader from "@/components/ChatHeader";
 import { Toaster } from "@/components/ui/sonner";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import ManageGroupChat from "../components/GroupChatSetting";
-import { MessagesLoading } from "../components/MessagesLoading";
-import { AddUsersToGroup } from "@/components/AddUserToGroup";
-import { MessageList } from "@/components/MessageList";
 import FileUploadDialog from "@/components/FileUploadDialog";
 import ErrorProfileImage from "../assets/error.png";
 import { UserInfo } from "@/components/UserInfo";
 import { Menu } from "@/components/Menu";
-import { PinnedMessages } from "@/components/PinnedMessages";
 import Sidebar from "@/components/Sidebar";
+import MessageInputContainer from "@/components/MessageInputContainer";
+import ChatContent from "@/components/ChatContent";
 import {
   addDoc,
   collection,
@@ -30,19 +25,10 @@ import {
   arrayUnion,
   getDoc,
 } from "firebase/firestore";
-import { Button } from "@/components/ui/button";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useMessageActionStore } from "../stores/useMessageActionStore";
-import { MessageInput } from "@/components/MessageInput";
-import { TypingIndicator } from "../components/TypingIndicator";
 import { useUserStore } from "@/stores/useUserStore";
 import { useTypingStatus } from "@/stores/useTypingStatus";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { ChatFiles } from "@/components/ChatFiles";
 
 function Dashboard() {
   const user = useUserStore((s) => s.user);
@@ -66,10 +52,6 @@ function Dashboard() {
   const prevMessageCountRef = useRef(0);
 
   const {
-    replyTo,
-    clearReply,
-    editMessage,
-    clearEdit,
     chatId,
     chats,
     setChatIdTo,
@@ -92,209 +74,9 @@ function Dashboard() {
     };
   }, [cleanup]);
 
-  const uploadImageToStorage = async (imageFile, chatId) => {
-    const storage = getStorage();
-    const timestamp = Date.now();
-    const imageRef = ref(
-      storage,
-      `chat-files/${chatId}/${timestamp}_${imageFile?.name}`
-    );
-    const snapshot = await uploadBytes(imageRef, imageFile);
-    const downloadURL = await getDownloadURL(snapshot.ref);
-    return downloadURL;
-  };
-
   const getSenderDisplayName = (senderId) => {
     const sender = users.find((u) => u.id === senderId);
     return sender?.displayName || "Unknown User";
-  };
-
-  const MessageInputContainer = () => {
-    const [message, setMessage] = useState("");
-
-    const sendMessage = async (
-      chatId,
-      senderId,
-      message,
-      reply,
-      edit,
-      pastedImage
-    ) => {
-      if (!message.trim() && !pastedImage) return;
-      setIsMessagesSending(true);
-      const tempMessageId = `temp-${Date.now()}`;
-      const tempMessage = {
-        id: tempMessageId,
-        senderId,
-        message,
-        status: "sending",
-        isTemporary: true,
-        ...(pastedImage && {
-          type: "file",
-          fileData: {
-            name: pastedImage.name,
-            type: pastedImage.type,
-            url: pastedImage.preview,
-            uploading: true,
-          },
-        }),
-      };
-
-      setMessages((prev) => [...prev, tempMessage]);
-      try {
-        let imageURL = null;
-        if (pastedImage) {
-          imageURL = await uploadImageToStorage(pastedImage.file, chatId);
-        }
-        if (edit?.messageId) {
-          const msgRef = doc(db, "chats", chatId, "messages", edit.messageId);
-          const updateData = {
-            message: message,
-            edited: true,
-            timestamp: edit?.timestamp,
-            editTimestamp: serverTimestamp(),
-          };
-          await updateDoc(msgRef, updateData);
-          useMessageActionStore.getState().clearEdit();
-        } else {
-          const messagesRef = collection(db, "chats", chatId, "messages");
-          const chatRef = doc(db, "chats", chatId);
-          const messagePayload = {
-            senderId,
-            message,
-            seenBy: [],
-            timestamp: serverTimestamp(),
-            status: "sending",
-            ...(reply?.messageId && {
-              replyTo: {
-                messageId: reply.messageId,
-                senderId: reply.senderId || null,
-                message: reply.message || null,
-                senderName: reply.name || null,
-                ...(reply.fileData && { fileData: reply.fileData }),
-              },
-            }),
-            ...(imageURL && {
-              type: "file",
-              fileData: {
-                fileName: pastedImage?.name,
-                url: imageURL,
-                name: pastedImage?.name,
-                type: pastedImage?.type,
-                size: pastedImage?.file.size,
-              },
-            }),
-          };
-          const msgRef = await addDoc(messagesRef, messagePayload);
-          await updateDoc(msgRef, { status: "sent" });
-          setMessages((prev) => prev.filter((msg) => msg.id !== tempMessageId));
-          const lastMessageText = message.trim()
-            ? message.trim()
-            : imageURL
-            ? `📎 ${pastedImage.name}`
-            : "";
-          await updateDoc(chatRef, {
-            seenBy: [],
-            lastMessage: lastMessageText,
-            lastMessageTime: serverTimestamp(),
-          });
-          useMessageActionStore.getState().clearReply();
-        }
-        textareaRef.current?.focus();
-      } catch (error) {
-        console.error("Error sending message:", error);
-        toast.error("Error sending message:", error);
-      } finally {
-        setIsMessagesSending(false);
-      }
-    };
-
-    const handleSendMessage = async () => {
-      if (!chatId) {
-        console.error("Chat ID is not set.");
-        return;
-      }
-      if (textareaRef.current) {
-        textareaRef.current.style.height = "40px";
-        textareaRef.current?.focus();
-      }
-      const pastedImage = useMessageActionStore.getState().pastedImage;
-      const msgToSend = message.trim();
-      const reply = useMessageActionStore.getState().replyTo;
-      const edit = useMessageActionStore.getState().editMessage;
-
-      if (msgToSend === "" && !pastedImage) return;
-
-      clearReply();
-      clearEdit();
-      setMessage("");
-
-      if (pastedImage) {
-        useMessageActionStore.getState().clearPastedImage();
-      }
-      const chatRef = doc(db, "chats", chatId);
-      const chatDoc = await getDoc(chatRef);
-      if (chatDoc.exists()) {
-        const chatData = chatDoc.data();
-        const users = chatData.users || [];
-        if (!users.includes(user?.uid)) {
-          toast.error("You can't message in this group.");
-          return;
-        }
-      }
-      await sendMessage(chatId, user?.uid, msgToSend, reply, edit, pastedImage);
-      textareaRef.current?.focus();
-    };
-
-    useEffect(() => {
-      if ((replyTo || editMessage) && textareaRef.current) {
-        if (editMessage) {
-          setMessage(editMessage.message);
-        }
-        textareaRef.current.focus();
-      }
-    }, []);
-
-    useEffect(() => {
-      if (textareaRef.current && message.trim() === "") {
-        textareaRef.current.focus();
-      }
-    }, [message]);
-
-    const handleKeyPress = (e) => {
-      textareaRef.current?.focus();
-      if (e.key === "Enter" && !e.shiftKey) {
-        e.preventDefault();
-        handleSendMessage();
-      }
-    };
-
-    const handleCancelEdit = () => {
-      clearEdit();
-      clearReply();
-      setMessage("");
-      textareaRef.current?.focus();
-    };
-    return (
-      <>
-        {" "}
-        <MessageInput
-          chatId={chatId}
-          messagesLoading={messagesLoading}
-          isMessagesSending={isMessagesSending}
-          setIsFileDialogOpen={setIsFileDialogOpen}
-          handleKeyPress={handleKeyPress}
-          handleSendMessage={handleSendMessage}
-          handleCancelEdit={handleCancelEdit}
-          message={message}
-          textareaRef={textareaRef}
-          replyTo={replyTo}
-          editMessage={editMessage}
-          setMessage={setMessage}
-          getName={getSenderDisplayName}
-        />
-      </>
-    );
   };
 
   useEffect(() => {
@@ -707,6 +489,7 @@ function Dashboard() {
           closeMenu={closeMenu}
         />
       )}
+      {/* Sidebar */}
       <Sidebar
         toggleMenu={toggleMenu}
         handleSelectChat={handleSelectChat}
@@ -717,192 +500,47 @@ function Dashboard() {
       <div className="flex-1 bg-gray-white  sm:ml-64 lg:ml-0 sticky top-0 left-0 z-20 overflow-y-hidden flex flex-col h-full">
         {/* Header */}
         {chatId && (
-          <div className="fixed top-0 left-0 right-0 border-b  sm:ml-64 z-30">
-            <div className=" px-4 py-2 rounded shadow w-full flex items-center">
-              <div className="w-full flex justify-start items-center  gap-2">
-                {/* Back button */}
-                <div
-                  onClick={clearChatId}
-                  className="rounded-full sm:hidden bg-gray-200/50 dark:bg-gray-700 p-2 shadow"
-                >
-                  <Icon
-                    icon="solar:rewind-back-broken"
-                    width="20"
-                    height="20"
-                  />
-                </div>
-                {/* Show group members if it's a group chat */}
-                {currentChat?.type === "group" && (
-                  <div className="flex justify-between items-center w-full">
-                    <div className="flex justify-start gap-3 items-center w-full">
-                      <Avatar className="h-10 w-10">
-                        <AvatarImage src={currentChat.photoURL} />
-                        <AvatarFallback>
-                          {" "}
-                          {currentChat.name[0]?.toUpperCase() || "G"}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="relative sm:max-w-52 max-w-20">
-                        <div className="font-semibold text-sm sm:max-w-52 max-w-20 truncate sm:text-lg capitalize">
-                          {getChatDisplayName(currentChat)}
-                          <div className="absolute -bottom-2.5 text-xs left-0">
-                            <TypingIndicator
-                              chatId={chatId}
-                              getName={getSenderDisplayName}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    {/* Add new user to group button */}
-                    <div className="flex items-center gap-2">
-                      <AddUsersToGroup
-                        users={users}
-                        currentUserId={user?.uid}
-                        currentChat={currentChat}
-                        submitText="Add Members"
-                        onSubmit={addUsersToGroup}
-                        isLoading={isAddingUsers}
-                      />
-                      <div>
-                        <ManageGroupChat
-                          chatId={currentChat.id}
-                          currentUserId={user?.uid}
-                          clearCurrentChat={clearChatId}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Show direct chat user info */}
-                {currentChat?.type === "direct" && selectedUser && (
-                  <div className="flex justify-between items-center w-full">
-                    {" "}
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      className="flex items-center p-0"
-                      onClick={() => setIfUserInfoOpen(true)}
-                    >
-                      <Avatar className="h-10 w-10">
-                        <AvatarImage
-                          src={selectedUser.photoURL}
-                          alt={selectedUser.displayName}
-                        />
-                        <AvatarFallback>
-                          {" "}
-                          {selectedUser.displayName[0]?.toUpperCase() || "P"}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="relative">
-                        <span className="text-lg sm:max-w-52 max-w-40 truncate font-semibold capitalize">
-                          {selectedUser.displayName}
-                        </span>
-                        <div className="absolute -bottom-2 text-xs left-0">
-                          <TypingIndicator
-                            chatId={chatId}
-                            getName={getSenderDisplayName}
-                          />
-                        </div>
-                      </div>
-                    </Button>
-                    <div>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <button className="p-2 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 transition">
-                            <Icon
-                              icon="solar:hamburger-menu-broken"
-                              width="20"
-                              height="20"
-                            />
-                          </button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-full p-0">
-                          <div className="grid grid-cols-1">
-                            <Button
-                              onClick={() => setIfUserInfoOpen(true)}
-                              variant={"ghost"}
-                              className=" flex justify-start"
-                            >
-                              {" "}
-                              <Icon
-                                icon="hugeicons:profile-02"
-                                width="20"
-                                height="20"
-                              />
-                              View Profile
-                            </Button>
-                            <PinnedMessages chatId={chatId} />
-                            <ChatFiles chatId={chatId} />
-
-                            {/* <DeleteUserChat
-                              chatId={chatId}
-                              currentUserId={user?.uid}
-                              clearCurrentChat={clearChatId}
-                            /> */}
-                          </div>
-                        </PopoverContent>
-                      </Popover>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
+          <ChatHeader
+            currentChat={currentChat}
+            selectedUser={selectedUser}
+            user={user}
+            users={users}
+            chatId={chatId}
+            getChatDisplayName={getChatDisplayName}
+            getSenderDisplayName={getSenderDisplayName}
+            clearChatId={clearChatId}
+            setIfUserInfoOpen={setIfUserInfoOpen}
+            addUsersToGroup={addUsersToGroup}
+            isAddingUsers={isAddingUsers}
+          />
         )}
 
-        {/* Chat Messages */}
-        <div className=" dark:bg-gray-800 rounded overflow-y-auto flex-1 mt-14 mb-14 flex flex-col justify-end">
-          {chatId ? (
-            <>
-              {/* Messages Area with Loading */}
-              {messagesLoading ? (
-                <MessagesLoading />
-              ) : (
-                <>
-                  <div className="flex-1 overflow-y-auto h-full py-4 px-2 ">
-                    {messages.length > 0 ? (
-                      <>
-                        <MessageList
-                          messages={messages}
-                          user={userProfile}
-                          getSenderData={getSenderData}
-                          getSenderDisplayName={getSenderDisplayName}
-                          currentUserId={user?.uid}
-                        />
-                        <div ref={messagesEndRef} />
-                      </>
-                    ) : (
-                      <div className="flex items-center justify-center h-full">
-                        <div className="border rounded-full px-4 py-1">
-                          <h1 className=" text-sm font-semibold">
-                            No messages yet. Start the conversation!
-                          </h1>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </>
-              )}
-
-              {/* Message Input */}
-              <MessageInputContainer />
-            </>
-          ) : (
-            <div className="hidden sm:flex items-center justify-center h-full  ">
-              <div className="flex items-center justify-center h-full ">
-                <div className="border rounded-full px-4 py-1">
-                  <h1 className=" text-sm font-semibold">
-                    Select a chat to start messaging!
-                  </h1>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
+        {/* Chat Content */}
+        <ChatContent
+          chatId={chatId}
+          messages={messages}
+          messagesLoading={messagesLoading}
+          user={user}
+          userProfile={userProfile}
+          getSenderData={getSenderData}
+          getSenderDisplayName={getSenderDisplayName}
+        />
+        {/* Message Input */}
+        {chatId && (
+          <MessageInputContainer
+            chatId={chatId}
+            user={user}
+            users={users}
+            messagesLoading={messagesLoading}
+            isMessagesSending={isMessagesSending}
+            setIsMessagesSending={setIsMessagesSending}
+            setIsFileDialogOpen={setIsFileDialogOpen}
+            getSenderDisplayName={getSenderDisplayName}
+          />
+        )}
       </div>
-      {/* Center Chat Area End */}
+
+      {/* Dialogs */}
       <FileUploadDialog
         isOpen={isFileDialogOpen}
         onClose={() => setIsFileDialogOpen(false)}
@@ -910,6 +548,7 @@ function Dashboard() {
         chatId={chatId}
         isLoading={isUploadingFile}
       />
+
       <UserInfo
         isOpen={ifUserInfoOpen}
         onClose={() => setIfUserInfoOpen(false)}
