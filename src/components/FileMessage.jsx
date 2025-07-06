@@ -2,18 +2,21 @@ import React from "react";
 import { Icon } from "@iconify/react";
 import { Button } from "@/components/ui/button";
 import { EmojiReactions } from "@/components/EmojiReactions";
+import {
+  formatMessageWithLinks,
+  formatTimestamp,
+  formatFileSize,
+} from "@/composables/scripts";
+import { useUserStore } from "@/stores/useUserStore";
 
 export const FileMessage = ({
   message,
   handleImageLoad,
   handleVideoLoad,
   loadingStates,
-  user,
-  formatTimestamp,
-  formatFileSize,
-  formatMessageWithLinks,
   getSenderData,
 }) => {
+  const user = useUserStore((s) => s.user);
   const { fileData } = message;
   if (!fileData) return null;
 

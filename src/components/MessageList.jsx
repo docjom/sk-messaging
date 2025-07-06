@@ -13,7 +13,7 @@ import { useMessageActionStore } from "../stores/useMessageActionStore";
 import { useUserStore } from "@/stores/useUserStore";
 import { FileMessage } from "./FileMessage";
 import { EmojiReactions } from "./EmojiReactions";
-import { formatMessageWithLinks, formatFileSize } from "../composables/scripts";
+import { formatMessageWithLinks } from "../composables/scripts";
 import { toast } from "sonner";
 import {
   doc,
@@ -35,7 +35,7 @@ export const MessageList = ({
   const [loadingStates, setLoadingStates] = useState({});
   const [openPopoverId, setOpenPopoverId] = useState(null);
   const { setEditMessage, setReplyTo, chatId, users } = useMessageActionStore();
-  const { userProfile } = useUserStore();
+  const userProfile = useUserStore((s) => s.userProfile);
   const user = userProfile;
   const currentUserId = user?.uid;
 
@@ -587,9 +587,6 @@ export const MessageList = ({
                       handleVideoLoad={handleVideoLoad}
                       loadingStates={loadingStates}
                       user={user}
-                      formatTimestamp={formatTimestamp}
-                      formatFileSize={formatFileSize}
-                      formatMessageWithLinks={formatMessageWithLinks}
                       getSenderData={getSenderData}
                     />
                   ) : (
