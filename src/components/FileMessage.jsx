@@ -89,6 +89,7 @@ export const FileMessage = ({
                 >
                   {" "}
                   {message.bumpedFrom && <span className="px-1">Bump</span>}
+                  {message.forwarded && <span className="px-1">Forwarded</span>}
                   {formatTimestamp(message.timestamp)}
                 </div>
 
@@ -178,6 +179,7 @@ export const FileMessage = ({
               <div className="flex items-center space-x-2 text-gray-800">
                 <div className="text-xs py-0.5 flex">
                   {message.bumpedFrom && <span className="px-1">Bump</span>}
+                  {message.forwarded && <span className="px-1">Forwarded</span>}
                   <p>{formatTimestamp(message.timestamp)}</p>
                 </div>
 
@@ -284,6 +286,9 @@ export const FileMessage = ({
                   >
                     {" "}
                     {message.bumpedFrom && <span className="px-1">Bump</span>}
+                    {message.forwarded && (
+                      <span className="px-1">Forwarded</span>
+                    )}
                     {formatTimestamp(message.timestamp)}
                   </p>
                   {message.senderId === user?.uid && (
@@ -360,6 +365,7 @@ export const FileMessage = ({
             >
               {" "}
               {message.bumpedFrom && <span className="px-1">Bump</span>}
+              {message.forwarded && <span className="px-1">Forwarded</span>}
               {formatTimestamp(message.timestamp)}
             </p>
 

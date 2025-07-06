@@ -26,6 +26,7 @@ import {
 } from "firebase/firestore";
 import { db } from "../firebase";
 import { formatTimestamp } from "../composables/scripts";
+import ForwardMessageDialog from "./ForwardMessageDialog";
 export const MessageList = ({
   messages,
   getSenderData,
@@ -38,6 +39,18 @@ export const MessageList = ({
   const userProfile = useUserStore((s) => s.userProfile);
   const user = userProfile;
   const currentUserId = user?.uid;
+
+  // Add these state variables to your component
+  const [forwardDialogOpen, setForwardDialogOpen] = useState(false);
+  const [selectedMessage, setSelectedMessage] = useState(null);
+
+  // Updated handleForwardMessage function
+  const handleForwardMessage = (messageId) => {
+    const message = messages.find((msg) => msg.id === messageId);
+    setSelectedMessage(message);
+    setForwardDialogOpen(true);
+    setOpenPopoverId(null);
+  };
 
   const handlePinMessage = async (messageId) => {
     try {
@@ -206,295 +219,123 @@ export const MessageList = ({
   }, []);
 
   return (
-    <div className="flex-1 overflow-y-auto scroll-smooth">
-      {messages.map((msg) => (
-        <div
-          key={msg.id}
-          className={`flex mb-2 ${
-            msg.type === "system"
-              ? "justify-center"
-              : msg.senderId === user?.uid
-              ? "justify-end"
-              : "justify-start"
-          }`}
-        >
-          {/* Options button for current user messages */}
-          {msg.senderId === user?.uid && msg.type !== "system" && (
-            <div className="relative">
-              <Popover
-                open={openPopoverId === msg.id}
-                onOpenChange={(open) => setOpenPopoverId(open ? msg.id : null)}
-              >
-                <PopoverTrigger asChild>
-                  <Button
-                    variant={"ghost"}
-                    size={"sm"}
-                    className="mr-2 rounded-full"
-                  >
-                    <Icon
-                      icon="solar:menu-dots-bold-duotone"
-                      width="24"
-                      height="24"
-                    />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-52 p-1">
-                  {/* Seen Users Preview + Nested Popover */}
-                  {msg.seenBy?.length > 0 && (
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="flex items-center gap-2 w-full justify-between"
-                        >
-                          <div className="flex gap-1 justify-start items-center">
-                            <Icon
-                              icon="solar:check-read-broken"
-                              width="24"
-                              height="24"
-                            />
-                            <span>{msg.seenBy?.length} Seen</span>
-                          </div>
-                          <div className="flex -space-x-2">
-                            {msg.seenBy.slice(0, 3).map((uid) => {
+    <>
+      <div className="flex-1 overflow-y-auto scroll-smooth">
+        {messages.map((msg) => (
+          <div
+            key={msg.id}
+            className={`flex mb-2 ${
+              msg.type === "system"
+                ? "justify-center"
+                : msg.senderId === user?.uid
+                ? "justify-end"
+                : "justify-start"
+            }`}
+          >
+            {/* Options button for current user messages */}
+            {msg.senderId === user?.uid && msg.type !== "system" && (
+              <div className="relative">
+                <Popover
+                  open={openPopoverId === msg.id}
+                  onOpenChange={(open) =>
+                    setOpenPopoverId(open ? msg.id : null)
+                  }
+                >
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant={"ghost"}
+                      size={"sm"}
+                      className="mr-2 rounded-full"
+                    >
+                      <Icon
+                        icon="solar:menu-dots-bold-duotone"
+                        width="24"
+                        height="24"
+                      />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-52 p-1">
+                    {/* Seen Users Preview + Nested Popover */}
+                    {msg.seenBy?.length > 0 && (
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="flex items-center gap-2 w-full justify-between"
+                          >
+                            <div className="flex gap-1 justify-start items-center">
+                              <Icon
+                                icon="solar:check-read-broken"
+                                width="24"
+                                height="24"
+                              />
+                              <span>{msg.seenBy?.length} Seen</span>
+                            </div>
+                            <div className="flex -space-x-2">
+                              {msg.seenBy.slice(0, 3).map((uid) => {
+                                const user = users.find((u) => u.id === uid);
+                                return (
+                                  <Avatar key={uid} className="w-6 h-6">
+                                    <AvatarImage
+                                      src={user?.photoURL}
+                                      alt={user?.displayName}
+                                    />
+                                    <AvatarFallback>
+                                      {" "}
+                                      {user?.displayName[0]?.toUpperCase() ||
+                                        "P"}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                );
+                              })}
+                              {msg.seenBy.length > 3 && (
+                                <span className="text-xs text-gray-500">
+                                  +{msg.seenBy.length - 3}
+                                </span>
+                              )}
+                            </div>
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-48 p-2">
+                          <div className="max-h-40 overflow-y-auto space-y-1">
+                            {msg.seenBy.map((uid) => {
                               const user = users.find((u) => u.id === uid);
                               return (
-                                <Avatar key={uid} className="w-6 h-6">
-                                  <AvatarImage
-                                    src={user?.photoURL}
-                                    alt={user?.displayName}
-                                  />
-                                  <AvatarFallback>
-                                    {" "}
-                                    {user?.displayName[0]?.toUpperCase() || "P"}
-                                  </AvatarFallback>
-                                </Avatar>
+                                <div
+                                  key={uid}
+                                  className="flex items-center gap-2 hover:bg-gray-500/20 p-1 rounded-sm transition-colors cursor-pointer"
+                                >
+                                  <Avatar className="w-6 h-6">
+                                    <AvatarImage
+                                      src={user?.photoURL}
+                                      alt={user?.displayName}
+                                    />
+                                    <AvatarFallback>
+                                      {" "}
+                                      {user?.displayName[0]?.toUpperCase() ||
+                                        "P"}
+                                    </AvatarFallback>
+                                  </Avatar>
+
+                                  <span className="text-sm">
+                                    {user?.displayName || "Unknown"}
+                                  </span>
+                                </div>
                               );
                             })}
-                            {msg.seenBy.length > 3 && (
-                              <span className="text-xs text-gray-500">
-                                +{msg.seenBy.length - 3}
-                              </span>
-                            )}
                           </div>
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-48 p-2">
-                        <div className="max-h-40 overflow-y-auto space-y-1">
-                          {msg.seenBy.map((uid) => {
-                            const user = users.find((u) => u.id === uid);
-                            return (
-                              <div
-                                key={uid}
-                                className="flex items-center gap-2 hover:bg-gray-500/20 p-1 rounded-sm transition-colors cursor-pointer"
-                              >
-                                <Avatar className="w-6 h-6">
-                                  <AvatarImage
-                                    src={user?.photoURL}
-                                    alt={user?.displayName}
-                                  />
-                                  <AvatarFallback>
-                                    {" "}
-                                    {user?.displayName[0]?.toUpperCase() || "P"}
-                                  </AvatarFallback>
-                                </Avatar>
+                        </PopoverContent>
+                      </Popover>
+                    )}
 
-                                <span className="text-sm">
-                                  {user?.displayName || "Unknown"}
-                                </span>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </PopoverContent>
-                    </Popover>
-                  )}
-
-                  <Button
-                    onClick={() => {
-                      setReplyTo({
-                        messageId: msg.id,
-                        message: msg.message,
-                        senderId: msg.senderId,
-                        fileData: msg.fileData,
-                        name: getSenderDisplayName(msg.senderId),
-                      });
-                      setOpenPopoverId(null);
-                    }}
-                    variant={"ghost"}
-                    size={"sm"}
-                    className="flex w-full justify-start gap-2 items-center"
-                  >
-                    <Icon icon="solar:reply-broken" width="24" height="24" />
-                    Reply
-                  </Button>
-                  {!msg.pinned ? (
-                    <>
-                      {" "}
-                      <Button
-                        onClick={() => handlePinMessage(msg.id)}
-                        variant={"ghost"}
-                        size={"sm"}
-                        className="flex w-full justify-start gap-2 items-center"
-                      >
-                        <Icon icon="solar:pin-broken" width="20" height="20" />
-                        Pin
-                      </Button>
-                    </>
-                  ) : (
-                    <>
-                      {" "}
-                      <Button
-                        onClick={() => handleRemovePinMessage(msg.id)}
-                        variant={"ghost"}
-                        size={"sm"}
-                        className="flex w-full justify-start gap-2 items-center"
-                      >
-                        <Icon icon="solar:pin-broken" width="20" height="20" />
-                        Unpin
-                      </Button>
-                    </>
-                  )}
-                  <Button
-                    onClick={() => handleBumpMessage(msg.id)}
-                    variant={"ghost"}
-                    size={"sm"}
-                    className="flex w-full justify-start gap-2 items-center"
-                  >
-                    <Icon
-                      icon="solar:shield-up-broken"
-                      width="20"
-                      height="20"
-                    />
-                    Bump
-                  </Button>
-
-                  {msg.message && msg.fileData && (
                     <Button
                       onClick={() => {
-                        copy(msg.message);
-                        setOpenPopoverId(null);
-                      }}
-                      variant={"ghost"}
-                      size={"sm"}
-                      className="flex w-full justify-start gap-2 items-center"
-                    >
-                      <Icon icon="solar:copy-broken" width="24" height="24" />
-                      Copy text
-                    </Button>
-                  )}
-                  {msg.message && !msg.fileData && (
-                    <Button
-                      onClick={() => {
-                        copy(msg.message);
-                        setOpenPopoverId(null);
-                      }}
-                      variant={"ghost"}
-                      size={"sm"}
-                      className="flex w-full justify-start gap-2 items-center"
-                    >
-                      <Icon icon="solar:copy-broken" width="24" height="24" />
-                      Copy text
-                    </Button>
-                  )}
-
-                  {/* File/Media options for current user */}
-                  {msg.fileData && (
-                    <>
-                      {msg.fileData.type?.startsWith("image/") && (
-                        <>
-                          <Button
-                            onClick={() => {
-                              copyImageToClipboard(msg.fileData.url);
-                              setOpenPopoverId(null);
-                            }}
-                            variant={"ghost"}
-                            size={"sm"}
-                            className="flex w-full justify-start gap-2 items-center"
-                          >
-                            <Icon
-                              icon="solar:copy-broken"
-                              width="24"
-                              height="24"
-                            />
-                            Copy image address
-                          </Button>
-                          <Button
-                            onClick={() => {
-                              downloadFile(msg.fileData.url);
-                              setOpenPopoverId(null);
-                            }}
-                            variant={"ghost"}
-                            size={"sm"}
-                            className="flex w-full justify-start gap-2 items-center"
-                          >
-                            <Icon
-                              icon="solar:copy-broken"
-                              width="24"
-                              height="24"
-                            />
-                            Save image
-                          </Button>
-                        </>
-                      )}
-
-                      {msg.fileData.type?.startsWith("video/") && (
-                        <Button
-                          onClick={() => {
-                            downloadFile(
-                              msg.fileData.url,
-                              msg.fileData.name || "video.mp4"
-                            );
-                            setOpenPopoverId(null);
-                          }}
-                          variant={"ghost"}
-                          size={"sm"}
-                          className="flex w-full justify-start gap-2 items-center"
-                        >
-                          <Icon
-                            icon="solar:chat-round-video-broken"
-                            width="24"
-                            height="24"
-                          />
-                          Save video
-                        </Button>
-                      )}
-
-                      {!msg.fileData.type?.startsWith("image/") &&
-                        !msg.fileData.type?.startsWith("video/") && (
-                          <Button
-                            onClick={() => {
-                              downloadFile(
-                                msg.fileData.url,
-                                msg.fileData.name || "file"
-                              );
-                              setOpenPopoverId(null);
-                            }}
-                            variant={"ghost"}
-                            size={"sm"}
-                            className="flex w-full justify-start gap-2 items-center"
-                          >
-                            <Icon
-                              icon="solar:file-download-broken"
-                              width="20"
-                              height="20"
-                            />
-                            Download file
-                          </Button>
-                        )}
-                    </>
-                  )}
-
-                  {msg.message && (
-                    <Button
-                      onClick={() => {
-                        setEditMessage({
+                        setReplyTo({
                           messageId: msg.id,
                           message: msg.message,
                           senderId: msg.senderId,
                           fileData: msg.fileData,
-                          timestamp: msg.timestamp,
                           name: getSenderDisplayName(msg.senderId),
                         });
                         setOpenPopoverId(null);
@@ -503,279 +344,196 @@ export const MessageList = ({
                       size={"sm"}
                       className="flex w-full justify-start gap-2 items-center"
                     >
-                      <Icon
-                        icon="solar:gallery-edit-broken"
-                        width="24"
-                        height="24"
-                      />
-                      Edit
+                      <Icon icon="solar:reply-broken" width="24" height="24" />
+                      Reply
                     </Button>
-                  )}
-
-                  <div className="absolute w-52 -top-13  left-0  mt-2">
-                    <div className="relative">
-                      <EmojiSet
-                        messageId={msg.id}
-                        userId={user?.uid}
-                        chatId={chatId}
-                        onSelect={() => setOpenPopoverId(null)}
-                      />
-                    </div>
-                  </div>
-                </PopoverContent>
-              </Popover>
-            </div>
-          )}
-          {/* ------------------------------------------------ */}
-          <div>
-            {/* Header with sender info */}
-            {msg.senderId !== user?.uid && msg.type !== "system" && (
-              <div className="flex gap-1.5 text-xs ml-7 items-center mb-0.5">
-                {getSenderDisplayName(msg.senderId) && (
-                  <p className="capitalize font-semibold text-blue-600 dark:text-white">
-                    {getSenderDisplayName(msg.senderId)}
-                  </p>
-                )}
-                {getSenderData(msg.senderId)?.department && (
-                  <span className="text-[10px] bg-blue-100 dark:bg-gray-500 dark:text-white text-blue-700 rounded-full px-2 py-0.5 font-medium">
-                    {getSenderData(msg.senderId)?.department}
-                  </span>
-                )}
-                {getSenderData(msg.senderId)?.position && (
-                  <span className="text-[10px] dark:bg-gray-100 text-gray-600 rounded-full border px-2 py-0.5 font-medium">
-                    {getSenderData(msg.senderId)?.position}
-                  </span>
-                )}
-              </div>
-            )}
-            <div className="flex items-end gap-1.5">
-              {msg.senderId !== user?.uid && msg.type !== "system" && (
-                <Avatar className="h-5 w-5">
-                  <AvatarImage src={getSenderData(msg.senderId)?.photoURL} />
-                  <AvatarFallback></AvatarFallback>
-                </Avatar>
-              )}
-
-              <div>
-                <div
-                  className={`relative max-w-52 h-auto ${
-                    msg.type === "system"
-                      ? "bg-white/80 dark:bg-transparent dark:border  text-center px-3 py-1.5 rounded-full shadow-sm text-xs"
-                      : msg.senderId === user?.uid && msg.type !== "file"
-                      ? `bg-blue-500 text-white px-3 py-2 shadow-sm ${"rounded-tl-2xl rounded-tr-2xl rounded-bl-2xl rounded-br-lg"}`
-                      : msg.type === "file" && msg.senderId === user?.uid
-                      ? `bg-blue-500 text-white shadow-sm ${"rounded-tl-2xl rounded-tr-2xl rounded-bl-2xl rounded-br-lg"}`
-                      : msg.type === "file" && msg.senderId !== user?.uid
-                      ? ` shadow-sm ${"rounded-tl-2xl rounded-tr-2xl rounded-bl-2xl rounded-br-lg"}`
-                      : ` px-3 py-2 shadow-sm border border-gray-100/10 ${"rounded-tl-md rounded-tr-2xl rounded-bl-2xl rounded-br-2xl"}`
-                  }`}
-                >
-                  {msg.pinned && (
-                    <div className="absolute -top-1 right-0 text-red-500">
-                      <Icon icon="solar:pin-bold" width="14" height="14" />
-                    </div>
-                  )}
-
-                  <ReplyMessageDisplay
-                    message={msg}
-                    getSenderDisplayName={getSenderDisplayName}
-                  />
-                  {msg.type === "file" ? (
-                    <FileMessage
-                      message={msg}
-                      handleImageLoad={handleImageLoad}
-                      handleVideoLoad={handleVideoLoad}
-                      loadingStates={loadingStates}
-                      getSenderData={getSenderData}
-                    />
-                  ) : (
-                    <>
-                      {msg.type === "system" ? (
-                        <p className="text-xs font-medium">{msg.message}</p>
-                      ) : (
-                        <>
-                          {/* Message content */}
-                          <div
-                            dangerouslySetInnerHTML={{
-                              __html: formatMessageWithLinks(
-                                msg.message,
-                                msg.senderId,
-                                user?.uid
-                              ),
-                            }}
-                            className="text-sm max-w-52 whitespace-pre-wrap break-words "
+                    {!msg.pinned ? (
+                      <>
+                        {" "}
+                        <Button
+                          onClick={() => handlePinMessage(msg.id)}
+                          variant={"ghost"}
+                          size={"sm"}
+                          className="flex w-full justify-start gap-2 items-center"
+                        >
+                          <Icon
+                            icon="solar:pin-broken"
+                            width="20"
+                            height="20"
                           />
+                          Pin
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        {" "}
+                        <Button
+                          onClick={() => handleRemovePinMessage(msg.id)}
+                          variant={"ghost"}
+                          size={"sm"}
+                          className="flex w-full justify-start gap-2 items-center"
+                        >
+                          <Icon
+                            icon="solar:pin-broken"
+                            width="20"
+                            height="20"
+                          />
+                          Unpin
+                        </Button>
+                      </>
+                    )}
+                    <Button
+                      onClick={() => handleBumpMessage(msg.id)}
+                      variant={"ghost"}
+                      size={"sm"}
+                      className="flex w-full justify-start gap-2 items-center"
+                    >
+                      <Icon
+                        icon="solar:shield-up-broken"
+                        width="20"
+                        height="20"
+                      />
+                      Bump
+                    </Button>
+                    <Button
+                      onClick={() => handleForwardMessage(msg.id)}
+                      variant={"ghost"}
+                      size={"sm"}
+                      className="flex w-full justify-start gap-2 items-center"
+                    >
+                      <Icon
+                        icon="solar:forward-broken"
+                        width="20"
+                        height="20"
+                      />
+                      Forward
+                    </Button>
 
-                          <div
-                            className={`flex items-center gap-1 ${
-                              msg.senderId === user?.uid
-                                ? "justify-end"
-                                : "justify-start"
-                            }`}
-                          >
-                            {/* emoji reactions to message */}
-                            {msg.reactions && (
-                              <EmojiReactions
-                                msg={msg}
-                                getSenderData={getSenderData}
-                                user={user}
-                              />
-                            )}
-
-                            <div
-                              className={`text-[10px] ${
-                                msg.senderId === user?.uid
-                                  ? "text-white/70"
-                                  : "text-gray-400"
-                              }`}
-                            >
-                              {msg.edited && (
-                                <span className="px-1">Edited</span>
-                              )}
-                              {msg.bumpedFrom && (
-                                <span className="px-1">Bump</span>
-                              )}
-                              {formatTimestamp(msg.timestamp)}
-                            </div>
-                            {msg.senderId === user?.uid && (
-                              <div className="flex">
-                                {msg.senderId === user?.uid && (
-                                  <div className="flex">
-                                    {msg.status === "sending" ? (
-                                      <Icon
-                                        icon="ic:round-access-time"
-                                        width="14"
-                                        height="14"
-                                        className="animate-pulse"
-                                      />
-                                    ) : msg.status === "sent" && !msg.seen ? (
-                                      <Icon
-                                        icon="ic:round-check"
-                                        width="16"
-                                        height="16"
-                                      />
-                                    ) : msg.seenBy?.length > 0 ? (
-                                      <Icon
-                                        icon="solar:check-read-linear"
-                                        width="20"
-                                        height="20"
-                                      />
-                                    ) : null}
-                                  </div>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                        </>
-                      )}
-                    </>
-                  )}
-                </div>
-              </div>
-
-              {/* Options button for non-current user messages */}
-              {msg.senderId !== user?.uid && msg.type !== "system" && (
-                <>
-                  <Popover
-                    open={openPopoverId === msg.id}
-                    onOpenChange={(open) =>
-                      setOpenPopoverId(open ? msg.id : null)
-                    }
-                  >
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant={"ghost"}
-                        size={"sm"}
-                        className="mr-2 rounded-full"
-                      >
-                        <Icon
-                          icon="solar:menu-dots-bold-duotone"
-                          width="24"
-                          height="24"
-                        />
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-52 p-1">
-                      {/* Seen Users Preview + Nested Popover */}
-                      {msg.seenBy?.length > 0 && (
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="flex items-center gap-2 w-full justify-between"
-                            >
-                              <div className="flex gap-1 justify-start items-center">
-                                <Icon
-                                  icon="solar:check-read-broken"
-                                  width="24"
-                                  height="24"
-                                />
-                                <span>{msg.seenBy?.length} Seen</span>
-                              </div>
-                              <div className="flex -space-x-2">
-                                {msg.seenBy.slice(0, 3).map((uid) => {
-                                  const user = users.find((u) => u.id === uid);
-                                  return (
-                                    <Avatar key={uid} className="w-6 h-6">
-                                      <AvatarImage
-                                        src={user?.photoURL}
-                                        alt={user?.displayName}
-                                      />
-                                      <AvatarFallback>
-                                        {" "}
-                                        {user?.displayName[0]?.toUpperCase() ||
-                                          "P"}
-                                      </AvatarFallback>
-                                    </Avatar>
-                                  );
-                                })}
-                                {msg.seenBy.length > 3 && (
-                                  <span className="text-xs text-gray-500">
-                                    +{msg.seenBy.length - 3}
-                                  </span>
-                                )}
-                              </div>
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-48 p-2">
-                            <div className="max-h-40 overflow-y-auto space-y-1">
-                              {msg.seenBy.map((uid) => {
-                                const user = users.find((u) => u.id === uid);
-                                return (
-                                  <div
-                                    key={uid}
-                                    className="flex items-center gap-2 hover:bg-gray-500/20 p-1 rounded-sm transition-colors cursor-pointer"
-                                  >
-                                    <Avatar className="w-6 h-6">
-                                      <AvatarImage
-                                        src={user?.photoURL}
-                                        alt={user?.displayName}
-                                      />
-                                      <AvatarFallback>
-                                        {" "}
-                                        {user?.displayName[0]?.toUpperCase() ||
-                                          "P"}
-                                      </AvatarFallback>
-                                    </Avatar>
-
-                                    <span className="text-sm">
-                                      {user?.displayName || "Unknown"}
-                                    </span>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </PopoverContent>
-                        </Popover>
-                      )}
+                    {msg.message && msg.fileData && (
                       <Button
                         onClick={() => {
-                          setReplyTo({
+                          copy(msg.message);
+                          setOpenPopoverId(null);
+                        }}
+                        variant={"ghost"}
+                        size={"sm"}
+                        className="flex w-full justify-start gap-2 items-center"
+                      >
+                        <Icon icon="solar:copy-broken" width="24" height="24" />
+                        Copy text
+                      </Button>
+                    )}
+                    {msg.message && !msg.fileData && (
+                      <Button
+                        onClick={() => {
+                          copy(msg.message);
+                          setOpenPopoverId(null);
+                        }}
+                        variant={"ghost"}
+                        size={"sm"}
+                        className="flex w-full justify-start gap-2 items-center"
+                      >
+                        <Icon icon="solar:copy-broken" width="24" height="24" />
+                        Copy text
+                      </Button>
+                    )}
+
+                    {/* File/Media options for current user */}
+                    {msg.fileData && (
+                      <>
+                        {msg.fileData.type?.startsWith("image/") && (
+                          <>
+                            <Button
+                              onClick={() => {
+                                copyImageToClipboard(msg.fileData.url);
+                                setOpenPopoverId(null);
+                              }}
+                              variant={"ghost"}
+                              size={"sm"}
+                              className="flex w-full justify-start gap-2 items-center"
+                            >
+                              <Icon
+                                icon="solar:copy-broken"
+                                width="24"
+                                height="24"
+                              />
+                              Copy image address
+                            </Button>
+                            <Button
+                              onClick={() => {
+                                downloadFile(msg.fileData.url);
+                                setOpenPopoverId(null);
+                              }}
+                              variant={"ghost"}
+                              size={"sm"}
+                              className="flex w-full justify-start gap-2 items-center"
+                            >
+                              <Icon
+                                icon="solar:copy-broken"
+                                width="24"
+                                height="24"
+                              />
+                              Save image
+                            </Button>
+                          </>
+                        )}
+
+                        {msg.fileData.type?.startsWith("video/") && (
+                          <Button
+                            onClick={() => {
+                              downloadFile(
+                                msg.fileData.url,
+                                msg.fileData.name || "video.mp4"
+                              );
+                              setOpenPopoverId(null);
+                            }}
+                            variant={"ghost"}
+                            size={"sm"}
+                            className="flex w-full justify-start gap-2 items-center"
+                          >
+                            <Icon
+                              icon="solar:chat-round-video-broken"
+                              width="24"
+                              height="24"
+                            />
+                            Save video
+                          </Button>
+                        )}
+
+                        {!msg.fileData.type?.startsWith("image/") &&
+                          !msg.fileData.type?.startsWith("video/") && (
+                            <Button
+                              onClick={() => {
+                                downloadFile(
+                                  msg.fileData.url,
+                                  msg.fileData.name || "file"
+                                );
+                                setOpenPopoverId(null);
+                              }}
+                              variant={"ghost"}
+                              size={"sm"}
+                              className="flex w-full justify-start gap-2 items-center"
+                            >
+                              <Icon
+                                icon="solar:file-download-broken"
+                                width="20"
+                                height="20"
+                              />
+                              Download file
+                            </Button>
+                          )}
+                      </>
+                    )}
+
+                    {msg.message && (
+                      <Button
+                        onClick={() => {
+                          setEditMessage({
                             messageId: msg.id,
                             message: msg.message,
                             senderId: msg.senderId,
                             fileData: msg.fileData,
+                            timestamp: msg.timestamp,
                             name: getSenderDisplayName(msg.senderId),
                           });
                           setOpenPopoverId(null);
@@ -785,152 +543,429 @@ export const MessageList = ({
                         className="flex w-full justify-start gap-2 items-center"
                       >
                         <Icon
-                          icon="solar:reply-broken"
+                          icon="solar:gallery-edit-broken"
                           width="24"
                           height="24"
                         />
-                        Reply
+                        Edit
                       </Button>
+                    )}
 
-                      {!msg.pinned ? (
-                        <>
-                          {" "}
-                          <Button
-                            onClick={() => handlePinMessage(msg.id)}
-                            variant={"ghost"}
-                            size={"sm"}
-                            className="flex w-full justify-start gap-2 items-center"
-                          >
-                            <Icon
-                              icon="solar:pin-broken"
-                              width="20"
-                              height="20"
-                            />
-                            Pin
-                          </Button>
-                        </>
-                      ) : (
-                        <>
-                          {" "}
-                          <Button
-                            onClick={() => handleRemovePinMessage(msg.id)}
-                            variant={"ghost"}
-                            size={"sm"}
-                            className="flex w-full justify-start gap-2 items-center"
-                          >
-                            <Icon
-                              icon="solar:pin-broken"
-                              width="20"
-                              height="20"
-                            />
-                            Unpin
-                          </Button>
-                        </>
-                      )}
-                      <Button
-                        onClick={() => handleBumpMessage(msg.id)}
-                        variant={"ghost"}
-                        size={"sm"}
-                        className="flex w-full justify-start gap-2 items-center"
-                      >
-                        <Icon
-                          icon="solar:shield-up-broken"
-                          width="20"
-                          height="20"
+                    <div className="absolute w-52 -top-13  left-0  mt-2">
+                      <div className="relative">
+                        <EmojiSet
+                          messageId={msg.id}
+                          userId={user?.uid}
+                          chatId={chatId}
+                          onSelect={() => setOpenPopoverId(null)}
                         />
-                        Bump
-                      </Button>
+                      </div>
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              </div>
+            )}
 
-                      {msg.message && msg.fileData && (
-                        <Button
-                          onClick={() => {
-                            copy(msg.message);
-                            setOpenPopoverId(null);
-                          }}
-                          variant={"ghost"}
-                          size={"sm"}
-                          className="flex w-full justify-start gap-2 items-center"
-                        >
-                          <Icon
-                            icon="solar:copy-broken"
-                            width="24"
-                            height="24"
-                          />
-                          Copy text
-                        </Button>
-                      )}
-                      {msg.message && !msg.fileData && (
-                        <Button
-                          onClick={() => {
-                            copy(msg.message);
-                            setOpenPopoverId(null);
-                          }}
-                          variant={"ghost"}
-                          size={"sm"}
-                          className="flex w-full justify-start gap-2 items-center"
-                        >
-                          <Icon
-                            icon="solar:copy-broken"
-                            width="24"
-                            height="24"
-                          />
-                          Copy text
-                        </Button>
-                      )}
+            {/* ------------------------------------------------ */}
+            <div>
+              {/* Header with sender info */}
+              {msg.senderId !== user?.uid && msg.type !== "system" && (
+                <div className="flex gap-1.5 text-xs ml-7 items-center mb-0.5">
+                  {getSenderDisplayName(msg.senderId) && (
+                    <p className="capitalize font-semibold text-blue-600 dark:text-white">
+                      {getSenderDisplayName(msg.senderId)}
+                    </p>
+                  )}
+                  {getSenderData(msg.senderId)?.department && (
+                    <span className="text-[10px] bg-blue-100 dark:bg-gray-500 dark:text-white text-blue-700 rounded-full px-2 py-0.5 font-medium">
+                      {getSenderData(msg.senderId)?.department}
+                    </span>
+                  )}
+                  {getSenderData(msg.senderId)?.position && (
+                    <span className="text-[10px] dark:bg-gray-100 text-gray-600 rounded-full border px-2 py-0.5 font-medium">
+                      {getSenderData(msg.senderId)?.position}
+                    </span>
+                  )}
+                </div>
+              )}
+              <div className="flex items-end gap-1.5">
+                {msg.senderId !== user?.uid && msg.type !== "system" && (
+                  <Avatar className="h-5 w-5">
+                    <AvatarImage src={getSenderData(msg.senderId)?.photoURL} />
+                    <AvatarFallback></AvatarFallback>
+                  </Avatar>
+                )}
 
-                      {/* File / Media Download Options */}
-                      {msg.fileData && (
-                        <>
-                          {msg.fileData.type?.startsWith("image/") && (
-                            <>
-                              <Button
-                                onClick={() => {
-                                  copyImageToClipboard(msg.fileData.url);
-                                  setOpenPopoverId(null);
-                                }}
-                                variant={"ghost"}
-                                size={"sm"}
-                                className="flex w-full justify-start gap-2 items-center"
-                              >
-                                <Icon
-                                  icon="solar:copy-broken"
-                                  width="24"
-                                  height="24"
-                                />
-                                Copy image address
-                              </Button>
-                            </>
-                          )}
+                <div>
+                  <div
+                    className={`relative max-w-52 h-auto ${
+                      msg.type === "system"
+                        ? "bg-white/80 dark:bg-transparent dark:border  text-center px-3 py-1.5 rounded-full shadow-sm text-xs"
+                        : msg.senderId === user?.uid && msg.type !== "file"
+                        ? `bg-blue-500 text-white px-3 py-2 shadow-sm ${"rounded-tl-2xl rounded-tr-2xl rounded-bl-2xl rounded-br-lg"}`
+                        : msg.type === "file" && msg.senderId === user?.uid
+                        ? `bg-blue-500 text-white shadow-sm ${"rounded-tl-2xl rounded-tr-2xl rounded-bl-2xl rounded-br-lg"}`
+                        : msg.type === "file" && msg.senderId !== user?.uid
+                        ? ` shadow-sm ${"rounded-tl-2xl rounded-tr-2xl rounded-bl-2xl rounded-br-lg"}`
+                        : ` px-3 py-2 shadow-sm border border-gray-100/10 ${"rounded-tl-md rounded-tr-2xl rounded-bl-2xl rounded-br-2xl"}`
+                    }`}
+                  >
+                    {msg.pinned && (
+                      <div className="absolute -top-1 right-0 text-red-500">
+                        <Icon icon="solar:pin-bold" width="14" height="14" />
+                      </div>
+                    )}
 
-                          {msg.fileData.type?.startsWith("video/") && (
-                            <Button
-                              onClick={() => {
-                                downloadFile(
-                                  msg.fileData.url,
-                                  msg.fileData.name || "video.mp4"
-                                );
-                                setOpenPopoverId(null);
+                    <ReplyMessageDisplay
+                      message={msg}
+                      getSenderDisplayName={getSenderDisplayName}
+                    />
+                    {msg.type === "file" ? (
+                      <FileMessage
+                        message={msg}
+                        handleImageLoad={handleImageLoad}
+                        handleVideoLoad={handleVideoLoad}
+                        loadingStates={loadingStates}
+                        getSenderData={getSenderData}
+                      />
+                    ) : (
+                      <>
+                        {msg.type === "system" ? (
+                          <p className="text-xs font-medium">{msg.message}</p>
+                        ) : (
+                          <>
+                            {/* Message content */}
+                            <div
+                              dangerouslySetInnerHTML={{
+                                __html: formatMessageWithLinks(
+                                  msg.message,
+                                  msg.senderId,
+                                  user?.uid
+                                ),
                               }}
+                              className="text-sm max-w-52 whitespace-pre-wrap break-words "
+                            />
+
+                            <div
+                              className={`flex items-center gap-1 ${
+                                msg.senderId === user?.uid
+                                  ? "justify-end"
+                                  : "justify-start"
+                              }`}
+                            >
+                              {/* emoji reactions to message */}
+                              {msg.reactions && (
+                                <EmojiReactions
+                                  msg={msg}
+                                  getSenderData={getSenderData}
+                                  user={user}
+                                />
+                              )}
+
+                              <div
+                                className={`text-[10px] flex ${
+                                  msg.senderId === user?.uid
+                                    ? "text-white/70"
+                                    : "text-gray-400"
+                                }`}
+                              >
+                                {msg.type === "forwarded" && (
+                                  <span className="px-1">Forwarded</span>
+                                )}
+                                {msg.edited && (
+                                  <span className="px-1">Edited</span>
+                                )}
+                                {msg.bumpedFrom && (
+                                  <span className="px-1">Bump</span>
+                                )}
+                                {formatTimestamp(msg.timestamp)}
+                              </div>
+                              {msg.senderId === user?.uid && (
+                                <div className="flex">
+                                  {msg.senderId === user?.uid && (
+                                    <div className="flex">
+                                      {msg.status === "sending" ? (
+                                        <Icon
+                                          icon="ic:round-access-time"
+                                          width="14"
+                                          height="14"
+                                          className="animate-pulse"
+                                        />
+                                      ) : msg.status === "sent" && !msg.seen ? (
+                                        <Icon
+                                          icon="ic:round-check"
+                                          width="16"
+                                          height="16"
+                                        />
+                                      ) : msg.seenBy?.length > 0 ? (
+                                        <Icon
+                                          icon="solar:check-read-linear"
+                                          width="20"
+                                          height="20"
+                                        />
+                                      ) : null}
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          </>
+                        )}
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                {/* Options button for non-current user messages */}
+                {msg.senderId !== user?.uid && msg.type !== "system" && (
+                  <>
+                    <Popover
+                      open={openPopoverId === msg.id}
+                      onOpenChange={(open) =>
+                        setOpenPopoverId(open ? msg.id : null)
+                      }
+                    >
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant={"ghost"}
+                          size={"sm"}
+                          className="mr-2 rounded-full"
+                        >
+                          <Icon
+                            icon="solar:menu-dots-bold-duotone"
+                            width="24"
+                            height="24"
+                          />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-52 p-1">
+                        {/* Seen Users Preview + Nested Popover */}
+                        {msg.seenBy?.length > 0 && (
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="flex items-center gap-2 w-full justify-between"
+                              >
+                                <div className="flex gap-1 justify-start items-center">
+                                  <Icon
+                                    icon="solar:check-read-broken"
+                                    width="24"
+                                    height="24"
+                                  />
+                                  <span>{msg.seenBy?.length} Seen</span>
+                                </div>
+                                <div className="flex -space-x-2">
+                                  {msg.seenBy.slice(0, 3).map((uid) => {
+                                    const user = users.find(
+                                      (u) => u.id === uid
+                                    );
+                                    return (
+                                      <Avatar key={uid} className="w-6 h-6">
+                                        <AvatarImage
+                                          src={user?.photoURL}
+                                          alt={user?.displayName}
+                                        />
+                                        <AvatarFallback>
+                                          {" "}
+                                          {user?.displayName[0]?.toUpperCase() ||
+                                            "P"}
+                                        </AvatarFallback>
+                                      </Avatar>
+                                    );
+                                  })}
+                                  {msg.seenBy.length > 3 && (
+                                    <span className="text-xs text-gray-500">
+                                      +{msg.seenBy.length - 3}
+                                    </span>
+                                  )}
+                                </div>
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-48 p-2">
+                              <div className="max-h-40 overflow-y-auto space-y-1">
+                                {msg.seenBy.map((uid) => {
+                                  const user = users.find((u) => u.id === uid);
+                                  return (
+                                    <div
+                                      key={uid}
+                                      className="flex items-center gap-2 hover:bg-gray-500/20 p-1 rounded-sm transition-colors cursor-pointer"
+                                    >
+                                      <Avatar className="w-6 h-6">
+                                        <AvatarImage
+                                          src={user?.photoURL}
+                                          alt={user?.displayName}
+                                        />
+                                        <AvatarFallback>
+                                          {" "}
+                                          {user?.displayName[0]?.toUpperCase() ||
+                                            "P"}
+                                        </AvatarFallback>
+                                      </Avatar>
+
+                                      <span className="text-sm">
+                                        {user?.displayName || "Unknown"}
+                                      </span>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </PopoverContent>
+                          </Popover>
+                        )}
+                        <Button
+                          onClick={() => {
+                            setReplyTo({
+                              messageId: msg.id,
+                              message: msg.message,
+                              senderId: msg.senderId,
+                              fileData: msg.fileData,
+                              name: getSenderDisplayName(msg.senderId),
+                            });
+                            setOpenPopoverId(null);
+                          }}
+                          variant={"ghost"}
+                          size={"sm"}
+                          className="flex w-full justify-start gap-2 items-center"
+                        >
+                          <Icon
+                            icon="solar:reply-broken"
+                            width="24"
+                            height="24"
+                          />
+                          Reply
+                        </Button>
+
+                        {!msg.pinned ? (
+                          <>
+                            {" "}
+                            <Button
+                              onClick={() => handlePinMessage(msg.id)}
                               variant={"ghost"}
                               size={"sm"}
                               className="flex w-full justify-start gap-2 items-center"
                             >
                               <Icon
-                                icon="solar:chat-round-video-broken"
-                                width="24"
-                                height="24"
+                                icon="solar:pin-broken"
+                                width="20"
+                                height="20"
                               />
-                              Save video
+                              Pin
                             </Button>
-                          )}
+                          </>
+                        ) : (
+                          <>
+                            {" "}
+                            <Button
+                              onClick={() => handleRemovePinMessage(msg.id)}
+                              variant={"ghost"}
+                              size={"sm"}
+                              className="flex w-full justify-start gap-2 items-center"
+                            >
+                              <Icon
+                                icon="solar:pin-broken"
+                                width="20"
+                                height="20"
+                              />
+                              Unpin
+                            </Button>
+                          </>
+                        )}
+                        <Button
+                          onClick={() => handleBumpMessage(msg.id)}
+                          variant={"ghost"}
+                          size={"sm"}
+                          className="flex w-full justify-start gap-2 items-center"
+                        >
+                          <Icon
+                            icon="solar:shield-up-broken"
+                            width="20"
+                            height="20"
+                          />
+                          Bump
+                        </Button>
+                        <Button
+                          onClick={() => handleForwardMessage(msg.id)}
+                          variant={"ghost"}
+                          size={"sm"}
+                          className="flex w-full justify-start gap-2 items-center"
+                        >
+                          <Icon
+                            icon="solar:forward-broken"
+                            width="20"
+                            height="20"
+                          />
+                          Forward
+                        </Button>
 
-                          {!msg.fileData.type?.startsWith("image/") &&
-                            !msg.fileData.type?.startsWith("video/") && (
+                        {msg.message && msg.fileData && (
+                          <Button
+                            onClick={() => {
+                              copy(msg.message);
+                              setOpenPopoverId(null);
+                            }}
+                            variant={"ghost"}
+                            size={"sm"}
+                            className="flex w-full justify-start gap-2 items-center"
+                          >
+                            <Icon
+                              icon="solar:copy-broken"
+                              width="24"
+                              height="24"
+                            />
+                            Copy text
+                          </Button>
+                        )}
+                        {msg.message && !msg.fileData && (
+                          <Button
+                            onClick={() => {
+                              copy(msg.message);
+                              setOpenPopoverId(null);
+                            }}
+                            variant={"ghost"}
+                            size={"sm"}
+                            className="flex w-full justify-start gap-2 items-center"
+                          >
+                            <Icon
+                              icon="solar:copy-broken"
+                              width="24"
+                              height="24"
+                            />
+                            Copy text
+                          </Button>
+                        )}
+
+                        {/* File / Media Download Options */}
+                        {msg.fileData && (
+                          <>
+                            {msg.fileData.type?.startsWith("image/") && (
+                              <>
+                                <Button
+                                  onClick={() => {
+                                    copyImageToClipboard(msg.fileData.url);
+                                    setOpenPopoverId(null);
+                                  }}
+                                  variant={"ghost"}
+                                  size={"sm"}
+                                  className="flex w-full justify-start gap-2 items-center"
+                                >
+                                  <Icon
+                                    icon="solar:copy-broken"
+                                    width="24"
+                                    height="24"
+                                  />
+                                  Copy image address
+                                </Button>
+                              </>
+                            )}
+
+                            {msg.fileData.type?.startsWith("video/") && (
                               <Button
                                 onClick={() => {
                                   downloadFile(
                                     msg.fileData.url,
-                                    msg.fileData.name || "file"
+                                    msg.fileData.name || "video.mp4"
                                   );
                                   setOpenPopoverId(null);
                                 }}
@@ -939,35 +974,70 @@ export const MessageList = ({
                                 className="flex w-full justify-start gap-2 items-center"
                               >
                                 <Icon
-                                  icon="solar:file-download-broken"
-                                  width="20"
-                                  height="20"
+                                  icon="solar:chat-round-video-broken"
+                                  width="24"
+                                  height="24"
                                 />
-                                Download File
+                                Save video
                               </Button>
                             )}
-                        </>
-                      )}
 
-                      <div className="absolute w-52 -top-13 left-0 mb-2">
-                        <div className="relative">
-                          <EmojiSet
-                            messageId={msg.id}
-                            userId={user?.uid}
-                            chatId={chatId}
-                            onSelect={() => setOpenPopoverId(null)}
-                          />
+                            {!msg.fileData.type?.startsWith("image/") &&
+                              !msg.fileData.type?.startsWith("video/") && (
+                                <Button
+                                  onClick={() => {
+                                    downloadFile(
+                                      msg.fileData.url,
+                                      msg.fileData.name || "file"
+                                    );
+                                    setOpenPopoverId(null);
+                                  }}
+                                  variant={"ghost"}
+                                  size={"sm"}
+                                  className="flex w-full justify-start gap-2 items-center"
+                                >
+                                  <Icon
+                                    icon="solar:file-download-broken"
+                                    width="20"
+                                    height="20"
+                                  />
+                                  Download File
+                                </Button>
+                              )}
+                          </>
+                        )}
+
+                        <div className="absolute w-52 -top-13 left-0 mb-2">
+                          <div className="relative">
+                            <EmojiSet
+                              messageId={msg.id}
+                              userId={user?.uid}
+                              chatId={chatId}
+                              onSelect={() => setOpenPopoverId(null)}
+                            />
+                          </div>
                         </div>
-                      </div>
-                    </PopoverContent>
-                  </Popover>
-                </>
-              )}
+                      </PopoverContent>
+                    </Popover>
+                  </>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      ))}
-      <div ref={messagesEndRef} />
-    </div>
+        ))}
+        <div ref={messagesEndRef} />
+      </div>
+      <ForwardMessageDialog
+        messageId={selectedMessage?.id}
+        messageContent={selectedMessage?.message}
+        originalFileData={selectedMessage?.fileData}
+        currentUserId={currentUserId}
+        isOpen={forwardDialogOpen}
+        onClose={() => {
+          setForwardDialogOpen(false);
+          setSelectedMessage(null);
+        }}
+      />
+    </>
   );
 };

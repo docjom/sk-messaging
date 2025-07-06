@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { db } from "../firebase";
 import { toast } from "sonner";
 import { Icon } from "@iconify/react";
+
 import { Toaster } from "@/components/ui/sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import ManageGroupChat from "../components/GroupChatSetting";
@@ -865,8 +866,10 @@ function Dashboard() {
                       <>
                         <MessageList
                           messages={messages}
+                          user={userProfile}
                           getSenderData={getSenderData}
                           getSenderDisplayName={getSenderDisplayName}
+                          currentUserId={user?.uid}
                         />
                         <div ref={messagesEndRef} />
                       </>
