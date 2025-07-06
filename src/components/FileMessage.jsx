@@ -71,7 +71,7 @@ export const FileMessage = ({
           {!message.message && isImageLoaded && (
             <div
               className={`absolute border-gray-200/50 border backdrop-blur-sm rounded-full max-w-52 gap-1 px-2 ${
-                message.senderId === user.uid && !message.reactions
+                message.senderId === user?.uid && !message.reactions
                   ? "justify-end bottom-1 right-1 bg-gray-200"
                   : "justify-start top-1 left-1 bg-gray-200"
               }`}
@@ -79,7 +79,7 @@ export const FileMessage = ({
               <div className="flex items-center space-x-2">
                 <div
                   className={`text-xs py-0.5 ${
-                    message.senderId === user.uid
+                    message.senderId === user?.uid
                       ? "text-gray-800"
                       : "text-gray-800"
                   }`}
@@ -89,9 +89,9 @@ export const FileMessage = ({
                   {formatTimestamp(message.timestamp)}
                 </div>
 
-                {message.senderId === user.uid && (
+                {message.senderId === user?.uid && (
                   <div className="flex text-gray-800">
-                    {message.senderId === user.uid && (
+                    {message.senderId === user?.uid && (
                       <div className="flex">
                         {message.status === "sending" ? (
                           <Icon
@@ -167,7 +167,7 @@ export const FileMessage = ({
           {!message.message && isVideoLoaded && (
             <div
               className={`absolute border-gray-200/50 border backdrop-blur-sm rounded-full max-w-52 gap-1 px-2 ${
-                message.senderId === user.uid && !message.reactions
+                message.senderId === user?.uid && !message.reactions
                   ? "justify-end bottom-1 right-1 bg-gray-200"
                   : "justify-start top-1 left-1 bg-gray-200"
               }`}
@@ -178,9 +178,9 @@ export const FileMessage = ({
                   <p>{formatTimestamp(message.timestamp)}</p>
                 </div>
 
-                {message.senderId === user.uid && (
+                {message.senderId === user?.uid && (
                   <div className="flex">
-                    {message.senderId === user.uid && (
+                    {message.senderId === user?.uid && (
                       <div className="flex">
                         {message.status === "sending" ? (
                           <Icon
@@ -268,7 +268,7 @@ export const FileMessage = ({
             {!message.message && (
               <div
                 className={` border-gray-200/50 border backdrop-blur-sm rounded-full max-w-32 gap-1 px-2 ${
-                  message.senderId === user.uid
+                  message.senderId === user?.uid
                     ? "justify-end bg-gray-500/50"
                     : "justify-start bg-gray-500/20"
                 }`}
@@ -276,16 +276,16 @@ export const FileMessage = ({
                 <div className="flex items-center space-x-2">
                   <p
                     className={`text-xs py-0.5 ${
-                      message.senderId === user.uid ? "text-white " : ""
+                      message.senderId === user?.uid ? "text-white " : ""
                     }`}
                   >
                     {" "}
                     {message.bumpedFrom && <span className="px-1">Bump</span>}
                     {formatTimestamp(message.timestamp)}
                   </p>
-                  {message.senderId === user.uid && (
+                  {message.senderId === user?.uid && (
                     <div className="flex">
-                      {message.senderId === user.uid && (
+                      {message.senderId === user?.uid && (
                         <div className="flex">
                           {message.status === "sending" ? (
                             <Icon
@@ -325,17 +325,17 @@ export const FileMessage = ({
               __html: formatMessageWithLinks(
                 message.message,
                 message.senderId,
-                user.uid
+                user?.uid
               ),
             }}
             className={`text-sm max-w-52 sm:max-w-80 px-2 whitespace-pre-wrap break-words  ${
-              message.senderId === user.uid ? "text-white" : ""
+              message.senderId === user?.uid ? "text-white" : ""
             }`}
           />
 
           <div
             className={`flex items-center gap-1 px-2 ${
-              message.senderId === user.uid ? "justify-end" : "justify-start"
+              message.senderId === user?.uid ? "justify-end" : "justify-start"
             }`}
           >
             {/* emoji reactions to message */}
@@ -350,7 +350,7 @@ export const FileMessage = ({
             )}
             <p
               className={`text-[10px] ${
-                message.senderId === user.uid
+                message.senderId === user?.uid
                   ? "text-white/70"
                   : "text-gray-400"
               }`}
@@ -360,9 +360,9 @@ export const FileMessage = ({
               {formatTimestamp(message.timestamp)}
             </p>
 
-            {message.senderId === user.uid && (
+            {message.senderId === user?.uid && (
               <div className="flex">
-                {message.senderId === user.uid && (
+                {message.senderId === user?.uid && (
                   <div className="flex">
                     {message.status === "sending" ? (
                       <Icon
