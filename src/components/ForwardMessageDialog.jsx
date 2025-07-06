@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import {
   collection,
   getDocs,
@@ -22,6 +22,48 @@ import { toast } from "sonner";
 import { Icon } from "@iconify/react";
 import { useMessageActionStore } from "@/stores/useMessageActionStore";
 
+// User List Item Component
+const UserListItem = ({ user, selected, onSelect }) => (
+  <div
+    className="flex items-center gap-3 p-3 hover:bg-gray-50 hover:dark:bg-gray-800 w-full border rounded-lg cursor-pointer"
+    onClick={() => onSelect(user.id)}
+  >
+    <Checkbox checked={selected} onCheckedChange={() => onSelect(user.id)} />
+    <Avatar className="w-8 h-8">
+      <AvatarImage src={user.photoURL} />
+      <AvatarFallback>
+        {user.displayName?.charAt(0) || user.email?.charAt(0) || "U"}
+      </AvatarFallback>
+    </Avatar>
+    <div>
+      <p className="font-medium text-sm truncate max-w-40 sm:max-w-96">
+        {user.displayName || "Unknown"}
+      </p>
+      <p className="text-xs text-gray-500 truncate max-w-40 sm:max-w-96">
+        {user.email}
+      </p>
+    </div>
+  </div>
+);
+
+// Group Chat List Item Component
+const GroupChatListItem = ({ chat, selected, onSelect }) => (
+  <div
+    className="flex items-center gap-3 p-3 hover:bg-gray-50 hover:dark:bg-gray-800 w-full border rounded-lg cursor-pointer"
+    onClick={() => onSelect(chat.id)}
+  >
+    <Checkbox checked={selected} onCheckedChange={() => onSelect(chat.id)} />
+    <Avatar className="w-8 h-8">
+      <AvatarImage src={chat.photoURL} />
+      <AvatarFallback>{chat.name?.charAt(0) || "G"}</AvatarFallback>
+    </Avatar>
+    <div>
+      <p className="font-medium text-sm truncate">{chat.name}</p>
+      <p className="text-xs text-gray-500">Group</p>
+    </div>
+  </div>
+);
+
 const ForwardMessageDialog = ({
   messageId,
   messageContent,
@@ -30,46 +72,35 @@ const ForwardMessageDialog = ({
   isOpen,
   onClose,
 }) => {
-  const [users, setUsers] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [loading, setLoading] = useState(false);
   const [forwarding, setForwarding] = useState(false);
   const [selectedUsers, setSelectedUsers] = useState([]);
-  const { chats } = useMessageActionStore();
+  const { chats, users } = useMessageActionStore();
 
-  const groupChats = chats.filter((chat) => chat.type === "group");
+  // Memoized group chats
+  const groupChats = useMemo(
+    () => chats.filter((chat) => chat.type === "group"),
+    [chats]
+  );
 
+  // Reset state on open
   useEffect(() => {
     if (isOpen) {
-      fetchUsers();
       setSelectedUsers([]);
       setSearchTerm("");
     }
   }, [isOpen]);
 
-  const fetchUsers = async () => {
-    try {
-      setLoading(true);
-      const usersSnapshot = await getDocs(collection(db, "users"));
-      const usersList = usersSnapshot.docs
-        .map((doc) => ({ id: doc.id, ...doc.data() }))
-        .filter((user) => user.id !== currentUserId);
-      setUsers(usersList);
-    } catch (error) {
-      console.error("Failed to fetch users:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleUserSelect = (userId) => {
+  // Toggle user or chat selection
+  const handleUserSelect = useCallback((userId) => {
     setSelectedUsers((prev) =>
       prev.includes(userId)
         ? prev.filter((id) => id !== userId)
         : [...prev, userId]
     );
-  };
+  }, []);
 
+  // Create chat if not exists
   const createChat = async (type, userIds, name = "") => {
     try {
       const chatsRef = collection(db, "chats");
@@ -103,6 +134,7 @@ const ForwardMessageDialog = ({
     }
   };
 
+  // Forward message to selected users/chats
   const handleForwardMessage = async () => {
     if (selectedUsers.length === 0) {
       toast.error("Please select at least one user to forward the message to.");
@@ -117,23 +149,16 @@ const ForwardMessageDialog = ({
       const currentUser = userSnap.docs.find((doc) => doc.id === currentUserId);
       const currentUserName = currentUser?.data()?.displayName || "Someone";
 
-      // Get all existing chats where current user is a participant
-
+      // Batch forward message
       const batch = writeBatch(db);
-
       for (const target of selectedUsers) {
         let chatId = null;
-
-        // If target is a chat ID (already exists)
         const isExistingChat = chats.find((chat) => chat.id === target);
         if (isExistingChat) {
           chatId = isExistingChat.id;
         } else {
-          // Assume it's a user ID, create direct chat
           chatId = await createChat("direct", [currentUserId, target]);
-          if (!chatId) {
-            throw new Error("Failed to create chat");
-          }
+          if (!chatId) throw new Error("Failed to create chat");
         }
 
         const msgRef = collection(db, "chats", chatId, "messages");
@@ -160,9 +185,9 @@ const ForwardMessageDialog = ({
       await batch.commit();
 
       toast.success(
-        `Message forwarded to ${selectedUsers.length} user${
-          selectedUsers.length > 1 ? "s" : ""
-        }`
+        `Message forwarded to ${
+          selectedUsers.length
+        } selected users or chats group${selectedUsers.length > 1 ? "s" : ""}`
       );
 
       onClose();
@@ -174,10 +199,22 @@ const ForwardMessageDialog = ({
     }
   };
 
-  const filteredUsers = users.filter(
-    (user) =>
-      user.displayName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email?.toLowerCase().includes(searchTerm.toLowerCase())
+  // Memoized filtered users and group chats
+  const filteredUsers = useMemo(
+    () =>
+      users.filter(
+        (user) =>
+          user.displayName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          user.email?.toLowerCase().includes(searchTerm.toLowerCase())
+      ),
+    [users, searchTerm]
+  );
+  const filteredGroupChats = useMemo(
+    () =>
+      groupChats.filter((chat) =>
+        chat.name?.toLowerCase().includes(searchTerm.toLowerCase())
+      ),
+    [groupChats, searchTerm]
   );
 
   return (
@@ -196,71 +233,30 @@ const ForwardMessageDialog = ({
           />
 
           <div className="max-h-60 overflow-y-auto space-y-2">
-            {loading ? (
-              <div className="flex justify-center py-4">
-                <Icon
-                  icon="solar:loading-linear"
-                  className="animate-spin"
-                  width="20"
-                  height="20"
-                />
-              </div>
-            ) : filteredUsers.length > 0 ? (
+            {filteredUsers.length > 0 || filteredGroupChats.length > 0 ? (
               <>
-                {groupChats.length > 0 && (
+                {filteredGroupChats.length > 0 && (
                   <>
                     <div className="font-semibold text-sm text-gray-500">
                       Group Chats
                     </div>
-                    {groupChats.map((chat) => (
-                      <div
+                    {filteredGroupChats.map((chat) => (
+                      <GroupChatListItem
                         key={chat.id}
-                        className="flex items-center gap-3 p-3 hover:bg-gray-50 rounded-lg cursor-pointer"
-                        onClick={() => handleUserSelect(chat.id)}
-                      >
-                        <Checkbox
-                          checked={selectedUsers.includes(chat.id)}
-                          onCheckedChange={() => handleUserSelect(chat.id)}
-                        />
-                        <Avatar className="w-8 h-8">
-                          <AvatarImage src={chat.photoURL} />
-                          <AvatarFallback>
-                            {chat.name?.charAt(0) || "G"}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <p className="font-medium text-sm">{chat.name}</p>
-                          <p className="text-xs text-gray-500">Group</p>
-                        </div>
-                      </div>
+                        chat={chat}
+                        selected={selectedUsers.includes(chat.id)}
+                        onSelect={handleUserSelect}
+                      />
                     ))}
                   </>
                 )}
                 {filteredUsers.map((user) => (
-                  <div
+                  <UserListItem
                     key={user.id}
-                    className="flex items-center gap-3 p-3 hover:bg-gray-50 rounded-lg cursor-pointer"
-                    onClick={() => handleUserSelect(user.id)}
-                  >
-                    <Checkbox
-                      checked={selectedUsers.includes(user.id)}
-                      onCheckedChange={() => handleUserSelect(user.id)}
-                    />
-                    <Avatar className="w-8 h-8">
-                      <AvatarImage src={user.photoURL} />
-                      <AvatarFallback>
-                        {user.displayName?.charAt(0) ||
-                          user.email?.charAt(0) ||
-                          "U"}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <p className="font-medium text-sm">
-                        {user.displayName || "Unknown"}
-                      </p>
-                      <p className="text-xs text-gray-500">{user.email}</p>
-                    </div>
-                  </div>
+                    user={user}
+                    selected={selectedUsers.includes(user.id)}
+                    onSelect={handleUserSelect}
+                  />
                 ))}
               </>
             ) : (
@@ -287,9 +283,7 @@ const ForwardMessageDialog = ({
                   Forwarding...
                 </>
               ) : (
-                `Forward to ${selectedUsers.length} user${
-                  selectedUsers.length !== 1 ? "s" : ""
-                }`
+                `Forward to ${selectedUsers.length}`
               )}
             </Button>
           </div>
