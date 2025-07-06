@@ -586,7 +586,6 @@ export const MessageList = ({
                       handleImageLoad={handleImageLoad}
                       handleVideoLoad={handleVideoLoad}
                       loadingStates={loadingStates}
-                      user={user}
                       getSenderData={getSenderData}
                     />
                   ) : (

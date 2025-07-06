@@ -1,6 +1,5 @@
 import { Icon } from "@iconify/react";
-import React from "react";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import ChatList from "@/components/ChatList";
 import { Input } from "@/components/ui/input";
 import { ChatListLoading } from "../components/ChatListLoading";
@@ -9,41 +8,105 @@ import { db } from "../firebase";
 import { collection, query, onSnapshot, where } from "firebase/firestore";
 import { useUserStore } from "@/stores/useUserStore";
 
+function SidebarPanel({
+  searchTerm,
+  setSearchTerm,
+  chatsLoading,
+  filteredChats,
+  handleSelectChat,
+  getOtherUserInDirectChat,
+  getChatPhoto,
+  getChatDisplayName,
+  user,
+  clearChat,
+  getSenderDisplayName,
+  toggleMenu,
+  className = "",
+}) {
+  return (
+    <div className={className}>
+      <div className="flex items-center justify-start gap-2 mb-4">
+        <div
+          onClick={() => toggleMenu()}
+          className="rounded-full dark:bg-gray-700/20 p-2"
+        >
+          <Icon icon="duo-icons:menu" width="24" height="24" />
+        </div>
+        <div className="w-full">
+          <Input
+            type="search"
+            placeholder="Search..."
+            className="w-full rounded-full border border-gray-600"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+      </div>
+      {chatsLoading ? (
+        <ChatListLoading />
+      ) : filteredChats.length > 0 ? (
+        <ChatList
+          filteredChats={filteredChats}
+          handleSelectChat={handleSelectChat}
+          getOtherUserInDirectChat={getOtherUserInDirectChat}
+          getChatPhoto={getChatPhoto}
+          getChatDisplayName={getChatDisplayName}
+          currentUserId={user?.uid}
+          onLeaveSuccess={clearChat}
+          getSenderDisplayName={getSenderDisplayName}
+        />
+      ) : (
+        <div className="mx-1 p-2 border-gray-600/50 rounded-lg border text-gray-500">
+          No Recent Chats
+        </div>
+      )}
+    </div>
+  );
+}
+
 const Sidebar = ({ toggleMenu, handleSelectChat, getSenderDisplayName }) => {
   const { chats, setChats, clearChat, chatId, users } = useMessageActionStore();
   const [searchTerm, setSearchTerm] = useState("");
   const user = useUserStore((s) => s.user);
   const [chatsLoading, setChatsLoading] = useState(true);
 
-  const getUserData = (userId) => {
-    if (!userId) return null;
-    const user = users.find((u) => u.id === userId);
-    return user || null;
-  };
+  const getUserData = useCallback(
+    (userId) => users.find((u) => u.id === userId) || null,
+    [users]
+  );
 
-  const getOtherUserInDirectChat = (chat) => {
-    if (chat.type !== "direct") return null;
-    const otherUserId = chat.users.find((uid) => uid !== user?.uid);
-    return getUserData(otherUserId);
-  };
-
-  const getChatDisplayName = (chat) => {
-    if (chat.type === "direct") {
+  const getOtherUserInDirectChat = useCallback(
+    (chat) => {
+      if (chat.type !== "direct") return null;
       const otherUserId = chat.users.find((uid) => uid !== user?.uid);
-      const otherUser = users.find((u) => u.id === otherUserId);
-      return otherUser?.displayName || "Unknown User";
-    }
-    return chat.name;
-  };
+      return getUserData(otherUserId);
+    },
+    [user?.uid, getUserData]
+  );
 
-  const getChatPhoto = (chat) => {
-    if (chat.type === "direct") {
-      const otherUserId = chat.users.find((uid) => uid !== user?.uid);
-      const otherUser = users.find((u) => u.id === otherUserId);
-      return otherUser?.photoURL;
-    }
-    return chat.photoURL;
-  };
+  const getChatDisplayName = useCallback(
+    (chat) => {
+      if (chat.type === "direct") {
+        const otherUserId = chat.users.find((uid) => uid !== user?.uid);
+        const otherUser = users.find((u) => u.id === otherUserId);
+        return otherUser?.displayName || "Unknown User";
+      }
+      return chat.name;
+    },
+    [user?.uid, users]
+  );
+
+  const getChatPhoto = useCallback(
+    (chat) => {
+      if (chat.type === "direct") {
+        const otherUserId = chat.users.find((uid) => uid !== user?.uid);
+        const otherUser = users.find((u) => u.id === otherUserId);
+        return otherUser?.photoURL;
+      }
+      return chat.photoURL;
+    },
+    [user?.uid, users]
+  );
 
   useEffect(() => {
     if (user) {
@@ -61,106 +124,58 @@ const Sidebar = ({ toggleMenu, handleSelectChat, getSenderDisplayName }) => {
     }
   }, [user, setChats]);
 
-  const sortedChats = chats.sort((a, b) => {
-    const aTime =
-      a.lastMessageTime?.toMillis?.() || (a.id === chatId ? Date.now() : 0);
-    const bTime =
-      b.lastMessageTime?.toMillis?.() || (b.id === chatId ? Date.now() : 0);
-    return bTime - aTime;
-  });
+  const sortedChats = React.useMemo(() => {
+    return chats.slice().sort((a, b) => {
+      const aTime =
+        a.lastMessageTime?.toMillis?.() || (a.id === chatId ? Date.now() : 0);
+      const bTime =
+        b.lastMessageTime?.toMillis?.() || (b.id === chatId ? Date.now() : 0);
+      return bTime - aTime;
+    });
+  }, [chats, chatId]);
 
-  const filteredChats = sortedChats.filter((chat) => {
-    const name = getChatDisplayName(chat).toLowerCase();
-    return name.includes(searchTerm.toLowerCase());
-  });
+  const filteredChats = React.useMemo(() => {
+    return sortedChats.filter((chat) => {
+      const name = getChatDisplayName(chat).toLowerCase();
+      return name.includes(searchTerm.toLowerCase());
+    });
+  }, [sortedChats, searchTerm, getChatDisplayName]);
 
   return (
     <>
       {!chatId && (
-        <div className="w-screen bg-white dark:bg-gray-800 border-r sm:hidden fixed lg:sticky top-0 left-0 z-30 overflow-y-auto p-2 flex flex-col h-full">
-          <div className="flex items-center justify-start gap-2 mb-4">
-            <div
-              onClick={() => toggleMenu()}
-              className="rounded-full dark:bg-gray-700/20 p-2"
-            >
-              <Icon icon="duo-icons:menu" width="24" height="24" />
-            </div>
-            <div className="w-full">
-              <Input
-                type="search"
-                placeholder="Search..."
-                className="w-full rounded-full border border-gray-600"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-          </div>
-          {chatsLoading ? (
-            <ChatListLoading />
-          ) : (
-            <>
-              {filteredChats.length > 0 ? (
-                <ChatList
-                  filteredChats={filteredChats}
-                  handleSelectChat={handleSelectChat}
-                  getOtherUserInDirectChat={getOtherUserInDirectChat}
-                  getChatPhoto={getChatPhoto}
-                  getChatDisplayName={getChatDisplayName}
-                  currentUserId={user?.uid}
-                  onLeaveSuccess={clearChat}
-                  getSenderDisplayName={getSenderDisplayName}
-                />
-              ) : (
-                <div className=" mx-1 p-2 border-gray-600/50 rounded-lg border text-gray-500">
-                  No Recent Chats
-                </div>
-              )}
-            </>
-          )}
-        </div>
+        <SidebarPanel
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          chatsLoading={chatsLoading}
+          filteredChats={filteredChats}
+          handleSelectChat={handleSelectChat}
+          getOtherUserInDirectChat={getOtherUserInDirectChat}
+          getChatPhoto={getChatPhoto}
+          getChatDisplayName={getChatDisplayName}
+          user={user}
+          clearChat={clearChat}
+          getSenderDisplayName={getSenderDisplayName}
+          toggleMenu={toggleMenu}
+          className="w-screen bg-white dark:bg-gray-800 border-r sm:hidden fixed lg:sticky top-0 left-0 z-30 overflow-y-auto p-2 flex flex-col h-full"
+        />
       )}
 
-      <div className="w-64 hidden  bg-white dark:bg-gray-800 border-r sm:fixed lg:sticky top-0 left-0 z-10 overflow-y-auto p-2 sm:flex flex-col h-full">
-        <div className="flex items-center justify-start gap-2 mb-4">
-          <div
-            onClick={() => toggleMenu()}
-            className="rounded-full dark:bg-gray-700/20 p-2"
-          >
-            <Icon icon="duo-icons:menu" width="24" height="24" />
-          </div>
-          <div className="w-full">
-            <Input
-              type="search"
-              placeholder="Search..."
-              className="w-full rounded-full border border-gray-600"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-        </div>
-        {chatsLoading ? (
-          <ChatListLoading />
-        ) : (
-          <>
-            {filteredChats.length > 0 ? (
-              <ChatList
-                filteredChats={filteredChats}
-                handleSelectChat={handleSelectChat}
-                getOtherUserInDirectChat={getOtherUserInDirectChat}
-                getChatPhoto={getChatPhoto}
-                getChatDisplayName={getChatDisplayName}
-                currentUserId={user?.uid}
-                onLeaveSuccess={clearChat}
-                getSenderDisplayName={getSenderDisplayName}
-              />
-            ) : (
-              <div className=" mx-1 p-2 border-gray-600/50 rounded-lg border text-gray-500">
-                No Recent Chats
-              </div>
-            )}
-          </>
-        )}
-      </div>
+      <SidebarPanel
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+        chatsLoading={chatsLoading}
+        filteredChats={filteredChats}
+        handleSelectChat={handleSelectChat}
+        getOtherUserInDirectChat={getOtherUserInDirectChat}
+        getChatPhoto={getChatPhoto}
+        getChatDisplayName={getChatDisplayName}
+        user={user}
+        clearChat={clearChat}
+        getSenderDisplayName={getSenderDisplayName}
+        toggleMenu={toggleMenu}
+        className="w-64 hidden bg-white dark:bg-gray-800 border-r sm:fixed lg:sticky top-0 left-0 z-10 overflow-y-auto p-2 sm:flex flex-col h-full"
+      />
     </>
   );
 };
