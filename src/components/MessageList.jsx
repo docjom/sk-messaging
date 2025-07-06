@@ -10,6 +10,7 @@ import {
 import { EmojiSet } from "./EmojiSet";
 import { ReplyMessageDisplay } from "./ReplyMessage";
 import { useMessageActionStore } from "../stores/useMessageActionStore";
+import { useUserStore } from "@/stores/useUserStore";
 import { FileMessage } from "./FileMessage";
 import { EmojiReactions } from "./EmojiReactions";
 import { formatMessageWithLinks, formatFileSize } from "../composables/scripts";
@@ -24,21 +25,19 @@ import {
   updateDoc,
 } from "firebase/firestore";
 import { db } from "../firebase";
-
+import { formatTimestamp } from "../composables/scripts";
 export const MessageList = ({
   messages,
-  user,
   getSenderData,
   getSenderDisplayName,
-  formatTimestamp,
-  chatId,
-  users,
-  currentUserId,
 }) => {
   const messagesEndRef = useRef(null);
   const [loadingStates, setLoadingStates] = useState({});
   const [openPopoverId, setOpenPopoverId] = useState(null);
-  const { setEditMessage, setReplyTo } = useMessageActionStore();
+  const { setEditMessage, setReplyTo, chatId, users } = useMessageActionStore();
+  const { userProfile } = useUserStore();
+  const user = userProfile;
+  const currentUserId = user?.uid;
 
   const handlePinMessage = async (messageId) => {
     try {
@@ -115,14 +114,6 @@ export const MessageList = ({
         lastMessageTime: serverTimestamp(),
       });
 
-      // // Optional: Add system log message
-      // await addDoc(messagesRef, {
-      //   senderId: "system",
-      //   message: `${name} bumped a message.`,
-      //   timestamp: serverTimestamp(),
-      //   type: "system",
-      // });
-
       setOpenPopoverId(null);
     } catch (error) {
       console.error("Error bumping message:", error);
@@ -139,54 +130,6 @@ export const MessageList = ({
         toast.error("Failed to copy");
       });
   };
-
-  // Fixed download function for Firebase Storage URLs
-  // const downloadFile = async (url, fileName) => {
-  //   try {
-  //     // For Firebase Storage URLs or CORS-enabled URLs, fetch and create blob
-  //     const response = await fetch(url);
-  //     if (!response.ok) throw new Error("Failed to fetch file");
-
-  //     const blob = await response.blob();
-
-  //     // Create blob URL
-  //     const blobUrl = URL.createObjectURL(blob);
-
-  //     // Create temporary anchor element for download
-  //     const link = document.createElement("a");
-  //     link.href = blobUrl;
-  //     link.download = fileName;
-  //     // Remove target="_blank" - this was causing the new tab behavior
-
-  //     // Append to body, click, and remove
-  //     document.body.appendChild(link);
-  //     link.click();
-  //     document.body.removeChild(link);
-
-  //     // Clean up blob URL
-  //     URL.revokeObjectURL(blobUrl);
-
-  //     toast.success("Download started");
-  //   } catch (err) {
-  //     console.error("Download failed:", err);
-
-  //     // Fallback: try direct download (might open in new tab for some file types)
-  //     try {
-  //       const link = document.createElement("a");
-  //       link.href = url;
-  //       link.download = fileName;
-  //       document.body.appendChild(link);
-  //       link.click();
-  //       document.body.removeChild(link);
-  //       toast.success("Download started");
-  //     } catch (e) {
-  //       toast.error(
-  //         "Download failed - file may not support direct download",
-  //         e
-  //       );
-  //     }
-  //   }
-  // };
 
   const downloadFile = async (imageUrl) => {
     try {
