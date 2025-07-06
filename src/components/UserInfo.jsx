@@ -47,7 +47,7 @@ export const UserInfo = ({ user, isOpen, onClose }) => {
                     </span>
                   )}
                 </div>
-                <h1 title="Name" className=" font-bold text-gray-800 text-2xl">
+                <h1 title="Name" className=" font-bold  text-2xl">
                   {user.displayName}
                 </h1>
                 <div>
