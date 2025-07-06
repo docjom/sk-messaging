@@ -262,13 +262,7 @@ const ChatList = ({
         </div>
         {/* Show timestamp */}
         {chat.lastMessageTime && (
-          <div
-            className={`text-[10px] absolute bottom-0 right-2 ${
-              !chat.seenBy?.includes(currentUserId)
-                ? " text-gray-200"
-                : "text-gray-400"
-            }`}
-          >
+          <div className="text-[10px] absolute bottom-0 right-2 ">
             <div className="flex justify-start items-center">
               {chat.seenBy?.includes(currentUserId) && (
                 <span>
