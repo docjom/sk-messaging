@@ -33,7 +33,7 @@ export const UserInfo = ({ user, isOpen, onClose }) => {
                   {user.department && (
                     <span
                       title="Department"
-                      className="text-xs font-semibold text-blue-500 bg-gray-100 border px-2 py-0.5 rounded-full"
+                      className="text-xs font-semibold text-center text-blue-500 bg-gray-100 border px-2 py-0.5 rounded-full"
                     >
                       {user.department}
                     </span>
@@ -41,7 +41,7 @@ export const UserInfo = ({ user, isOpen, onClose }) => {
                   {user.position && (
                     <span
                       title="Position"
-                      className="text-xs font-semibold text-gray-800 bg-gray-100 border px-2 py-0.5 rounded-full"
+                      className="text-xs text-center font-semibold text-gray-800 bg-gray-100 border px-2 py-0.5 rounded-full"
                     >
                       {user.position}
                     </span>
