@@ -131,7 +131,7 @@ export function EditGroup({ chatId, currentUserId }) {
             {/* Display current or selected image */}
             <Avatar className="w-20 h-20">
               <AvatarImage src={imagePreview || profilePhotoURL} />
-              <AvatarFallback>GP</AvatarFallback>
+              <AvatarFallback> {name[0]?.toUpperCase() || "P"}</AvatarFallback>
             </Avatar>
             <Button variant="ghost" type="button" className="border">
               <label htmlFor="profile-photo" className="cursor-pointer">

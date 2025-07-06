@@ -322,7 +322,10 @@ export const MessageList = ({
                                     src={user?.photoURL}
                                     alt={user?.displayName}
                                   />
-                                  <AvatarFallback>P</AvatarFallback>
+                                  <AvatarFallback>
+                                    {" "}
+                                    {user?.displayName[0]?.toUpperCase() || "P"}
+                                  </AvatarFallback>
                                 </Avatar>
                               );
                             })}
@@ -348,7 +351,10 @@ export const MessageList = ({
                                     src={user?.photoURL}
                                     alt={user?.displayName}
                                   />
-                                  <AvatarFallback>P</AvatarFallback>
+                                  <AvatarFallback>
+                                    {" "}
+                                    {user?.displayName[0]?.toUpperCase() || "P"}
+                                  </AvatarFallback>
                                 </Avatar>
 
                                 <span className="text-sm">
@@ -603,7 +609,7 @@ export const MessageList = ({
               {msg.senderId !== user?.uid && msg.type !== "system" && (
                 <Avatar className="h-5 w-5">
                   <AvatarImage src={getSenderData(msg.senderId)?.photoURL} />
-                  <AvatarFallback>P</AvatarFallback>
+                  <AvatarFallback></AvatarFallback>
                 </Avatar>
               )}
 
@@ -777,7 +783,11 @@ export const MessageList = ({
                                         src={user?.photoURL}
                                         alt={user?.displayName}
                                       />
-                                      <AvatarFallback>P</AvatarFallback>
+                                      <AvatarFallback>
+                                        {" "}
+                                        {user?.displayName[0]?.toUpperCase() ||
+                                          "P"}
+                                      </AvatarFallback>
                                     </Avatar>
                                   );
                                 })}
@@ -803,7 +813,11 @@ export const MessageList = ({
                                         src={user?.photoURL}
                                         alt={user?.displayName}
                                       />
-                                      <AvatarFallback>P</AvatarFallback>
+                                      <AvatarFallback>
+                                        {" "}
+                                        {user?.displayName[0]?.toUpperCase() ||
+                                          "P"}
+                                      </AvatarFallback>
                                     </Avatar>
 
                                     <span className="text-sm">

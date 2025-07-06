@@ -737,7 +737,10 @@ function Dashboard() {
                     <div className="flex justify-start gap-3 items-center w-full">
                       <Avatar className="h-10 w-10">
                         <AvatarImage src={currentChat.photoURL} />
-                        <AvatarFallback>GP</AvatarFallback>
+                        <AvatarFallback>
+                          {" "}
+                          {currentChat.name[0]?.toUpperCase() || "G"}
+                        </AvatarFallback>
                       </Avatar>
                       <div className="relative sm:max-w-52 max-w-20">
                         <div className="font-semibold text-sm sm:max-w-52 max-w-20 truncate sm:text-lg capitalize">
@@ -787,7 +790,10 @@ function Dashboard() {
                           src={selectedUser.photoURL}
                           alt={selectedUser.displayName}
                         />
-                        <AvatarFallback>P</AvatarFallback>
+                        <AvatarFallback>
+                          {" "}
+                          {selectedUser.displayName[0]?.toUpperCase() || "P"}
+                        </AvatarFallback>
                       </Avatar>
                       <div className="relative">
                         <span className="text-lg sm:max-w-52 max-w-40 truncate font-semibold capitalize">

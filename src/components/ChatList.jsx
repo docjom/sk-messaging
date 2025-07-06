@@ -99,7 +99,7 @@ const ChatList = ({
           </div>
         )}
 
-        <div className="absolute top-0 right-0 z-10 opacity-0 group-hover:opacity-100 rounded-xl transition-opacity duration-150 backdrop-blur-sm">
+        <div className="absolute top-0 right-0 z-10 sm:not-visited:opacity-0 sm:group-hover:opacity-100 rounded-xl transition-opacity duration-150 backdrop-blur-sm">
           <Popover>
             <PopoverTrigger
               onClick={(e) => {
@@ -210,7 +210,10 @@ const ChatList = ({
 
             <Avatar className="w-10 h-10">
               <AvatarImage src={getChatPhoto(chat)} />
-              <AvatarFallback>P</AvatarFallback>
+              <AvatarFallback>
+                {" "}
+                {getChatDisplayName(chat)[0]?.toUpperCase() || "U"}
+              </AvatarFallback>
             </Avatar>
           </div>
 
