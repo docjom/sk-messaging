@@ -1,15 +1,15 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { db } from "../firebase";
 import { toast } from "sonner";
-import ChatHeader from "@/components/ChatHeader";
+import ChatHeader from "@/components/chat/ChatHeader";
 import { Toaster } from "@/components/ui/sonner";
-import FileUploadDialog from "@/components/FileUploadDialog";
+import FileUploadDialog from "@/components/message/FileUploadDialog";
 import ErrorProfileImage from "../assets/error.png";
-import { UserInfo } from "@/components/UserInfo";
-import { Menu } from "@/components/Menu";
-import Sidebar from "@/components/Sidebar";
-import MessageInputContainer from "@/components/MessageInputContainer";
-import ChatContent from "@/components/ChatContent";
+import { UserInfo } from "@/components/user/UserInfo";
+import { Menu } from "@/components/layout/Menu";
+import Sidebar from "@/components/layout/Sidebar";
+import MessageInputContainer from "@/components/message/MessageInputUi/MessageInputContainer";
+import ChatContent from "@/components/chat/ChatContent";
 import {
   addDoc,
   collection,

@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
-import { db } from "../firebase";
-import { useMessageActionStore } from "../stores/useMessageActionStore";
-import { MessageInput } from "@/components/MessageInput";
-import { useMessageSending } from "../hooks/useMessageSending";
+import { db } from "@/firebase";
+import { useMessageActionStore } from "@/stores/useMessageActionStore";
+import { MessageInput } from "@/components/message/MessageInputUi/MessageInput";
+import { useMessageSending } from "@/hooks/useMessageSending";
 import { doc, getDoc } from "firebase/firestore";
 
 const MessageInputContainer = ({

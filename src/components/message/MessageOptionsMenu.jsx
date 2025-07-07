@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/popover";
 import { Icon } from "@iconify/react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { EmojiSet } from "./EmojiSet";
+import { EmojiSet } from "../emoji/EmojiSet";
 
 export function MessageOptionsMenu({
   msg,

@@ -1,12 +1,12 @@
 import React, { useRef, useState, useCallback } from "react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Icon } from "@iconify/react";
-import { ReplyMessageDisplay } from "./ReplyMessage";
-import { useMessageActionStore } from "../stores/useMessageActionStore";
+import { ReplyMessageDisplay } from "../message/ReplyMessage";
+import { useMessageActionStore } from "../../stores/useMessageActionStore";
 import { useUserStore } from "@/stores/useUserStore";
-import { FileMessage } from "./FileMessage";
-import { EmojiReactions } from "./EmojiReactions";
-import { formatMessageWithLinks } from "../composables/scripts";
+import { FileMessage } from "../message/FileMessage";
+import { EmojiReactions } from "../emoji/EmojiReactions";
+import { formatMessageWithLinks } from "../../composables/scripts";
 import { toast } from "sonner";
 import {
   doc,
@@ -17,10 +17,10 @@ import {
   collection,
   updateDoc,
 } from "firebase/firestore";
-import { db } from "../firebase";
-import { formatTimestamp } from "../composables/scripts";
-import ForwardMessageDialog from "./ForwardMessageDialog";
-import { MessageOptionsMenu } from "./MessageOptionsMenu";
+import { db } from "../../firebase";
+import { formatTimestamp } from "../../composables/scripts";
+import ForwardMessageDialog from "../message/ForwardMessageDialog";
+import { MessageOptionsMenu } from "../message/MessageOptionsMenu";
 export const MessageList = ({
   messages,
   getSenderData,
@@ -223,34 +223,9 @@ export const MessageList = ({
                 ? "justify-center"
                 : msg.senderId === user?.uid
                 ? "justify-end"
-                : "justify-start"
+                : "justify-start items-end"
             }`}
           >
-            {/* Options button for current user messages */}
-            {msg.senderId === user?.uid && msg.type !== "system" && (
-              <div className="relative">
-                <MessageOptionsMenu
-                  msg={msg}
-                  users={users}
-                  user={user}
-                  openPopoverId={openPopoverId}
-                  setOpenPopoverId={setOpenPopoverId}
-                  setReplyTo={setReplyTo}
-                  setEditMessage={setEditMessage}
-                  handlePinMessage={handlePinMessage}
-                  handleRemovePinMessage={handleRemovePinMessage}
-                  handleBumpMessage={handleBumpMessage}
-                  handleForwardMessage={handleForwardMessage}
-                  copy={copy}
-                  copyImageToClipboard={copyImageToClipboard}
-                  downloadFile={downloadFile}
-                  getSenderDisplayName={getSenderDisplayName}
-                  chatId={chatId}
-                  isCurrentUser={true}
-                />
-              </div>
-            )}
-
             {/* ------------------------------------------------ */}
             <div>
               {/* Header with sender info */}
@@ -273,7 +248,11 @@ export const MessageList = ({
                   )}
                 </div>
               )}
-              <div className="flex items-end gap-1.5">
+              <div
+                className={`flex gap-1.5 ${
+                  msg.senderId === user?.uid ? "justify-end" : ""
+                }`}
+              >
                 {msg.senderId !== user?.uid && msg.type !== "system" && (
                   <Avatar className="h-5 w-5">
                     <AvatarImage src={getSenderData(msg.senderId)?.photoURL} />
@@ -281,7 +260,32 @@ export const MessageList = ({
                   </Avatar>
                 )}
 
-                <div>
+                <div className="flex">
+                  {/* Options button for current user messages */}
+                  {msg.senderId === user?.uid && msg.type !== "system" && (
+                    <div className="relative">
+                      <MessageOptionsMenu
+                        msg={msg}
+                        users={users}
+                        user={user}
+                        openPopoverId={openPopoverId}
+                        setOpenPopoverId={setOpenPopoverId}
+                        setReplyTo={setReplyTo}
+                        setEditMessage={setEditMessage}
+                        handlePinMessage={handlePinMessage}
+                        handleRemovePinMessage={handleRemovePinMessage}
+                        handleBumpMessage={handleBumpMessage}
+                        handleForwardMessage={handleForwardMessage}
+                        copy={copy}
+                        copyImageToClipboard={copyImageToClipboard}
+                        downloadFile={downloadFile}
+                        getSenderDisplayName={getSenderDisplayName}
+                        chatId={chatId}
+                        isCurrentUser={true}
+                      />
+                    </div>
+                  )}
+
                   <div
                     className={`relative max-w-52 h-auto ${
                       msg.type === "system"
@@ -330,70 +334,6 @@ export const MessageList = ({
                               }}
                               className="text-sm max-w-52 whitespace-pre-wrap break-words "
                             />
-
-                            <div
-                              className={`flex items-center gap-1 ${
-                                msg.senderId === user?.uid
-                                  ? "justify-end"
-                                  : "justify-start"
-                              }`}
-                            >
-                              {/* emoji reactions to message */}
-                              {msg.reactions && (
-                                <EmojiReactions
-                                  msg={msg}
-                                  getSenderData={getSenderData}
-                                  user={user}
-                                />
-                              )}
-
-                              <div
-                                className={`text-[10px] flex ${
-                                  msg.senderId === user?.uid
-                                    ? "text-white/70"
-                                    : "text-gray-400"
-                                }`}
-                              >
-                                {msg.type === "forwarded" && (
-                                  <span className="px-1">Forwarded</span>
-                                )}
-                                {msg.edited && (
-                                  <span className="px-1">Edited</span>
-                                )}
-                                {msg.bumpedFrom && (
-                                  <span className="px-1">Bump</span>
-                                )}
-                                {formatTimestamp(msg.timestamp)}
-                              </div>
-                              {msg.senderId === user?.uid && (
-                                <div className="flex">
-                                  {msg.senderId === user?.uid && (
-                                    <div className="flex">
-                                      {msg.status === "sending" ? (
-                                        <Icon
-                                          icon="ic:round-access-time"
-                                          width="14"
-                                          height="14"
-                                          className="animate-pulse"
-                                        />
-                                      ) : msg.status === "sent" && !msg.seen ? (
-                                        <Icon
-                                          icon="ic:round-check"
-                                          width="16"
-                                          height="16"
-                                        />
-                                      ) : msg.seenBy?.length > 0 ? (
-                                        <Icon
-                                          icon="solar:check-read-linear"
-                                          width="20"
-                                          height="20"
-                                        />
-                                      ) : null}
-                                    </div>
-                                  )}
-                                </div>
-                              )}
-                            </div>
                           </>
                         )}
                       </>
@@ -424,6 +364,77 @@ export const MessageList = ({
                   />
                 )}
               </div>
+              {/* sender */}
+              {msg.senderId !== user?.uid && msg.type !== "system" && (
+                <div className="ml-7">
+                  {/* emoji reactions to message */}
+                  {msg.reactions && (
+                    <EmojiReactions
+                      msg={msg}
+                      getSenderData={getSenderData}
+                      user={user}
+                    />
+                  )}
+                  <div className="text-[10px] flex ">
+                    {msg.type === "forwarded" && (
+                      <span className="px-1">Forwarded</span>
+                    )}
+                    {msg.edited && <span className="px-1">Edited</span>}
+                    {msg.bumpedFrom && <span className="px-1">Bump</span>}
+                    {formatTimestamp(msg.timestamp)}
+                  </div>
+                </div>
+              )}
+              {/* user */}
+              {msg.senderId === user?.uid && msg.type !== "system" && (
+                <div className="">
+                  {" "}
+                  {/* emoji reactions to message */}
+                  <div className="text-[10px] flex justify-end items-center">
+                    {msg.reactions && (
+                      <EmojiReactions
+                        msg={msg}
+                        getSenderData={getSenderData}
+                        user={user}
+                      />
+                    )}
+                  </div>
+                  <div className="text-[10px] flex justify-end items-center">
+                    {msg.forwarded && <span className="px-1">Forwarded</span>}
+                    {msg.edited && <span className="px-1">Edited</span>}
+                    {msg.bumpedFrom && <span className="px-1">Bump</span>}
+                    {formatTimestamp(msg.timestamp)}
+                    {msg.senderId === user?.uid && (
+                      <div className="flex">
+                        {msg.senderId === user?.uid && (
+                          <div className="flex">
+                            {msg.status === "sending" ? (
+                              <Icon
+                                icon="ic:round-access-time"
+                                width="14"
+                                height="14"
+                                className="animate-pulse"
+                              />
+                            ) : msg.status === "sent" && !msg.seen ? (
+                              <Icon
+                                icon="ic:round-check"
+                                width="16"
+                                height="16"
+                              />
+                            ) : msg.seenBy?.length > 0 ? (
+                              <Icon
+                                icon="solar:check-read-linear"
+                                width="16"
+                                height="16"
+                              />
+                            ) : null}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         ))}

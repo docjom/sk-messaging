@@ -7,11 +7,11 @@ import {
   PopoverTrigger,
   PopoverContent,
 } from "@/components/ui/popover";
-import { LeaveGroup } from "./LeaveGroup";
+import { LeaveGroup } from "../group/LeaveGroup";
 import { doc, updateDoc, arrayUnion, arrayRemove } from "firebase/firestore";
-import { db } from "../firebase";
-import { useMessageActionStore } from "../stores/useMessageActionStore";
-import { formatTimestamp } from "../composables/scripts";
+import { db } from "../../firebase";
+import { useMessageActionStore } from "../../stores/useMessageActionStore";
+import { formatTimestamp } from "../../composables/scripts";
 import { TypingIndicator } from "./TypingIndicator";
 //import { useTypingStatus } from "@/stores/useTypingStatus";
 

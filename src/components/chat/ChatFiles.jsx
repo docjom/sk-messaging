@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { db } from "../firebase";
+import { db } from "../../firebase";
 import { collection, query, getDocs, orderBy } from "firebase/firestore";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@iconify/react";

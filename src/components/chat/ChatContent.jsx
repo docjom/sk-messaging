@@ -1,6 +1,6 @@
 import React, { useRef, useEffect } from "react";
-import { MessagesLoading } from "../components/MessagesLoading";
-import { MessageList } from "@/components/MessageList";
+import { MessagesLoading } from "../message/MessagesLoading";
+import { MessageList } from "@/components/chat/MessageList";
 
 const ChatContent = ({
   chatId,

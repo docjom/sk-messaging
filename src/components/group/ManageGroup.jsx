@@ -13,7 +13,7 @@ import {
   addDoc,
   serverTimestamp,
 } from "firebase/firestore";
-import { db } from "../firebase";
+import { db } from "@/firebase";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,

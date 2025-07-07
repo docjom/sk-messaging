@@ -6,10 +6,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Icon } from "@iconify/react";
-import { EditGroup } from "@/components/EditGroup";
-import { LeaveGroup } from "@/components/LeaveGroup";
-import { PinnedMessages } from "../components/PinnedMessages";
-import { ChatFiles } from "./ChatFiles";
+import { EditGroup } from "./EditGroup";
+import { LeaveGroup } from "./LeaveGroup";
+import { PinnedMessages } from "../chat/PinnedMessages";
+import { ChatFiles } from "../chat/ChatFiles";
 
 export default function ManageGroupChat({
   chatId,

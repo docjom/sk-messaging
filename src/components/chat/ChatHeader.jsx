@@ -7,11 +7,11 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import ManageGroupChat from "../components/GroupChatSetting";
-import { AddUsersToGroup } from "@/components/AddUserToGroup";
-import { PinnedMessages } from "@/components/PinnedMessages";
-import { ChatFiles } from "@/components/ChatFiles";
-import { TypingIndicator } from "../components/TypingIndicator";
+import ManageGroupChat from "../group/GroupChatSetting";
+import { AddUsersToGroup } from "@/components/group/AddUserToGroup";
+import { PinnedMessages } from "@/components/chat/PinnedMessages";
+import { ChatFiles } from "@/components/chat/ChatFiles";
+import { TypingIndicator } from "./TypingIndicator";
 
 const ChatHeader = ({
   currentChat,
@@ -90,7 +90,7 @@ const GroupChatHeader = ({
       <div className="relative sm:max-w-52 max-w-20">
         <div className="font-semibold text-sm sm:max-w-52 max-w-20 truncate sm:text-lg capitalize">
           {getChatDisplayName(currentChat)}
-          <div className="absolute -bottom-2.5 text-xs left-0">
+          <div className="absolute -bottom-2.5  text-xs left-0">
             <TypingIndicator chatId={chatId} getName={getSenderDisplayName} />
           </div>
         </div>

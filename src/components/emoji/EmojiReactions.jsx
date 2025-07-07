@@ -3,8 +3,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export const EmojiReactions = ({ msg, getSenderData, user }) => {
   return (
-    <div className="relative max-w-40">
-      <div className="flex gap-1 pr-2 justify-start items-center max-w-40 overflow-x-auto  scrollbar-hide">
+    <div className="relative max-w-40 my-0.5">
+      <div className="flex gap-1 justify-start items-center max-w-40 overflow-x-auto  scrollbar-hide">
         {msg.reactions && (
           <>
             {msg.reactions &&
@@ -57,13 +57,6 @@ export const EmojiReactions = ({ msg, getSenderData, user }) => {
               ))}
           </>
         )}
-        <div
-          className={`pointer-events-none absolute inset-y-0 -right-1 w-1/3 bg-gradient-to-l  ${
-            msg.senderId === user.uid
-              ? " from-blue-500 "
-              : " from-white dark:from-gray-800"
-          }`}
-        ></div>
       </div>
     </div>
   );

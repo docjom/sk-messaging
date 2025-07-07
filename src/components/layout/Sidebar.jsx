@@ -1,10 +1,10 @@
 import { Icon } from "@iconify/react";
 import React, { useState, useEffect, useCallback } from "react";
-import ChatList from "@/components/ChatList";
+import ChatList from "@/components/chat/ChatList";
 import { Input } from "@/components/ui/input";
-import { ChatListLoading } from "../components/ChatListLoading";
-import { useMessageActionStore } from "../stores/useMessageActionStore";
-import { db } from "../firebase";
+import { ChatListLoading } from "../chat/ChatListLoading";
+import { useMessageActionStore } from "@/stores/useMessageActionStore";
+import { db } from "@/firebase";
 import { collection, query, onSnapshot, where } from "firebase/firestore";
 import { useUserStore } from "@/stores/useUserStore";
 

@@ -1,9 +1,9 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Contacts } from "@/components/Contacts";
-import { CreateGroupChat } from "@/components/CreateGroupChat";
-import { EditProfile } from "@/components/EditProfile";
-import { Logout } from "@/components/Logout";
-import { Settings } from "./Settings";
+import { Contacts } from "@/components/user/Contacts";
+import { CreateGroupChat } from "@/components/group/CreateGroupChat";
+import { EditProfile } from "@/components/user/EditProfile";
+import { Logout } from "@/components/auth/Logout";
+import { Settings } from "../settings/Settings";
 import { Icon } from "@iconify/react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";

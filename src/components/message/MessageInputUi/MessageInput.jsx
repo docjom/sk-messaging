@@ -1,7 +1,7 @@
 import { Icon } from "@iconify/react";
 import React, { lazy, Suspense, useState, useCallback, memo } from "react";
 import { useMessageActionStore } from "@/stores/useMessageActionStore";
-import { SendButton } from "./MessageInputUi/SendButton";
+import { SendButton } from "./SendButton";
 import { useUserStore } from "@/stores/useUserStore";
 // Lazy load
 const LazyEmojiPicker = lazy(() => import("emoji-picker-react"));
@@ -10,7 +10,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { useTypingForChat } from "../hooks/userTypingForChat";
+import { useTypingForChat } from "../../../hooks/userTypingForChat";
 
 const MessageInput = memo(
   ({
