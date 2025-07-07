@@ -250,6 +250,7 @@ const ForwardMessageDialog = ({
                     ))}
                   </>
                 )}
+                <div className="font-semibold text-sm text-gray-500">Users</div>
                 {filteredUsers.map((user) => (
                   <UserListItem
                     key={user.id}
