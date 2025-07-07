@@ -1,7 +1,7 @@
 import React from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
-export const EmojiReactions = ({ msg, getSenderData, user }) => {
+export const EmojiReactions = ({ msg, getSenderData }) => {
   return (
     <div className="relative max-w-40 my-0.5">
       <div className="flex gap-1 justify-start items-center max-w-40 overflow-x-auto  scrollbar-hide">
@@ -11,13 +11,9 @@ export const EmojiReactions = ({ msg, getSenderData, user }) => {
               Object.entries(msg.reactions).map(([emojiSrcSet, users]) => (
                 <span
                   key={emojiSrcSet}
-                  className={`flex gap-1 justify-start items-center border rounded-full  px-1 py-0.5 ${
-                    msg.senderId === user.uid
-                      ? "border-gray-300"
-                      : "bg-gray-200/50"
-                  }`}
+                  className="flex gap-1 justify-start items-center border rounded-full  px-1 py-0.5 "
                 >
-                  <span className="rounded-full bg-gray-200/50 size-5">
+                  <span className="rounded-full  size-5">
                     <picture className="cursor-pointer">
                       <source
                         srcSet={`https://fonts.gstatic.com/s/e/notoemoji/latest/${emojiSrcSet}/512.webp`}

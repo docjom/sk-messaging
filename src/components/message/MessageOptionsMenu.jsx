@@ -52,7 +52,7 @@ export function MessageOptionsMenu({
                   <Icon icon="solar:check-read-broken" width="24" height="24" />
                   <span>{msg.seenBy?.length} Seen</span>
                 </div>
-                <div className="flex -space-x-2">
+                <div className="flex -space-x-2 justify-start items-center ">
                   {msg.seenBy.slice(0, 3).map((uid) => {
                     const userObj = users.find((u) => u.id === uid);
                     return (
@@ -68,7 +68,7 @@ export function MessageOptionsMenu({
                     );
                   })}
                   {msg.seenBy.length > 3 && (
-                    <span className="text-xs text-gray-500">
+                    <span className="text-xs ml-2 text-gray-500">
                       +{msg.seenBy.length - 3}
                     </span>
                   )}

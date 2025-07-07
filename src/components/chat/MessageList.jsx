@@ -377,7 +377,25 @@ export const MessageList = ({
                   )}
                   <div className="text-[10px] flex ">
                     {msg.type === "forwarded" && (
-                      <span className="px-1">Forwarded</span>
+                      <span className="px-1 flex justify-start items-center">
+                        {" "}
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="14"
+                          height="14"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            fill="none"
+                            stroke="currentColor"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="1.5"
+                            d="m19.5 12l-5-5m5 5l-5 5m5-5H13m-3.5 0c-1.667 0-5 1-5 5"
+                          />
+                        </svg>
+                        Forwarded
+                      </span>
                     )}
                     {msg.edited && <span className="px-1">Edited</span>}
                     {msg.bumpedFrom && <span className="px-1">Bump</span>}
@@ -400,7 +418,27 @@ export const MessageList = ({
                     )}
                   </div>
                   <div className="text-[10px] flex justify-end items-center">
-                    {msg.forwarded && <span className="px-1">Forwarded</span>}
+                    {msg.forwarded && (
+                      <span className="px-1 flex justify-start items-center">
+                        {" "}
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="14"
+                          height="14"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            fill="none"
+                            stroke="currentColor"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="1.5"
+                            d="m19.5 12l-5-5m5 5l-5 5m5-5H13m-3.5 0c-1.667 0-5 1-5 5"
+                          />
+                        </svg>
+                        Forwarded
+                      </span>
+                    )}
                     {msg.edited && <span className="px-1">Edited</span>}
                     {msg.bumpedFrom && <span className="px-1">Bump</span>}
                     {formatTimestamp(msg.timestamp)}
