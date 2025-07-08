@@ -14,6 +14,9 @@ import {
   getDoc,
   addDoc,
   writeBatch,
+  query,
+  where,
+  getDocs,
   collection,
   updateDoc,
 } from "firebase/firestore";
@@ -49,6 +52,15 @@ export const MessageList = ({
   const handlePinMessage = async (messageId) => {
     try {
       const messageRef = doc(db, "chats", chatId, "messages", messageId);
+      const messageSnap = await getDoc(messageRef);
+
+      if (!messageSnap.exists()) {
+        console.error("Message not found");
+        return;
+      }
+
+      const messageData = messageSnap.data();
+
       await updateDoc(messageRef, {
         pinned: true,
         pinnedAt: serverTimestamp(),
@@ -71,6 +83,28 @@ export const MessageList = ({
         timestamp: serverTimestamp(),
         type: "system",
       });
+
+      const pinnedMessageRef = collection(
+        db,
+        "chats",
+        chatId,
+        "pinned-messages"
+      );
+      await addDoc(pinnedMessageRef, {
+        originalMessageId: messageId,
+        senderId: messageData.senderId,
+        message: messageData.message,
+        timestamp: messageData.timestamp,
+        type: messageData.type || null,
+        fileData: messageData.fileData || null,
+        forwarded: messageData.forwarded || false,
+        forwardedAt: messageData.forwardedAt || null,
+
+        // Pin-specific data
+        pinnedBy: currentUserId,
+        pinnedAt: serverTimestamp(),
+      });
+
       await batch.commit();
 
       setOpenPopoverId(null);
@@ -78,14 +112,60 @@ export const MessageList = ({
       console.error("Failed to pin message:", error);
     }
   };
-
   const handleRemovePinMessage = async (messageId) => {
     try {
+      // Find the pinned message document to delete
+      const pinnedMessagesRef = collection(
+        db,
+        "chats",
+        chatId,
+        "pinned-messages"
+      );
+      const q = query(
+        pinnedMessagesRef,
+        where("originalMessageId", "==", messageId)
+      );
+      const pinnedMessageSnap = await getDocs(q);
+
+      if (pinnedMessageSnap.empty) {
+        console.error("Pinned message not found");
+        return;
+      }
+
+      const pinnedMessageDoc = pinnedMessageSnap.docs[0];
+
+      // Get current user info
+      const userRef = doc(db, "users", currentUserId);
+      const userSnap = await getDoc(userRef);
+      const name = userSnap.data()?.displayName || "Someone";
+
+      const batch = writeBatch(db);
+
+      // Update original message to remove pinned status
       const msgRef = doc(db, "chats", chatId, "messages", messageId);
-      await updateDoc(msgRef, {
+      batch.update(msgRef, {
         pinned: false,
         pinnedAt: null,
       });
+
+      // Remove from pinned-messages collection
+      const pinnedMessageRef = doc(
+        db,
+        "chats",
+        chatId,
+        "pinned-messages",
+        pinnedMessageDoc.id
+      );
+      batch.delete(pinnedMessageRef);
+
+      // Update chat's last message
+      const chatRef = doc(db, "chats", chatId);
+      batch.update(chatRef, {
+        lastMessage: `${name} unpinned a message`,
+        lastMessageTime: serverTimestamp(),
+      });
+
+      await batch.commit();
       setOpenPopoverId(null);
     } catch (error) {
       console.error("Error unpinning message:", error);
@@ -110,7 +190,7 @@ export const MessageList = ({
       const messagesRef = collection(db, "chats", chatId, "messages");
       await addDoc(messagesRef, {
         ...originalMsg,
-        bumpedFrom: messageId, // Optional trace
+        bumpedFrom: messageId,
         timestamp: serverTimestamp(),
       });
 

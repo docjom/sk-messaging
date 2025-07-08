@@ -83,6 +83,35 @@ export const useMessageSending = () => {
           }),
         };
 
+        if (message && message.match(/(https?:\/\/[^\s]+)/g)) {
+          const urlRegex = /(https?:\/\/[^\s]+)/g;
+          const foundLinks = message.match(urlRegex);
+          const filesRef = collection(db, "chats", chatId, "files");
+          for (const url of foundLinks) {
+            await addDoc(filesRef, {
+              senderId,
+              type: "link",
+              url,
+              timestamp: serverTimestamp(),
+            });
+          }
+        }
+
+        if (imageURL) {
+          const filesRef = collection(db, "chats", chatId, "files");
+          await addDoc(filesRef, {
+            senderId,
+            fileData: {
+              fileName: pastedImage?.name,
+              url: imageURL,
+              name: pastedImage?.name,
+              type: pastedImage?.type,
+              size: pastedImage?.file.size,
+            },
+            timestamp: serverTimestamp(),
+          });
+        }
+
         const msgRef = await addDoc(messagesRef, messagePayload);
         await updateDoc(msgRef, { status: "sent" });
 

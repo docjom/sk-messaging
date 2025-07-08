@@ -87,7 +87,8 @@ const GroupChatHeader = ({
           {currentChat.name[0]?.toUpperCase() || "G"}
         </AvatarFallback>
       </Avatar>
-      <div className="relative sm:max-w-52 max-w-20">
+
+      <div className=" relative sm:max-w-52 max-w-20">
         <div className="font-semibold text-sm sm:max-w-52 max-w-20 truncate sm:text-lg capitalize">
           {getChatDisplayName(currentChat)}
           <div className="absolute -bottom-2.5  text-xs left-0">
@@ -124,7 +125,7 @@ const DirectChatHeader = ({
     <Button
       type="button"
       variant="ghost"
-      className="flex items-center p-0"
+      className="flex items-center relative p-0"
       onClick={() => setIfUserInfoOpen(true)}
     >
       <Avatar className="h-10 w-10">
@@ -140,9 +141,9 @@ const DirectChatHeader = ({
         <span className="text-lg truncate font-semibold capitalize">
           {selectedUser.displayName}
         </span>
-        <div className="absolute -bottom-2 text-xs left-0">
-          <TypingIndicator chatId={chatId} getName={getSenderDisplayName} />
-        </div>
+      </div>
+      <div className="absolute -bottom-1.5 text-xs left-12">
+        <TypingIndicator chatId={chatId} getName={getSenderDisplayName} />
       </div>
     </Button>
     <div>

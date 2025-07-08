@@ -21,9 +21,8 @@ export const ChatFiles = ({ chatId }) => {
 
   useEffect(() => {
     const fetchFiles = async () => {
-      const messagesRef = collection(db, "chats", chatId, "messages");
-      const q = query(messagesRef, orderBy("timestamp", "desc"));
-
+      const filesRef = collection(db, "chats", chatId, "files");
+      const q = query(filesRef, orderBy("timestamp", "desc"));
       const snapshot = await getDocs(q);
       const media = [];
       const docs = [];
@@ -53,14 +52,11 @@ export const ChatFiles = ({ chatId }) => {
           }
         }
 
-        if (data.message) {
-          const urlRegex = /(https?:\/\/[^\s]+)/g;
-          const foundLinks = data.message.match(urlRegex);
-          if (foundLinks) {
-            foundLinks.forEach((url) =>
-              links.push({ url, timestamp: data.timestamp?.toDate() })
-            );
-          }
+        if (data.type === "link" && data.url) {
+          links.push({
+            url: data.url,
+            timestamp: data.timestamp?.toDate(),
+          });
         }
       });
 

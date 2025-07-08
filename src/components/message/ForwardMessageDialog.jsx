@@ -100,23 +100,33 @@ const ForwardMessageDialog = ({
     );
   }, []);
 
-  // Create chat if not exists
   const createChat = async (type, userIds, name = "") => {
     try {
       const chatsRef = collection(db, "chats");
       const chatData = {
         type,
-        name: name || (type === "direct" ? "Direct Chat" : "Group Chat"),
+        name:
+          name ||
+          (type === "direct"
+            ? "Direct Chat"
+            : type === "saved"
+            ? "Saved Messages"
+            : "Group Chat"),
         users: userIds,
         pin: [],
         createdAt: serverTimestamp(),
         lastMessage: null,
         lastMessageTime: null,
       };
+
       if (type === "direct") {
         const otherUserId = userIds.find((id) => id !== currentUserId);
         const otherUser = users.find((u) => u.id === otherUserId);
         chatData.photoURL = otherUser?.photoURL || "";
+      } else if (type === "saved") {
+        // For saved messages, use current user's photo
+        const currentUser = users.find((u) => u.id === currentUserId);
+        chatData.photoURL = currentUser?.photoURL || "";
       } else if (type === "group") {
         chatData.photoURL = "";
         chatData.admin = currentUserId;
@@ -126,6 +136,7 @@ const ForwardMessageDialog = ({
             userId === currentUserId ? "admin" : "member";
         });
       }
+
       const chatDoc = await addDoc(chatsRef, chatData);
       return chatDoc.id;
     } catch (e) {
@@ -134,7 +145,6 @@ const ForwardMessageDialog = ({
     }
   };
 
-  // Forward message to selected users/chats
   const handleForwardMessage = async () => {
     if (selectedUsers.length === 0) {
       toast.error("Please select at least one user to forward the message to.");
@@ -153,12 +163,56 @@ const ForwardMessageDialog = ({
       const batch = writeBatch(db);
       for (const target of selectedUsers) {
         let chatId = null;
-        const isExistingChat = chats.find((chat) => chat.id === target);
-        if (isExistingChat) {
-          chatId = isExistingChat.id;
+
+        // Check if target is already a group chat ID
+        const isExistingGroupChat = chats.find(
+          (chat) => chat.id === target && chat.type === "group"
+        );
+
+        if (isExistingGroupChat) {
+          // It's a group chat, use the existing chat ID
+          chatId = isExistingGroupChat.id;
         } else {
-          chatId = await createChat("direct", [currentUserId, target]);
-          if (!chatId) throw new Error("Failed to create chat");
+          // It's a user ID, handle self-forwarding and regular forwarding
+          if (target === currentUserId) {
+            // Self-forwarding: find "Saved Messages" chat or create one
+            const savedMessagesChat = chats.find(
+              (chat) =>
+                chat.type === "saved" ||
+                (chat.type === "direct" &&
+                  chat.users.length === 1 &&
+                  chat.users[0] === currentUserId)
+            );
+
+            if (savedMessagesChat) {
+              chatId = savedMessagesChat.id;
+            } else {
+              // Create a "Saved Messages" chat for self
+              chatId = await createChat(
+                "saved",
+                [currentUserId],
+                "Saved Messages"
+              );
+              if (!chatId)
+                throw new Error("Failed to create saved messages chat");
+            }
+          } else {
+            // Regular user forwarding: find existing direct chat or create new one
+            const existingDirectChat = chats.find(
+              (chat) =>
+                chat.type === "direct" &&
+                chat.users.includes(currentUserId) &&
+                chat.users.includes(target) &&
+                chat.users.length === 2 // Ensure it's a 2-person chat
+            );
+
+            if (existingDirectChat) {
+              chatId = existingDirectChat.id;
+            } else {
+              chatId = await createChat("direct", [currentUserId, target]);
+              if (!chatId) throw new Error("Failed to create chat");
+            }
+          }
         }
 
         const msgRef = collection(db, "chats", chatId, "messages");
@@ -175,9 +229,41 @@ const ForwardMessageDialog = ({
           forwardedAt: serverTimestamp(),
         });
 
+        if (messageContent && messageContent.match(/(https?:\/\/[^\s]+)/g)) {
+          const urlRegex = /(https?:\/\/[^\s]+)/g;
+          const foundLinks = messageContent.match(urlRegex);
+          const filesRef = collection(db, "chats", chatId, "files");
+          for (const url of foundLinks) {
+            await addDoc(filesRef, {
+              senderId: currentUserId,
+              type: "link",
+              url,
+              timestamp: serverTimestamp(),
+            });
+          }
+        }
+
+        if (hasFile) {
+          const filesRef = collection(db, "chats", chatId, "files");
+          await addDoc(filesRef, {
+            senderId: currentUserId,
+            fileData: {
+              fileName: originalFileData?.name,
+              url: originalFileData.url,
+              name: originalFileData?.name,
+              type: originalFileData?.type,
+              size: originalFileData?.size,
+            },
+            timestamp: serverTimestamp(),
+          });
+        }
+
         const chatRef = doc(db, "chats", chatId);
         batch.update(chatRef, {
-          lastMessage: `${currentUserName} forwarded a message`,
+          lastMessage:
+            target === currentUserId
+              ? `You saved a message`
+              : `${currentUserName} forwarded a message`,
           lastMessageTime: serverTimestamp(),
         });
       }
@@ -198,17 +284,28 @@ const ForwardMessageDialog = ({
       setForwarding(false);
     }
   };
-
   // Memoized filtered users and group chats
-  const filteredUsers = useMemo(
-    () =>
-      users.filter(
-        (user) =>
-          user.displayName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          user.email?.toLowerCase().includes(searchTerm.toLowerCase())
-      ),
-    [users, searchTerm]
-  );
+  const filteredUsers = useMemo(() => {
+    const allUsers = users.filter(
+      (user) =>
+        user.displayName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.email?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    // Make sure current user is included for self-forwarding
+    const currentUserInList = allUsers.find(
+      (user) => user.id === currentUserId
+    );
+    if (!currentUserInList) {
+      // Add current user to the list if not already present
+      const currentUserData = users.find((user) => user.id === currentUserId);
+      if (currentUserData) {
+        allUsers.unshift(currentUserData); // Add at the beginning
+      }
+    }
+
+    return allUsers;
+  }, [users, searchTerm, currentUserId]);
   const filteredGroupChats = useMemo(
     () =>
       groupChats.filter((chat) =>

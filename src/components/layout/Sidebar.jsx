@@ -25,7 +25,7 @@ function SidebarPanel({
 }) {
   return (
     <div className={className}>
-      <div className="flex items-center justify-start gap-2 mb-4">
+      <div className="flex items-center justify-start gap-2 mb-2">
         <div
           onClick={() => toggleMenu()}
           className="rounded-full dark:bg-gray-700/20 p-2"
@@ -42,24 +42,26 @@ function SidebarPanel({
           />
         </div>
       </div>
-      {chatsLoading ? (
-        <ChatListLoading />
-      ) : filteredChats.length > 0 ? (
-        <ChatList
-          filteredChats={filteredChats}
-          handleSelectChat={handleSelectChat}
-          getOtherUserInDirectChat={getOtherUserInDirectChat}
-          getChatPhoto={getChatPhoto}
-          getChatDisplayName={getChatDisplayName}
-          currentUserId={user?.uid}
-          onLeaveSuccess={clearChat}
-          getSenderDisplayName={getSenderDisplayName}
-        />
-      ) : (
-        <div className="mx-1 p-2 border-gray-600/50 rounded-lg border text-gray-500">
-          No Recent Chats
-        </div>
-      )}
+      <div className="h-full overflow-y-auto scrollbar-hide">
+        {chatsLoading ? (
+          <ChatListLoading />
+        ) : filteredChats.length > 0 ? (
+          <ChatList
+            filteredChats={filteredChats}
+            handleSelectChat={handleSelectChat}
+            getOtherUserInDirectChat={getOtherUserInDirectChat}
+            getChatPhoto={getChatPhoto}
+            getChatDisplayName={getChatDisplayName}
+            currentUserId={user?.uid}
+            onLeaveSuccess={clearChat}
+            getSenderDisplayName={getSenderDisplayName}
+          />
+        ) : (
+          <div className="mx-1 p-2 border-gray-600/50 rounded-lg border text-gray-500">
+            No Recent Chats
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -87,10 +89,19 @@ const Sidebar = ({ toggleMenu, handleSelectChat, getSenderDisplayName }) => {
   const getChatDisplayName = useCallback(
     (chat) => {
       if (chat.type === "direct") {
+        if (chat.users.length === 1 && chat.users[0] === user?.uid) {
+          return "Saved Messages";
+        }
+
         const otherUserId = chat.users.find((uid) => uid !== user?.uid);
         const otherUser = users.find((u) => u.id === otherUserId);
         return otherUser?.displayName || "Unknown User";
       }
+
+      if (chat.type === "saved") {
+        return "Saved Messages";
+      }
+
       return chat.name;
     },
     [user?.uid, users]

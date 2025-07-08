@@ -245,18 +245,20 @@ const ChatList = ({
                   : "dark:text-gray-400 "
               }`}
             >
-              <div className=" max-w-32 absolute bottom-0 left-0 bg-inherit backdrop-blur-xl truncate  text-[10px]">
-                <TypingIndicator
-                  chatId={chat.id}
-                  getName={getSenderDisplayName}
-                />
-              </div>
-
-              {chat.lastMessage && (
-                <div className="text-[10px] w-full overflow-hidden truncate">
-                  {chat.lastMessage}
+              <div>
+                <div className=" max-w-32 truncate  text-[10px]">
+                  <TypingIndicator
+                    chatId={chat.id}
+                    getName={getSenderDisplayName}
+                  />
                 </div>
-              )}
+
+                {chat.lastMessage && (
+                  <div className="text-[10px] w-full overflow-hidden truncate">
+                    {chat.lastMessage}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
