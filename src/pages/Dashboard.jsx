@@ -53,7 +53,6 @@ function Dashboard() {
 
   const {
     chatId,
-    chats,
     setChatIdTo,
     clearChat,
     users,
@@ -322,8 +321,19 @@ function Dashboard() {
         selectedUserData.displayName
       );
       if (newChatId) {
+        const newChat = {
+          id: newChatId,
+          type: "direct",
+          name: selectedUserData.displayName,
+          users: [user?.uid, selectedUserData.id],
+          photoURL: selectedUserData.photoURL || ErrorProfileImage,
+          pin: [],
+          createdAt: new Date(),
+          lastMessage: null,
+          lastMessageTime: null,
+        };
+
         setChatIdTo(newChatId);
-        const newChat = chats.find((chat) => chat.id === newChatId);
         setCurrentChat(newChat);
       }
     }
