@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { useEffect, useState } from "react";
 import { db } from "../../firebase";
+import { Textarea } from "../ui/textarea";
 import {
   collection,
   query,
@@ -119,7 +120,18 @@ export const PinnedMessages = ({ chatId }) => {
 
     return (
       <div className="text-sm text-muted-foreground">
-        {msg.message || "No message content"}
+        {msg.message ? (
+          <>
+            {" "}
+            <Textarea
+              value={msg.message}
+              className=" max-w-85 max-h-80 resize-none border-none text-sm shadow-none sm:w-md whitespace-normal"
+              readOnly
+            />
+          </>
+        ) : (
+          <>No message content</>
+        )}
       </div>
     );
   };
@@ -198,7 +210,7 @@ export const PinnedMessages = ({ chatId }) => {
                     )}
                   </div>
 
-                  <div className="border rounded-lg p-2 mb-2 ">
+                  <div className="border rounded-lg mb-2 ">
                     {renderMessageContent(msg)}
                   </div>
 

@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-
 export const useInternetConnection = () => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [wasOffline, setWasOffline] = useState(false);

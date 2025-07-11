@@ -36,9 +36,7 @@ export const EmojiReactions = ({ msg, getSenderData }) => {
                           src={getSenderData(user.userId)?.photoURL}
                           alt={`@${user.userId}`}
                         />
-                        <AvatarFallback>
-                          {user.userId.substring(0, 2).toUpperCase()}
-                        </AvatarFallback>
+                        <AvatarFallback></AvatarFallback>
                       </Avatar>
                     ))}
 

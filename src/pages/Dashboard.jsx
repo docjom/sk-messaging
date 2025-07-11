@@ -15,13 +15,14 @@ import {
   collection,
   serverTimestamp,
   query,
-  orderBy,
   getDocs,
   doc,
   updateDoc,
   onSnapshot,
   where,
   writeBatch,
+  limitToLast,
+  orderBy,
   arrayUnion,
   getDoc,
 } from "firebase/firestore";
@@ -29,16 +30,17 @@ import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useMessageActionStore } from "../stores/useMessageActionStore";
 import { useUserStore } from "@/stores/useUserStore";
 import { useTypingStatus } from "@/stores/useTypingStatus";
+import { useInternetConnection } from "@/hooks/CheckInternetConnection";
+//import { useInfiniteMessages } from "@/hooks/useInfiniteMessages";
 
 function Dashboard() {
   const user = useUserStore((s) => s.user);
   const userProfile = useUserStore((s) => s.userProfile);
-  const [messages, setMessages] = useState([]);
+
+  // const { messages, messagesLoading } = useInfiniteMessages;
   const [menu, setMenu] = useState(false);
   const endOfMessagesRef = useRef(null);
 
-  // Loading states
-  const [messagesLoading, setMessagesLoading] = useState(false);
   const [isAddingUsers, setIsAddingUsers] = useState(false);
   const [isCreatingGroup, setIsCreatingGroup] = useState(false);
   const [isMessagesSending, setIsMessagesSending] = useState(false);
@@ -46,6 +48,10 @@ function Dashboard() {
   const [isFileDialogOpen, setIsFileDialogOpen] = useState(false);
   const [ifUserInfoOpen, setIfUserInfoOpen] = useState(false);
   const [isUploadingFile, setIsUploadingFile] = useState(false);
+
+  const [messages, setMessages] = useState([]);
+
+  const [messagesLoading, setMessagesLoading] = useState(false);
 
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
@@ -67,6 +73,14 @@ function Dashboard() {
 
   const cleanup = useTypingStatus((state) => state.cleanup);
 
+  const { isOnline, wasOffline } = useInternetConnection();
+
+  useEffect(() => {
+    if (!isOnline && wasOffline) {
+      toast.error("Internet connection was interrupted!");
+    }
+  }, [isOnline, wasOffline]);
+
   useEffect(() => {
     return () => {
       cleanup();
@@ -79,11 +93,31 @@ function Dashboard() {
   };
 
   useEffect(() => {
-    if (messages.length > prevMessageCountRef.current) {
+    if (messages > prevMessageCountRef.current) {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }
-    prevMessageCountRef.current = messages.length;
+    prevMessageCountRef.current = messages;
   }, [messages]);
+
+  useEffect(() => {
+    if (chatId) {
+      setMessagesLoading(true);
+      const messagesRef = collection(db, "chats", chatId, "messages");
+      const q = query(messagesRef, orderBy("timestamp"), limitToLast(50));
+      const unsubscribe = onSnapshot(q, (querySnapshot) => {
+        const messagesArray = [];
+        querySnapshot.forEach((doc) => {
+          messagesArray.push({ id: doc.id, ...doc.data() });
+        });
+        setMessages(messagesArray);
+        setMessagesLoading(false);
+      });
+      return () => unsubscribe();
+    } else {
+      setMessages([]);
+      setMessagesLoading(false);
+    }
+  }, [chatId]);
 
   const handleFileUpload = async ({ file, message, chatId }) => {
     setIsUploadingFile(true);
@@ -265,27 +299,7 @@ function Dashboard() {
   }, [user, setUsers]);
 
   useEffect(() => {
-    if (chatId) {
-      setMessagesLoading(true);
-      const messagesRef = collection(db, "chats", chatId, "messages");
-      const q = query(messagesRef, orderBy("timestamp"));
-      const unsubscribe = onSnapshot(q, (querySnapshot) => {
-        const messagesArray = [];
-        querySnapshot.forEach((doc) => {
-          messagesArray.push({ id: doc.id, ...doc.data() });
-        });
-        setMessages(messagesArray);
-        setMessagesLoading(false);
-      });
-      return () => unsubscribe();
-    } else {
-      setMessages([]);
-      setMessagesLoading(false);
-    }
-  }, [chatId]);
-
-  useEffect(() => {
-    if (!chatId || !messages.length || !user?.uid) return;
+    if (!chatId || !messages || !user?.uid) return;
     const batch = writeBatch(db);
     messages
       .filter(
