@@ -208,7 +208,7 @@ const ChatList = ({
               </div>
             )}
 
-            <Avatar className="w-10 h-10">
+            <Avatar className="w-10 h-10 border">
               <AvatarImage src={getChatPhoto(chat)} />
               <AvatarFallback>
                 {" "}

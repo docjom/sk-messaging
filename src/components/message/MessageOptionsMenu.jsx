@@ -196,7 +196,7 @@ export function MessageOptionsMenu({
                   <Icon icon="solar:copy-broken" width="24" height="24" />
                   Copy image address
                 </Button>
-                <Button
+                {/* <Button
                   onClick={() => {
                     downloadFile(
                       msg.fileData.url,
@@ -210,7 +210,7 @@ export function MessageOptionsMenu({
                 >
                   <Icon icon="solar:copy-broken" width="24" height="24" />
                   Save image
-                </Button>
+                </Button> */}
               </>
             )}
 
