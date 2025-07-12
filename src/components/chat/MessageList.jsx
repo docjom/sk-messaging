@@ -1,4 +1,4 @@
-import React, { useRef, useState, useCallback } from "react";
+import React, { useRef, useState, useCallback, useEffect } from "react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Icon } from "@iconify/react";
 import { ReplyMessageDisplay } from "../message/ReplyMessage";
@@ -38,13 +38,20 @@ export const MessageList = ({
   const [openPopoverId, setOpenPopoverId] = useState(null);
   // const [shouldScrollToBottom, setShouldScrollToBottom] = useState(true);
   //const previousScrollHeight = useRef(0);
+  const prevMessagesLengthRef = useRef(0);
 
   const { setEditMessage, setReplyTo, chatId, users } = useMessageActionStore();
   const userProfile = useUserStore((s) => s.userProfile);
   const user = userProfile;
   const currentUserId = user?.uid;
 
-
+  useEffect(() => {
+    const isNewMessage = messages.length > prevMessagesLengthRef.current;
+    if (isNewMessage) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      prevMessagesLengthRef.current = messages.length;
+    }
+  }, [messages]);
 
   // Use the infinite messages hook
   // const {

@@ -131,7 +131,7 @@ export const useMessageSending = () => {
       }
     } catch (error) {
       console.error("Error sending message:", error);
-      toast.error("Error sending message: " + error.message);
+      toast.error("Error sending message ");
     } finally {
       setIsMessagesSending(false);
     }

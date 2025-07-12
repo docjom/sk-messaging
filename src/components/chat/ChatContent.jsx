@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useCallback } from "react";
+import React, { useRef, useEffect, useCallback, useState } from "react";
 import { MessagesLoading } from "../message/MessagesLoading";
 import { MessageList } from "@/components/chat/MessageList";
 import { useInfiniteMessages } from "@/hooks/useInfiniteMessages";
@@ -11,34 +11,24 @@ const ChatContent = ({
   getSenderData,
   getSenderDisplayName,
 }) => {
+  const [lastChatId, setLastChatId] = useState("");
+
   const messagesEndRef = useRef(null);
   const messagesContainerRef = useRef();
-
-  // const hasScrolledInitially = useRef(false);
-  // const prevMessagesLengthRef = useRef(0);
+  const prevMessagesLengthRef = useRef(0);
 
   useEffect(() => {
     const container = messagesContainerRef.current;
-    if (container) {
+    const wasPrepending = messages.length === prevMessagesLengthRef.current;
+
+    if (container && lastChatId !== chatId) {
+      container.scrollTop = container.scrollHeight;
+      setLastChatId(chatId);
+    }
+    if (!wasPrepending && container) {
       container.scrollTop = container.scrollHeight;
     }
   }, [messages]);
-
-  // useEffect(() => {
-  //   if (!hasScrolledInitially.current && messages.length > 0) {
-  //     const container = messagesContainerRef.current;
-
-  //     const wasPrepending =
-  //       messages.length > prevMessagesLengthRef.current &&
-  //       container?.scrollTop === 0;
-
-  //     if (!wasPrepending && container) {
-  //       container.scrollTop = container.scrollHeight;
-  //       hasScrolledInitially.current = true;
-  //     }
-  //     prevMessagesLengthRef.current = messages.length;
-  //   }
-  // }, [messages]);
 
   const { loadingOlder, hasMoreMessages, loadOlderMessages } =
     useInfiniteMessages(chatId);
