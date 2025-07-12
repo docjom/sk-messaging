@@ -101,11 +101,15 @@ export const PinnedMessages = ({ chatId }) => {
       return (
         <div className="space-y-2">
           {msg.message && (
-            <div className="text-sm text-muted-foreground">{msg.message}</div>
+            <Textarea
+              value={msg.message}
+              className=" max-w-85 max-h-80 resize-none border-none text-sm shadow-none sm:w-md whitespace-normal"
+              readOnly
+            />
           )}
           <div className="flex items-center gap-2 p-2  rounded-lg">
             <Icon icon="solar:paperclip-linear" width="16" height="16" />
-            <span className="text-sm font-medium">
+            <span className="text-sm font-medium min-w-32 truncate">
               {msg.fileData.fileName || msg.fileData.name}
             </span>
             {msg.fileData.size && (
@@ -142,11 +146,6 @@ export const PinnedMessages = ({ chatId }) => {
         <Button variant={"ghost"} className="flex w-full justify-start">
           <Icon icon="solar:pin-line-duotone" width="20" height="20" />
           Pinned Messages
-          {pinnedMessages.length > 0 && (
-            <Badge variant="secondary" className="ml-2">
-              {pinnedMessages.length}
-            </Badge>
-          )}
         </Button>
       </DialogTrigger>
 

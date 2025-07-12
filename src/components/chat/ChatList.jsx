@@ -215,6 +215,12 @@ const ChatList = ({
                 {getChatDisplayName(chat)[0]?.toUpperCase() || "U"}
               </AvatarFallback>
             </Avatar>
+            <div className=" min-w-32 -top-3 left-12 absolute truncate text-[10px]">
+              <TypingIndicator
+                chatId={chat.id}
+                getName={getSenderDisplayName}
+              />
+            </div>
           </div>
 
           <div className="w-full">
@@ -246,15 +252,8 @@ const ChatList = ({
               }`}
             >
               <div>
-                <div className=" max-w-32 truncate  text-[10px]">
-                  <TypingIndicator
-                    chatId={chat.id}
-                    getName={getSenderDisplayName}
-                  />
-                </div>
-
                 {chat.lastMessage && (
-                  <div className="text-[10px] w-full overflow-hidden truncate">
+                  <div className="text-[10px] min-w-32 truncate">
                     {chat.lastMessage}
                   </div>
                 )}
