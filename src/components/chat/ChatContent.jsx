@@ -12,12 +12,33 @@ const ChatContent = ({
   getSenderDisplayName,
 }) => {
   const messagesEndRef = useRef(null);
+  const messagesContainerRef = useRef();
+
+  // const hasScrolledInitially = useRef(false);
+  // const prevMessagesLengthRef = useRef(0);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    const container = messagesContainerRef.current;
+    if (container) {
+      container.scrollTop = container.scrollHeight;
+    }
   }, [messages]);
 
-  const messagesContainerRef = useRef();
+  // useEffect(() => {
+  //   if (!hasScrolledInitially.current && messages.length > 0) {
+  //     const container = messagesContainerRef.current;
+
+  //     const wasPrepending =
+  //       messages.length > prevMessagesLengthRef.current &&
+  //       container?.scrollTop === 0;
+
+  //     if (!wasPrepending && container) {
+  //       container.scrollTop = container.scrollHeight;
+  //       hasScrolledInitially.current = true;
+  //     }
+  //     prevMessagesLengthRef.current = messages.length;
+  //   }
+  // }, [messages]);
 
   const { loadingOlder, hasMoreMessages, loadOlderMessages } =
     useInfiniteMessages(chatId);

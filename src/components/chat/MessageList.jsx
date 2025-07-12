@@ -1,4 +1,4 @@
-import React, { useRef, useState, useCallback, useEffect } from "react";
+import React, { useRef, useState, useCallback } from "react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Icon } from "@iconify/react";
 import { ReplyMessageDisplay } from "../message/ReplyMessage";
@@ -43,24 +43,8 @@ export const MessageList = ({
   const userProfile = useUserStore((s) => s.userProfile);
   const user = userProfile;
   const currentUserId = user?.uid;
-  const hasScrolledInitially = useRef(false);
-  const prevMessagesLengthRef = useRef(0);
 
-  useEffect(() => {
-    if (!hasScrolledInitially.current && messages.length > 0) {
-      const container = messagesContainerRef.current;
 
-      const wasPrepending =
-        messages.length > prevMessagesLengthRef.current &&
-        container?.scrollTop === 0;
-
-      if (!wasPrepending && container) {
-        messagesEndRef.current?.scrollIntoView({ behavior: "auto" });
-        hasScrolledInitially.current = true;
-      }
-      prevMessagesLengthRef.current = messages.length;
-    }
-  }, [messages]);
 
   // Use the infinite messages hook
   // const {
