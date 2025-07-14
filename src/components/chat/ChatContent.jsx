@@ -66,7 +66,7 @@ const ChatContent = ({
       return <MessagesLoading />;
     }
 
-    if (messages === 0) {
+    if (messages.length === 0) {
       return (
         <div className="flex items-center justify-center h-full">
           <div className="border rounded-full px-4 py-1">
