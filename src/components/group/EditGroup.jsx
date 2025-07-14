@@ -27,6 +27,7 @@ import {
   deleteObject,
 } from "firebase/storage";
 import { CreateGroupTopic } from "./CreateGroupTopic";
+import { useChatFolderStore } from "@/stores/chat-folder/useChatFolderStore";
 
 export function EditGroup({ chatId, currentUserId }) {
   const [name, setName] = useState("");
@@ -36,6 +37,7 @@ export function EditGroup({ chatId, currentUserId }) {
   const [newProfilePhoto, setNewProfilePhoto] = useState(null);
   const [profilePhotoURL, setProfilePhotoURL] = useState("");
   const [imagePreview, setImagePreview] = useState("");
+  const { folderSidebar } = useChatFolderStore();
 
   useEffect(() => {
     async function load() {
@@ -171,10 +173,12 @@ export function EditGroup({ chatId, currentUserId }) {
                   chatId={chatId}
                   currentUserId={currentUserId}
                 />
-                <CreateGroupTopic
-                  chatId={chatId}
-                  currentUserId={currentUserId}
-                />
+                {!folderSidebar && (
+                  <CreateGroupTopic
+                    chatId={chatId}
+                    currentUserId={currentUserId}
+                  />
+                )}
               </>
             )}
           </div>

@@ -137,11 +137,22 @@ function Dashboard() {
       const storage = getStorage();
       const timestamp = Date.now();
       const fileName = `${timestamp}_${file.name}`;
-      const storageRef = ref(storage, `chat-files/${chatId}/${fileName}`);
+
+      const storageRef = topicId
+        ? ref(storage, `chat-files/${chatId}topics${topicId}/${fileName}`)
+        : ref(storage, `chat-files/${chatId}/${fileName}`);
+
       const uploadResult = await uploadBytes(storageRef, file);
       const downloadURL = await getDownloadURL(uploadResult.ref);
-      const messagesRef = collection(db, "chats", chatId, "messages");
-      const chatRef = doc(db, "chats", chatId);
+
+      const messagesRef = topicId
+        ? collection(db, "chats", chatId, "topics", topicId, "messages")
+        : collection(db, "chats", chatId, "messages");
+
+      const chatRef = topicId
+        ? doc(db, "chats", chatId, "topics", topicId)
+        : doc(db, "chats", chatId);
+
       const messageData = {
         senderId: user?.uid,
         message: message || "",
@@ -163,6 +174,7 @@ function Dashboard() {
         lastMessage: lastMessageText,
         seenBy: [],
         lastMessageTime: serverTimestamp(),
+        lastSenderName: getSenderDisplayName(user?.uid),
       });
       toast.success("File sent successfully!");
       setIsFileDialogOpen(false);
@@ -324,19 +336,26 @@ function Dashboard() {
           (!Array.isArray(m.seenBy) || !m.seenBy.includes(user?.uid))
       )
       .forEach((m) => {
-        const msgRef = doc(db, "chats", chatId, "messages", m?.id);
+        const msgRef = topicId
+          ? doc(db, "chats", chatId, "topics", topicId, "messages", m?.id)
+          : doc(db, "chats", chatId, "messages", m?.id);
+
         batch.update(msgRef, {
           seenBy: arrayUnion(user?.uid),
           seen: true,
         });
       });
-    const chatRef = doc(db, "chats", chatId);
+
+    const chatRef = topicId
+      ? doc(db, "chats", chatId, "topics", topicId)
+      : doc(db, "chats", chatId);
+
     updateDoc(chatRef, {
       seenBy: arrayUnion(user?.uid),
     });
 
     batch.commit();
-  }, [chatId, messages, user?.uid]);
+  }, [chatId, messages, user?.uid, topicId]);
 
   const handleSelectUser = async (selectedUserData) => {
     setSelectedUser(selectedUserData);
@@ -504,32 +523,10 @@ function Dashboard() {
         const chatData = docSnap.data();
         const users = chatData.users || [];
 
-        // Step 1: Check if user is in base chat group
         if (!users.includes(user.uid)) {
           toast.error("This chat no longer exists.");
           clearChat();
           return;
-        }
-
-        // Step 2: If it has topics, check membership in topic(s)
-        if (chatData.hasChatTopic) {
-          try {
-            const topicsRef = collection(db, "chats", chatId, "topics");
-            const topicsSnap = await getDocs(topicsRef);
-
-            const isInAnyTopic = topicsSnap.docs.some((doc) => {
-              const topicUsers = doc.data().users || [];
-              return topicUsers.includes(user.uid);
-            });
-
-            if (!isInAnyTopic) {
-              toast.error("You no longer have access to this group's topics.");
-              clearChat();
-            }
-          } catch (err) {
-            console.error("Error fetching topic membership:", err);
-            toast.error("Topic access error.");
-          }
         }
       },
       (error) => {

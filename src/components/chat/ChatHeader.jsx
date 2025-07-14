@@ -13,6 +13,7 @@ import { PinnedMessages } from "@/components/chat/PinnedMessages";
 import { ChatFiles } from "@/components/chat/ChatFiles";
 import { TypingIndicator } from "./TypingIndicator";
 import { useMessageActionStore } from "@/stores/useMessageActionStore";
+import { useChatFolderStore } from "@/stores/chat-folder/useChatFolderStore";
 
 const ChatHeader = ({
   currentChat,
@@ -27,18 +28,51 @@ const ChatHeader = ({
   addUsersToGroup,
   isAddingUsers,
 }) => {
-  const { topicId, currentTopic } = useMessageActionStore();
+  const { setFolderSidebar } = useChatFolderStore();
+  const { topicId, currentTopic, clearTopicId } = useMessageActionStore();
+
+  const openFolderSidebar = () => {
+    setFolderSidebar(true);
+    clearTopicId();
+  };
   return (
     <div className="fixed top-0 left-0 right-0 border-b sm:ml-64 z-30">
       <div className="px-4 py-2 rounded shadow w-full flex items-center">
         <div className="w-full flex justify-start items-center gap-2">
           {/* Back button */}
-          <div
-            onClick={clearChatId}
-            className="rounded-full sm:hidden bg-gray-200/50 dark:bg-gray-700 p-2 shadow"
-          >
-            <Icon icon="solar:rewind-back-broken" width="20" height="20" />
-          </div>
+          {topicId ? (
+            <>
+              <div
+                onClick={() => openFolderSidebar()}
+                className="rounded-full text-gray-700 dark:text-gray-300 sm:hidden bg-gray-200/50 dark:bg-gray-700 p-2 shadow"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 512 512"
+                >
+                  <path
+                    fill="none"
+                    stroke="currentColor"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="48"
+                    d="M244 400L100 256l144-144M120 256h292"
+                  />
+                </svg>
+              </div>
+            </>
+          ) : (
+            <>
+              <div
+                onClick={clearChatId}
+                className="rounded-full sm:hidden bg-gray-200/50 dark:bg-gray-700 p-2 shadow"
+              >
+                <Icon icon="solar:rewind-back-broken" width="20" height="20" />
+              </div>
+            </>
+          )}
 
           {/* Group Chat Header */}
           {currentChat?.type === "group" && (

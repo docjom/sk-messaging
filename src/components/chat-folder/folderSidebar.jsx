@@ -1,6 +1,6 @@
 import { Icon } from "@iconify/react";
 import { useEffect, useState } from "react";
-import { doc, getDoc, collection, getDocs } from "firebase/firestore";
+import { doc, getDoc, collection, query, orderBy, onSnapshot } from "firebase/firestore";
 import { db } from "@/firebase"; // adjust path
 import { useMenu } from "@/hooks/useMenuState";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -21,7 +21,10 @@ export const FolderSidebar = ({
     setCurrentChat,
     setChatIdTo,
     users,
+    // topicId,
     setSelectedUser,
+    clearCurrentChat,
+    clearChat,
   } = useMessageActionStore();
   const { user } = useUserStore();
   const { setFolderSidebar } = useChatFolderStore();
@@ -35,32 +38,34 @@ export const FolderSidebar = ({
     setMenu(true);
   };
   useEffect(() => {
-    const fetchGroupData = async () => {
-      if (!chatId) return;
+    if (!chatId) return;
 
+    const fetchGroupData = async () => {
       try {
-        // 1. Get the chat document
         const chatRef = doc(db, "chats", chatId);
         const chatSnap = await getDoc(chatRef);
 
         if (chatSnap.exists()) {
           const chatData = chatSnap.data();
-
-          // 2. Update group info
           setGroupName(chatData.name || "Unnamed Group");
           setMemberCount(chatData.users?.length || 0);
 
-          // 3. If it has topics, fetch them
           if (chatData.hasChatTopic) {
             const topicsRef = collection(db, "chats", chatId, "topics");
-            const topicsSnap = await getDocs(topicsRef);
+            const topicsQuery = query(
+              topicsRef,
+              orderBy("lastMessageTime", "desc")
+            );
 
-            const loadedTopics = topicsSnap.docs.map((doc) => ({
-              id: doc.id,
-              ...doc.data(),
-            }));
+            const unsubscribe = onSnapshot(topicsQuery, (snapshot) => {
+              const loadedTopics = snapshot.docs.map((doc) => ({
+                id: doc.id,
+                ...doc.data(),
+              }));
+              setTopics(loadedTopics);
+            });
 
-            setTopics(loadedTopics);
+            return unsubscribe;
           } else {
             setTopics([]);
           }
@@ -70,9 +75,17 @@ export const FolderSidebar = ({
       }
     };
 
-    fetchGroupData();
-  }, [chatId]);
+    const unsubscribePromise = fetchGroupData();
 
+    return () => {
+      // Unsubscribe if onSnapshot was set
+      if (typeof unsubscribePromise === "function") {
+        unsubscribePromise();
+      } else if (unsubscribePromise instanceof Promise) {
+        unsubscribePromise.then((unsub) => unsub && unsub());
+      }
+    };
+  }, [chatId]);
   const handleSelectChat = (chat) => {
     if (!chat.hasChatTopic) {
       const otherUserId = chat.users.find((uid) => uid !== user?.uid);
@@ -87,10 +100,18 @@ export const FolderSidebar = ({
     console.log(chat.id, chat.type);
   };
 
+  const closeFolderSidebar = () => {
+    clearTopicId();
+    clearCurrentTopic();
+    setFolderSidebar(false);
+    clearCurrentChat();
+    clearChat();
+  };
+
   return (
     <>
-      <div className="w-64  dark:bg-gray-800 border-r fixed lg:sticky top-0 left-0 z-30 overflow-y-auto flex h-full ">
-        <div className="border-r bg-gray-50">
+      <div className="sm:w-64 w-full  dark:bg-gray-800 border-r fixed lg:sticky top-0 left-0 z-30 overflow-y-auto bg-white flex h-full ">
+        <div className="border-r bg-gray-50 dark:bg-gray-700">
           <div className="flex items-center justify-start gap-2 m-2">
             <div
               onClick={() => toggleMenu()}
@@ -128,7 +149,10 @@ export const FolderSidebar = ({
         <div className="w-full h-full">
           <div className="flex justify-between items-center border-b p-2">
             <div className="flex justify-start items-center gap-2">
-              <div>
+              <div
+                onClick={() => closeFolderSidebar()}
+                className="text-gray-700 dark:text-gray-300"
+              >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="20"

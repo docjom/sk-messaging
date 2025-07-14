@@ -183,7 +183,7 @@ const Sidebar = ({ toggleMenu, handleSelectChat, getSenderDisplayName }) => {
           clearChat={clearChat}
           getSenderDisplayName={getSenderDisplayName}
           toggleMenu={toggleMenu}
-          className="w-screen bg-white dark:bg-gray-800 border-r sm:hidden fixed lg:sticky top-0 left-0 z-30 overflow-y-auto p-2 flex-col h-full"
+          className="w-screen bg-white dark:bg-gray-800 border-r sm:hidden fixed lg:sticky top-0 left-0 z-30 overflow-y-auto flex-col h-full"
         />
       )}
       {folderSidebar && (

@@ -11,6 +11,8 @@ import {
 import { useMessageActionStore } from "../stores/useMessageActionStore";
 
 export const useMessageSending = () => {
+  const users = useMessageActionStore.getState().users;
+
   const uploadImageToStorage = async (imageFile, chatId) => {
     const storage = getStorage();
     const timestamp = Date.now();
@@ -21,6 +23,11 @@ export const useMessageSending = () => {
     const snapshot = await uploadBytes(imageRef, imageFile);
     const downloadURL = await getDownloadURL(snapshot.ref);
     return downloadURL;
+  };
+
+  const getSenderDisplayName = (senderId) => {
+    const sender = users.find((u) => u.id === senderId);
+    return sender?.displayName || "Unknown User";
   };
 
   const sendMessage = async ({
@@ -53,7 +60,9 @@ export const useMessageSending = () => {
         ? collection(db, "chats", chatId, "topics", topicId, "files")
         : collection(db, "chats", chatId, "files");
 
-      const chatRef = doc(db, "chats", chatId);
+      const chatRef = topicId
+        ? doc(db, "chats", chatId, "topics", topicId)
+        : doc(db, "chats", chatId);
 
       if (edit?.messageId) {
         const msgRef = topicId
@@ -146,6 +155,7 @@ export const useMessageSending = () => {
           seenBy: [],
           lastMessage: lastMessageText,
           lastMessageTime: serverTimestamp(),
+          lastSenderName: getSenderDisplayName(senderId),
         });
 
         useMessageActionStore.getState().clearReply();
