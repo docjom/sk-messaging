@@ -1,13 +1,32 @@
 import { Icon } from "@iconify/react";
 import { useEffect, useState } from "react";
-import { doc, getDoc, collection, query, orderBy, onSnapshot } from "firebase/firestore";
+import {
+  doc,
+  getDoc,
+  collection,
+  query,
+  orderBy,
+  onSnapshot,
+} from "firebase/firestore";
 import { db } from "@/firebase"; // adjust path
 import { useMenu } from "@/hooks/useMenuState";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { FolderList } from "./folderList";
 import { useMessageActionStore } from "@/stores/useMessageActionStore";
 import { useChatFolderStore } from "@/stores/chat-folder/useChatFolderStore";
 import { useUserStore } from "@/stores/useUserStore";
+import { LeaveGroup } from "../group/LeaveGroup";
+import { EditGroup } from "../group/EditGroup";
+import { PinnedMessages } from "../chat/PinnedMessages";
+import { ChatFiles } from "../chat/ChatFiles";
+import { CreateNewTopic } from "./folderCreateNewTopic";
 export const FolderSidebar = ({
   filteredChats,
   getChatPhoto,
@@ -37,6 +56,31 @@ export const FolderSidebar = ({
     console.log(menu);
     setMenu(true);
   };
+
+  const handleSelectChat = (chat) => {
+    if (!chat.hasChatTopic) {
+      const otherUserId = chat.users.find((uid) => uid !== user?.uid);
+      const otherUser = users.find((u) => u.id === otherUserId);
+      setSelectedUser(otherUser);
+      clearTopicId();
+      clearCurrentTopic();
+      setChatIdTo(chat.id);
+      setCurrentChat(chat);
+      setFolderSidebar(false);
+    }
+    console.log(chat.id, chat.type);
+  };
+
+  const closeFolderSidebar = () => {
+    clearTopicId();
+    clearCurrentTopic();
+    setFolderSidebar(false);
+    clearCurrentChat();
+    clearChat();
+  };
+
+  const [userRole, setUserRole] = useState("");
+
   useEffect(() => {
     if (!chatId) return;
 
@@ -49,6 +93,10 @@ export const FolderSidebar = ({
           const chatData = chatSnap.data();
           setGroupName(chatData.name || "Unnamed Group");
           setMemberCount(chatData.users?.length || 0);
+
+          // ✅ Get current user's role from userRoles
+          const role = chatData.userRoles?.[user.uid];
+          setUserRole(role || "member");
 
           if (chatData.hasChatTopic) {
             const topicsRef = collection(db, "chats", chatId, "topics");
@@ -78,35 +126,13 @@ export const FolderSidebar = ({
     const unsubscribePromise = fetchGroupData();
 
     return () => {
-      // Unsubscribe if onSnapshot was set
       if (typeof unsubscribePromise === "function") {
         unsubscribePromise();
       } else if (unsubscribePromise instanceof Promise) {
         unsubscribePromise.then((unsub) => unsub && unsub());
       }
     };
-  }, [chatId]);
-  const handleSelectChat = (chat) => {
-    if (!chat.hasChatTopic) {
-      const otherUserId = chat.users.find((uid) => uid !== user?.uid);
-      const otherUser = users.find((u) => u.id === otherUserId);
-      setSelectedUser(otherUser);
-      clearTopicId();
-      clearCurrentTopic();
-      setChatIdTo(chat.id);
-      setCurrentChat(chat);
-      setFolderSidebar(false);
-    }
-    console.log(chat.id, chat.type);
-  };
-
-  const closeFolderSidebar = () => {
-    clearTopicId();
-    clearCurrentTopic();
-    setFolderSidebar(false);
-    clearCurrentChat();
-    clearChat();
-  };
+  }, [chatId, user.uid]);
 
   return (
     <>
@@ -177,25 +203,37 @@ export const FolderSidebar = ({
               </div>
             </div>
             <div>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-              >
-                <g fill="none">
-                  <path
-                    fill="currentColor"
-                    d="M9 12a1 1 0 1 1-2 0a1 1 0 0 1 2 0m4 0a1 1 0 1 1-2 0a1 1 0 0 1 2 0m4 0a1 1 0 1 1-2 0a1 1 0 0 1 2 0"
+              <Popover>
+                <PopoverTrigger
+                  onClick={(e) => {
+                    e.stopPropagation();
+                  }}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width={20}
+                    height={20}
+                    viewBox="0 0 21 21"
+                  >
+                    <g fill="currentColor" fillRule="evenodd">
+                      <circle cx={10.5} cy={10.5} r={1}></circle>
+                      <circle cx={10.5} cy={5.5} r={1}></circle>
+                      <circle cx={10.5} cy={15.5} r={1}></circle>
+                    </g>
+                  </svg>
+                </PopoverTrigger>
+                <PopoverContent className="w-40 p-0">
+                  <EditGroup chatId={chatId} currentUserId={user?.uid} />
+                  {userRole === "admin" && <CreateNewTopic />}
+                  <PinnedMessages chatId={chatId} />
+                  <ChatFiles chatId={chatId} />
+                  <LeaveGroup
+                    chatId={chatId}
+                    currentUserId={user?.uid}
+                    onLeaveSuccess={clearCurrentChat}
                   />
-                  <path
-                    stroke="currentColor"
-                    strokeLinecap="round"
-                    strokeWidth="1.5"
-                    d="M7 3.338A9.95 9.95 0 0 1 12 2c5.523 0 10 4.477 10 10s-4.477 10-10 10S2 17.523 2 12c0-1.821.487-3.53 1.338-5"
-                  />
-                </g>
-              </svg>
+                </PopoverContent>
+              </Popover>
             </div>
           </div>
           <div className="">

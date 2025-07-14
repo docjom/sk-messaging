@@ -63,29 +63,33 @@ export const FolderList = ({ topic }) => {
               {topic.name}
             </p>
             <div className="flex justify-start text-xs items-center gap-1">
-              {topic.seenBy?.includes(user?.uid) && (
-                <div className="text-green-500">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                  >
-                    <g fill="none">
-                      <path
-                        fill="currentColor"
-                        d="M4.565 12.407a.75.75 0 1 0-1.13.986zM7.143 16.5l-.565.493a.75.75 0 0 0 1.13 0zm8.422-8.507a.75.75 0 1 0-1.13-.986zm-5.059 3.514a.75.75 0 0 0 1.13.986zm-.834 3.236a.75.75 0 1 0-1.13-.986zm-6.237-1.35l3.143 3.6l1.13-.986l-3.143-3.6zm4.273 3.6l1.964-2.25l-1.13-.986l-1.964 2.25zm3.928-4.5l1.965-2.25l-1.13-.986l-1.965 2.25zm1.965-2.25l1.964-2.25l-1.13-.986l-1.964 2.25z"
-                      />
-                      <path
-                        stroke="currentColor"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="1.5"
-                        d="m20 7.563l-4.286 4.5M11 16l.429.563l2.143-2.25"
-                      />
-                    </g>
-                  </svg>
-                </div>
+              {topic.lastSenderName && (
+                <>
+                  {topic.seenBy?.includes(user?.uid) && (
+                    <div className="text-green-500">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                      >
+                        <g fill="none">
+                          <path
+                            fill="currentColor"
+                            d="M4.565 12.407a.75.75 0 1 0-1.13.986zM7.143 16.5l-.565.493a.75.75 0 0 0 1.13 0zm8.422-8.507a.75.75 0 1 0-1.13-.986zm-5.059 3.514a.75.75 0 0 0 1.13.986zm-.834 3.236a.75.75 0 1 0-1.13-.986zm-6.237-1.35l3.143 3.6l1.13-.986l-3.143-3.6zm4.273 3.6l1.964-2.25l-1.13-.986l-1.964 2.25zm3.928-4.5l1.965-2.25l-1.13-.986l-1.965 2.25zm1.965-2.25l1.964-2.25l-1.13-.986l-1.964 2.25z"
+                          />
+                          <path
+                            stroke="currentColor"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="1.5"
+                            d="m20 7.563l-4.286 4.5M11 16l.429.563l2.143-2.25"
+                          />
+                        </g>
+                      </svg>
+                    </div>
+                  )}
+                </>
               )}
               <span>{formatTimestamp(topic.lastMessageTime)}</span>
 
@@ -134,12 +138,16 @@ export const FolderList = ({ topic }) => {
           <div className="">
             <div className="flex justify-between text-xs items-center">
               <div className="flex gap-2">
-                <p className="max-w-37 truncate">
-                  <span className="text-blue-500 font-semibold">
-                    {topic.lastSenderName}
-                  </span>
-                  : {topic.lastMessage}
-                </p>
+                {topic.lastSenderName && (
+                  <>
+                    <p className="max-w-37 truncate">
+                      <span className="text-blue-500 font-semibold">
+                        {topic.lastSenderName}
+                      </span>
+                      : {topic.lastMessage}
+                    </p>
+                  </>
+                )}
               </div>
               {topic.pin?.includes(user?.uid) && (
                 <div className="text-gray-400">
