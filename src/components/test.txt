@@ -1,0 +1,68 @@
+// message list
+
+  // Use the infinite messages hook
+  // const {
+  //   messages,
+  //   messagesLoading,
+  //   loadingOlder,
+  //   hasMoreMessages,
+  //   loadOlderMessages,
+  // } = useInfiniteMessages(chatId);
+
+  // Scroll to bottom when new messages arrive (only if user was at bottom)
+  // useEffect(() => {
+  //   if (shouldScrollToBottom && messagesEndRef.current) {
+  //     messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+  //   }
+  // }, [messages, shouldScrollToBottom]);
+
+  // const handleScroll = useCallback(() => {
+  //   console.log("🌀 handleScroll triggered");
+
+  //   const container = messagesContainerRef.current;
+  //   if (!container) return;
+
+  //   const { scrollTop, scrollHeight, clientHeight } = container;
+  //   const isNearBottom = scrollHeight - scrollTop - clientHeight < 100;
+  //   setShouldScrollToBottom(isNearBottom);
+
+  //   if (scrollTop === 0 && hasMoreMessages && !loadingOlder) {
+  //     console.log("⬆ Reached top — loading older messages...");
+  //     previousScrollHeight.current = scrollHeight;
+  //     loadOlderMessages();
+  //   }
+  // }, [hasMoreMessages, loadingOlder, loadOlderMessages]);
+
+  // // Maintain scroll position after loading older messages
+  // useEffect(() => {
+  //   if (loadingOlder === false && previousScrollHeight.current > 0) {
+  //     const container = messagesContainerRef.current;
+  //     if (container) {
+  //       // Calculate the difference in scroll height and adjust scroll position
+  //       const newScrollHeight = container.scrollHeight;
+  //       const scrollDifference = newScrollHeight - previousScrollHeight.current;
+  //       container.scrollTop = scrollDifference;
+  //       previousScrollHeight.current = 0;
+  //     }
+  //   }
+  // }, [loadingOlder]);
+
+
+
+fix layout view
+adapt topic information to header, 
+remove add user to header when i click the topic
+create a management of topic
+after creating topic, admin only can create topic
+admin can set another roles to user
+adapt pinning topic
+adapt pinning chat in topic
+adapt emoji reactions per topic
+adapt sending message including files, videos, links and images
+adapt getting files per topic
+topic info modal
+topic edit modal info
+topic seen functionality
+close the group folder uppon clicking user thats have a direct type
+close group folder when user click a group without a topic
+typing indicator in topic

@@ -24,7 +24,6 @@ import { db } from "../../firebase";
 import { formatTimestamp } from "../../composables/scripts";
 import ForwardMessageDialog from "../message/ForwardMessageDialog";
 import { MessageOptionsMenu } from "../message/MessageOptionsMenu";
-//import { useInfiniteMessages } from "../../hooks/useInfiniteMessages"; // Adjust path as needed
 
 export const MessageList = ({
   getSenderData,
@@ -36,8 +35,7 @@ export const MessageList = ({
   const messagesContainerRef = useRef(null);
   const [loadingStates, setLoadingStates] = useState({});
   const [openPopoverId, setOpenPopoverId] = useState(null);
-  // const [shouldScrollToBottom, setShouldScrollToBottom] = useState(true);
-  //const previousScrollHeight = useRef(0);
+  const [highlightedMessageId, setHighlightedMessageId] = useState(null);
   const prevMessagesLengthRef = useRef(0);
 
   const { setEditMessage, setReplyTo, chatId, users } = useMessageActionStore();
@@ -53,58 +51,43 @@ export const MessageList = ({
     }
   }, [messages]);
 
-  // Use the infinite messages hook
-  // const {
-  //   messages,
-  //   messagesLoading,
-  //   loadingOlder,
-  //   hasMoreMessages,
-  //   loadOlderMessages,
-  // } = useInfiniteMessages(chatId);
+  // Clear highlight after 3 seconds
+  useEffect(() => {
+    if (highlightedMessageId) {
+      const timer = setTimeout(() => {
+        setHighlightedMessageId(null);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [highlightedMessageId]);
 
-  // Add these state variables to your component
   const [forwardDialogOpen, setForwardDialogOpen] = useState(false);
   const [selectedMessage, setSelectedMessage] = useState(null);
 
-  // Scroll to bottom when new messages arrive (only if user was at bottom)
-  // useEffect(() => {
-  //   if (shouldScrollToBottom && messagesEndRef.current) {
-  //     messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
-  //   }
-  // }, [messages, shouldScrollToBottom]);
+  // Function to scroll to and highlight a specific message
+  const scrollToMessage = useCallback((messageId) => {
+    const messageElement = document.getElementById(`message-${messageId}`);
+    if (messageElement) {
+      messageElement.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+      setHighlightedMessageId(messageId);
+    } else {
+      toast.error("Message not found in current view");
+    }
+  }, []);
 
-  // const handleScroll = useCallback(() => {
-  //   console.log("🌀 handleScroll triggered");
+  // Handle clicking on a reply message
+  const handleReplyClick = useCallback(
+    (replyToMessageId) => {
+      if (replyToMessageId) {
+        scrollToMessage(replyToMessageId);
+      }
+    },
+    [scrollToMessage]
+  );
 
-  //   const container = messagesContainerRef.current;
-  //   if (!container) return;
-
-  //   const { scrollTop, scrollHeight, clientHeight } = container;
-  //   const isNearBottom = scrollHeight - scrollTop - clientHeight < 100;
-  //   setShouldScrollToBottom(isNearBottom);
-
-  //   if (scrollTop === 0 && hasMoreMessages && !loadingOlder) {
-  //     console.log("⬆ Reached top — loading older messages...");
-  //     previousScrollHeight.current = scrollHeight;
-  //     loadOlderMessages();
-  //   }
-  // }, [hasMoreMessages, loadingOlder, loadOlderMessages]);
-
-  // // Maintain scroll position after loading older messages
-  // useEffect(() => {
-  //   if (loadingOlder === false && previousScrollHeight.current > 0) {
-  //     const container = messagesContainerRef.current;
-  //     if (container) {
-  //       // Calculate the difference in scroll height and adjust scroll position
-  //       const newScrollHeight = container.scrollHeight;
-  //       const scrollDifference = newScrollHeight - previousScrollHeight.current;
-  //       container.scrollTop = scrollDifference;
-  //       previousScrollHeight.current = 0;
-  //     }
-  //   }
-  // }, [loadingOlder]);
-
-  // Your existing functions remain the same...
   const handleForwardMessage = (messageId) => {
     const message = messages.find((msg) => msg.id === messageId);
     setSelectedMessage(message);
@@ -351,28 +334,16 @@ export const MessageList = ({
       <div
         ref={messagesContainerRef}
         className="flex-1 overflow-y-auto scroll-smooth"
-        // onScroll={handleScroll}
       >
-        {/* Loading indicator for older messages */}
-        {/* {loadingOlder && (
-          <div className="flex justify-center py-4">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
-          </div>
-        )} */}
-
-        {/* No more messages indicator */}
-        {/* {messages.length > 0 && (
-          <div className="flex justify-center py-4">
-            <span className="text-xs text-gray-500">
-              Beginning of conversation
-            </span>
-          </div>
-        )} */}
-
         {messages.map((msg) => (
           <div
             key={msg.id}
-            className={`flex mb-2 ${
+            id={`message-${msg.id}`}
+            className={`flex mb-2 transition-all duration-300 ${
+              highlightedMessageId === msg.id
+                ? "bg-blue-100 dark:bg-yellow-900/30 rounded-lg py-2 -mx-0"
+                : ""
+            } ${
               msg.type === "system"
                 ? "justify-center"
                 : msg.senderId === user?.uid
@@ -380,7 +351,6 @@ export const MessageList = ({
                 : "justify-start items-end"
             }`}
           >
-            {/* Rest of your message rendering logic remains the same */}
             <div>
               {msg.senderId !== user?.uid && msg.type !== "system" && (
                 <div className="flex gap-1.5 text-xs ml-7 items-center mb-0.5">
@@ -402,7 +372,6 @@ export const MessageList = ({
                 </div>
               )}
 
-              {/* Your existing message rendering code continues here... */}
               <div
                 className={`flex gap-1.5 ${
                   msg.senderId === user?.uid ? "justify-end" : ""
@@ -462,6 +431,7 @@ export const MessageList = ({
                     <ReplyMessageDisplay
                       message={msg}
                       getSenderDisplayName={getSenderDisplayName}
+                      onReplyClick={handleReplyClick}
                     />
 
                     {msg.type === "file" ? (
@@ -516,7 +486,6 @@ export const MessageList = ({
                 )}
               </div>
 
-              {/* Message metadata sections remain the same... */}
               {msg.senderId !== user?.uid && msg.type !== "system" && (
                 <div className="ml-7">
                   {msg.reactions && (

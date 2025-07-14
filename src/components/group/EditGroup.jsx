@@ -26,6 +26,7 @@ import {
   getDownloadURL,
   deleteObject,
 } from "firebase/storage";
+import { CreateGroupTopic } from "./CreateGroupTopic";
 
 export function EditGroup({ chatId, currentUserId }) {
   const [name, setName] = useState("");
@@ -165,10 +166,16 @@ export function EditGroup({ chatId, currentUserId }) {
 
           <div className="mb-5">
             {isAdmin && (
-              <ManageGroupMembers
-                chatId={chatId}
-                currentUserId={currentUserId}
-              />
+              <>
+                <ManageGroupMembers
+                  chatId={chatId}
+                  currentUserId={currentUserId}
+                />
+                <CreateGroupTopic
+                  chatId={chatId}
+                  currentUserId={currentUserId}
+                />
+              </>
             )}
           </div>
 

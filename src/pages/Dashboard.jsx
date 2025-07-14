@@ -32,13 +32,16 @@ import { useUserStore } from "@/stores/useUserStore";
 import { useTypingStatus } from "@/stores/useTypingStatus";
 import { useInternetConnection } from "@/hooks/CheckInternetConnection";
 //import { useInfiniteMessages } from "@/hooks/useInfiniteMessages";
+import { useMenu } from "@/hooks/useMenuState";
+import { useChatFolderStore } from "@/stores/chat-folder/useChatFolderStore";
 
 function Dashboard() {
   const user = useUserStore((s) => s.user);
   const userProfile = useUserStore((s) => s.userProfile);
 
   // const { messages, messagesLoading } = useInfiniteMessages;
-  const [menu, setMenu] = useState(false);
+  const { menu, setMenu } = useMenu();
+
   const endOfMessagesRef = useRef(null);
 
   const [isAddingUsers, setIsAddingUsers] = useState(false);
@@ -69,9 +72,11 @@ function Dashboard() {
     selectedUser,
     clearCurrentChat,
     clearSelectedUser,
+    topicId,
   } = useMessageActionStore();
 
   const cleanup = useTypingStatus((state) => state.cleanup);
+  const { setFolderSidebar } = useChatFolderStore();
 
   const { isOnline, wasOffline } = useInternetConnection();
 
@@ -102,8 +107,14 @@ function Dashboard() {
   useEffect(() => {
     if (chatId) {
       setMessagesLoading(true);
-      const messagesRef = collection(db, "chats", chatId, "messages");
+      const isTopicChat = !!topicId;
+
+      const messagesRef = isTopicChat
+        ? collection(db, "chats", chatId, "topics", topicId, "messages")
+        : collection(db, "chats", chatId, "messages");
+
       const q = query(messagesRef, orderBy("timestamp"), limitToLast(50));
+
       const unsubscribe = onSnapshot(q, (querySnapshot) => {
         const messagesArray = [];
         querySnapshot.forEach((doc) => {
@@ -112,12 +123,13 @@ function Dashboard() {
         setMessages(messagesArray);
         setMessagesLoading(false);
       });
+
       return () => unsubscribe();
     } else {
       setMessages([]);
       setMessagesLoading(false);
     }
-  }, [chatId]);
+  }, [chatId, topicId]);
 
   const handleFileUpload = async ({ file, message, chatId }) => {
     setIsUploadingFile(true);
@@ -187,6 +199,10 @@ function Dashboard() {
   const handleSelectChat = (chat) => {
     setChatIdTo(chat.id);
     setCurrentChat(chat);
+    if (chat.hasChatTopic) {
+      setFolderSidebar(true);
+    }
+
     if (chat.type === "direct") {
       const otherUserId = chat.users.find((uid) => uid !== user?.uid);
       const otherUser = users.find((u) => u.id === otherUserId);
@@ -305,18 +321,18 @@ function Dashboard() {
       .filter(
         (m) =>
           m.senderId !== user?.uid &&
-          (!Array.isArray(m.seenBy) || !m.seenBy.includes(user.uid))
+          (!Array.isArray(m.seenBy) || !m.seenBy.includes(user?.uid))
       )
       .forEach((m) => {
-        const msgRef = doc(db, "chats", chatId, "messages", m.id);
+        const msgRef = doc(db, "chats", chatId, "messages", m?.id);
         batch.update(msgRef, {
-          seenBy: arrayUnion(user.uid),
+          seenBy: arrayUnion(user?.uid),
           seen: true,
         });
       });
     const chatRef = doc(db, "chats", chatId);
     updateDoc(chatRef, {
-      seenBy: arrayUnion(user.uid),
+      seenBy: arrayUnion(user?.uid),
     });
 
     batch.commit();
@@ -473,20 +489,47 @@ function Dashboard() {
 
   useEffect(() => {
     if (!chatId || !user?.uid) return;
+
     const chatRef = doc(db, "chats", chatId);
+
     const unsubscribe = onSnapshot(
       chatRef,
-      (doc) => {
-        if (doc.exists()) {
-          const chatData = doc.data();
-          const users = chatData.users || [];
-          if (!users.includes(user?.uid)) {
-            toast.error("This chat no longer exists.");
-            clearChat();
-          }
-        } else {
+      async (docSnap) => {
+        if (!docSnap.exists()) {
           toast.error("This chat no longer exists.");
           clearChat();
+          return;
+        }
+
+        const chatData = docSnap.data();
+        const users = chatData.users || [];
+
+        // Step 1: Check if user is in base chat group
+        if (!users.includes(user.uid)) {
+          toast.error("This chat no longer exists.");
+          clearChat();
+          return;
+        }
+
+        // Step 2: If it has topics, check membership in topic(s)
+        if (chatData.hasChatTopic) {
+          try {
+            const topicsRef = collection(db, "chats", chatId, "topics");
+            const topicsSnap = await getDocs(topicsRef);
+
+            const isInAnyTopic = topicsSnap.docs.some((doc) => {
+              const topicUsers = doc.data().users || [];
+              return topicUsers.includes(user.uid);
+            });
+
+            if (!isInAnyTopic) {
+              toast.error("You no longer have access to this group's topics.");
+              clearChat();
+            }
+          } catch (err) {
+            console.error("Error fetching topic membership:", err);
+            toast.error("Topic access error.");
+          }
         }
       },
       (error) => {
@@ -494,6 +537,7 @@ function Dashboard() {
         toast.error("Connection error. Please refresh.");
       }
     );
+
     return () => unsubscribe();
   }, [chatId, user?.uid, clearChat]);
 

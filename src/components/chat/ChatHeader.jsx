@@ -12,6 +12,7 @@ import { AddUsersToGroup } from "@/components/group/AddUserToGroup";
 import { PinnedMessages } from "@/components/chat/PinnedMessages";
 import { ChatFiles } from "@/components/chat/ChatFiles";
 import { TypingIndicator } from "./TypingIndicator";
+import { useMessageActionStore } from "@/stores/useMessageActionStore";
 
 const ChatHeader = ({
   currentChat,
@@ -26,6 +27,7 @@ const ChatHeader = ({
   addUsersToGroup,
   isAddingUsers,
 }) => {
+  const { topicId, currentTopic } = useMessageActionStore();
   return (
     <div className="fixed top-0 left-0 right-0 border-b sm:ml-64 z-30">
       <div className="px-4 py-2 rounded shadow w-full flex items-center">
@@ -45,6 +47,8 @@ const ChatHeader = ({
               user={user}
               users={users}
               chatId={chatId}
+              topicId={topicId}
+              currentTopic={currentTopic}
               getChatDisplayName={getChatDisplayName}
               getSenderDisplayName={getSenderDisplayName}
               clearChatId={clearChatId}
@@ -78,19 +82,30 @@ const GroupChatHeader = ({
   clearChatId,
   addUsersToGroup,
   isAddingUsers,
+  topicId,
+  currentTopic,
 }) => (
   <div className="flex justify-between items-center w-full">
     <div className="flex justify-start gap-3 items-center w-full">
-      <Avatar className="h-10 w-10">
+      <Avatar className="h-10 w-10 border">
         <AvatarImage src={currentChat.photoURL} />
         <AvatarFallback>
-          {currentChat.name[0]?.toUpperCase() || "G"}
+          {topicId ? (
+            <>{currentTopic.name[0].toUpperCase()}</>
+          ) : (
+            <> {currentChat.name[0]?.toUpperCase() || "G"}</>
+          )}
         </AvatarFallback>
       </Avatar>
 
       <div className=" relative sm:max-w-52 max-w-20">
         <div className="font-semibold text-sm sm:max-w-52 max-w-20 truncate sm:text-lg capitalize">
-          {getChatDisplayName(currentChat)}
+          {topicId ? (
+            <>{currentTopic.name}</>
+          ) : (
+            <> {getChatDisplayName(currentChat)}</>
+          )}
+
           <div className="absolute -bottom-2.5  text-xs left-0">
             <TypingIndicator chatId={chatId} getName={getSenderDisplayName} />
           </div>
@@ -98,14 +113,19 @@ const GroupChatHeader = ({
       </div>
     </div>
     <div className="flex items-center gap-2">
-      <AddUsersToGroup
-        users={users}
-        currentUserId={user?.uid}
-        currentChat={currentChat}
-        submitText="Add Members"
-        onSubmit={addUsersToGroup}
-        isLoading={isAddingUsers}
-      />
+      {topicId ? (
+        <></>
+      ) : (
+        <AddUsersToGroup
+          users={users}
+          currentUserId={user?.uid}
+          currentChat={currentChat}
+          submitText="Add Members"
+          onSubmit={addUsersToGroup}
+          isLoading={isAddingUsers}
+        />
+      )}
+
       <ManageGroupChat
         chatId={currentChat.id}
         currentUserId={user?.uid}

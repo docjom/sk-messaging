@@ -7,6 +7,8 @@ import { useMessageActionStore } from "@/stores/useMessageActionStore";
 import { db } from "@/firebase";
 import { collection, query, onSnapshot, where } from "firebase/firestore";
 import { useUserStore } from "@/stores/useUserStore";
+import { FolderSidebar } from "../chat-folder/folderSidebar";
+import { useChatFolderStore } from "@/stores/chat-folder/useChatFolderStore";
 
 function SidebarPanel({
   searchTerm,
@@ -18,50 +20,62 @@ function SidebarPanel({
   getChatPhoto,
   getChatDisplayName,
   user,
+  folderSidebar,
   clearChat,
   getSenderDisplayName,
   toggleMenu,
   className = "",
 }) {
   return (
-    <div className={className}>
-      <div className="flex items-center justify-start gap-2 mb-2">
-        <div
-          onClick={() => toggleMenu()}
-          className="rounded-full dark:bg-gray-700/20 p-2"
-        >
-          <Icon icon="duo-icons:menu" width="24" height="24" />
-        </div>
-        <div className="w-full">
-          <Input
-            type="search"
-            placeholder="Search..."
-            className="w-full rounded-full border border-gray-600"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-      </div>
-      <div className="h-full overflow-y-auto scrollbar-hide">
-        {chatsLoading ? (
-          <ChatListLoading />
-        ) : filteredChats.length > 0 ? (
-          <ChatList
-            filteredChats={filteredChats}
-            handleSelectChat={handleSelectChat}
-            getOtherUserInDirectChat={getOtherUserInDirectChat}
-            getChatPhoto={getChatPhoto}
-            getChatDisplayName={getChatDisplayName}
-            currentUserId={user?.uid}
-            onLeaveSuccess={clearChat}
-            getSenderDisplayName={getSenderDisplayName}
-          />
-        ) : (
-          <div className="mx-1 p-2 border-gray-600/50 rounded-lg border text-gray-500">
-            No Recent Chats
+    <div className="flex">
+      {!folderSidebar && (
+        <>
+          {" "}
+          <div className="">
+            <div className={className}>
+              <div className="">
+                <div className="flex items-center justify-start gap-2 p-2">
+                  <div
+                    onClick={() => toggleMenu()}
+                    className="rounded-full dark:bg-gray-700/20 p-2"
+                  >
+                    <Icon icon="duo-icons:menu" width="24" height="24" />
+                  </div>
+                  <div className="w-full">
+                    <Input
+                      type="search"
+                      placeholder="Search..."
+                      className="w-full rounded-full border border-gray-600"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                  </div>
+                </div>
+                <div className="h-full overflow-y-auto scrollbar-hide">
+                  {chatsLoading ? (
+                    <ChatListLoading />
+                  ) : filteredChats.length > 0 ? (
+                    <ChatList
+                      filteredChats={filteredChats}
+                      handleSelectChat={handleSelectChat}
+                      getOtherUserInDirectChat={getOtherUserInDirectChat}
+                      getChatPhoto={getChatPhoto}
+                      getChatDisplayName={getChatDisplayName}
+                      currentUserId={user?.uid}
+                      onLeaveSuccess={clearChat}
+                      getSenderDisplayName={getSenderDisplayName}
+                    />
+                  ) : (
+                    <div className="mx-1 p-2 border-gray-600/50 rounded-lg border text-gray-500">
+                      No Recent Chats
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
-        )}
-      </div>
+        </>
+      )}
     </div>
   );
 }
@@ -71,6 +85,7 @@ const Sidebar = ({ toggleMenu, handleSelectChat, getSenderDisplayName }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const user = useUserStore((s) => s.user);
   const [chatsLoading, setChatsLoading] = useState(true);
+  const { folderSidebar } = useChatFolderStore();
 
   const getUserData = useCallback(
     (userId) => users.find((u) => u.id === userId) || null,
@@ -168,7 +183,14 @@ const Sidebar = ({ toggleMenu, handleSelectChat, getSenderDisplayName }) => {
           clearChat={clearChat}
           getSenderDisplayName={getSenderDisplayName}
           toggleMenu={toggleMenu}
-          className="w-screen bg-white dark:bg-gray-800 border-r sm:hidden fixed lg:sticky top-0 left-0 z-30 overflow-y-auto p-2 flex flex-col h-full"
+          className="w-screen bg-white dark:bg-gray-800 border-r sm:hidden fixed lg:sticky top-0 left-0 z-30 overflow-y-auto p-2 flex-col h-full"
+        />
+      )}
+      {folderSidebar && (
+        <FolderSidebar
+          filteredChats={filteredChats}
+          getChatPhoto={getChatPhoto}
+          getChatDisplayName={getChatDisplayName}
         />
       )}
 
@@ -183,9 +205,10 @@ const Sidebar = ({ toggleMenu, handleSelectChat, getSenderDisplayName }) => {
         getChatDisplayName={getChatDisplayName}
         user={user}
         clearChat={clearChat}
+        folderSidebar={folderSidebar}
         getSenderDisplayName={getSenderDisplayName}
         toggleMenu={toggleMenu}
-        className="w-64 hidden bg-white dark:bg-gray-800 border-r sm:fixed lg:sticky top-0 left-0 z-10 overflow-y-auto p-2 sm:flex flex-col h-full"
+        className="w-64 hidden bg-white dark:bg-gray-800 border-r sm:fixed lg:sticky top-0 left-0 z-10 overflow-y-auto  sm:flex flex-col h-full"
       />
     </>
   );

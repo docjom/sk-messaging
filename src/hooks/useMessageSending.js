@@ -34,6 +34,8 @@ export const useMessageSending = () => {
   }) => {
     if (!message.trim() && !pastedImage) return;
 
+    const topicId = useMessageActionStore.getState().topicId;
+
     setIsMessagesSending(true);
 
     try {
@@ -42,20 +44,40 @@ export const useMessageSending = () => {
         imageURL = await uploadImageToStorage(pastedImage.file, chatId);
       }
 
+      // Determine base paths
+      const messagesRef = topicId
+        ? collection(db, "chats", chatId, "topics", topicId, "messages")
+        : collection(db, "chats", chatId, "messages");
+
+      const filesRef = topicId
+        ? collection(db, "chats", chatId, "topics", topicId, "files")
+        : collection(db, "chats", chatId, "files");
+
+      const chatRef = doc(db, "chats", chatId);
+
       if (edit?.messageId) {
-        const msgRef = doc(db, "chats", chatId, "messages", edit.messageId);
+        const msgRef = topicId
+          ? doc(
+              db,
+              "chats",
+              chatId,
+              "topics",
+              topicId,
+              "messages",
+              edit.messageId
+            )
+          : doc(db, "chats", chatId, "messages", edit.messageId);
+
         const updateData = {
-          message: message,
+          message,
           edited: true,
           timestamp: edit?.timestamp,
           editTimestamp: serverTimestamp(),
         };
+
         await updateDoc(msgRef, updateData);
         useMessageActionStore.getState().clearEdit();
       } else {
-        const messagesRef = collection(db, "chats", chatId, "messages");
-        const chatRef = doc(db, "chats", chatId);
-
         const messagePayload = {
           senderId,
           message,
@@ -83,10 +105,9 @@ export const useMessageSending = () => {
           }),
         };
 
+        // Store any URLs as link files
         if (message && message.match(/(https?:\/\/[^\s]+)/g)) {
-          const urlRegex = /(https?:\/\/[^\s]+)/g;
-          const foundLinks = message.match(urlRegex);
-          const filesRef = collection(db, "chats", chatId, "files");
+          const foundLinks = message.match(/(https?:\/\/[^\s]+)/g);
           for (const url of foundLinks) {
             await addDoc(filesRef, {
               senderId,
@@ -97,8 +118,8 @@ export const useMessageSending = () => {
           }
         }
 
+        // Store uploaded image as a file record too
         if (imageURL) {
-          const filesRef = collection(db, "chats", chatId, "files");
           await addDoc(filesRef, {
             senderId,
             fileData: {

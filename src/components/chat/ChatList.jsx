@@ -70,7 +70,7 @@ const ChatList = ({
       <div
         key={chat.id}
         onClick={() => handleSelectChat(chat)}
-        className={`group cursor-pointer p-2 relative rounded-xl transition-colors
+        className={`group cursor-pointer p-2 relative  transition-colors
   ${
     chatId === chat.id
       ? "bg-blue-500/30 hover:bg-blue-500/40"
@@ -99,7 +99,7 @@ const ChatList = ({
           </div>
         )}
 
-        <div className="absolute top-0 right-0 z-10 sm:not-visited:opacity-0 sm:group-hover:opacity-100 rounded-xl transition-opacity duration-150 backdrop-blur-sm">
+        <div className="absolute top-0 right-0 z-10 sm:not-visited:opacity-0 sm:group-hover:opacity-100  transition-opacity duration-150 backdrop-blur-sm">
           <Popover>
             <PopoverTrigger
               onClick={(e) => {
