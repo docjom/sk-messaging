@@ -26,12 +26,10 @@ export const CreateNewTopic = () => {
 
   const createTopic = async (e) => {
     e.preventDefault();
-
     if (!topicName.trim()) return;
     setCreating(true);
     try {
       const topicRef = collection(db, "chats", chatId, "topics");
-
       await addDoc(topicRef, {
         name: topicName.trim(),
         createdBy: user?.uid,
@@ -41,7 +39,6 @@ export const CreateNewTopic = () => {
         lastMessageTime: "",
         pin: [],
       });
-
       setTopicName("");
       setOpen(false);
     } catch (error) {
