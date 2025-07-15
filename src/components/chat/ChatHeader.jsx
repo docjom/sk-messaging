@@ -160,11 +160,18 @@ const GroupChatHeader = ({
         />
       )}
 
-      <ManageGroupChat
-        chatId={currentChat.id}
-        currentUserId={user?.uid}
-        clearCurrentChat={clearChatId}
-      />
+      {topicId ? (
+        <></>
+      ) : (
+        <>
+          {" "}
+          <ManageGroupChat
+            chatId={currentChat.id}
+            currentUserId={user?.uid}
+            clearCurrentChat={clearChatId}
+          />
+        </>
+      )}
     </div>
   </div>
 );

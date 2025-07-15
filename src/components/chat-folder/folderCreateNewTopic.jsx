@@ -76,20 +76,20 @@ export const CreateNewTopic = () => {
       <DialogContent className="sm:max-w-[425px]">
         <form onSubmit={createTopic}>
           <DialogHeader>
-            <DialogTitle>Create topic</DialogTitle>
+            <DialogTitle>New topic</DialogTitle>
             <DialogDescription>
-              Please add the name of your topic
+              Please input the name of your topic
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label htmlFor="topic-name">Topic Name</Label>
+              <Label htmlFor="topic-name">Chose a topic name</Label>
               <Input
                 id="topic-name"
                 name="name"
                 value={topicName}
                 onChange={(e) => setTopicName(e.target.value)}
-                placeholder="Enter topic name"
+                placeholder="What do you want to discuss?"
                 required
               />
             </div>

@@ -48,21 +48,26 @@
   // }, [loadingOlder]);
 
 
+//-------------done
+fix layout view 
+after creating topic, admin only can create topic 
+close the group folder upon clicking user thats have a direct type 
 
-fix layout view
-adapt topic information to header, 
-remove add user to header when i click the topic
+
+//---------------------- currently working
+close group folder when user click a group without a topic 
+remove add user to header when i click the topic 
+adapt sending message including files, videos, links and images 
+
+// ----------------------- not started yet
+adapt topic information to header
 create a management of topic
-after creating topic, admin only can create topic
 admin can set another roles to user
 adapt pinning topic
 adapt pinning chat in topic
 adapt emoji reactions per topic
-adapt sending message including files, videos, links and images
 adapt getting files per topic
 topic info modal
 topic edit modal info
 topic seen functionality
-close the group folder uppon clicking user thats have a direct type
-close group folder when user click a group without a topic
 typing indicator in topic

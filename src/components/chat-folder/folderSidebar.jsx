@@ -74,6 +74,7 @@ export const FolderSidebar = ({
   const viewAsMessages = () => {
     clearTopicId();
     setChatIdTo(chatId);
+    setFolderSidebar(false);
   };
 
   const closeFolderSidebar = () => {
@@ -115,7 +116,18 @@ export const FolderSidebar = ({
                 id: doc.id,
                 ...doc.data(),
               }));
-              setTopics(loadedTopics);
+              const sortedTopics = loadedTopics.sort((a, b) => {
+                const isAPinned = a.pin?.includes(user.uid) ? 1 : 0;
+                const isBPinned = b.pin?.includes(user.uid) ? 1 : 0;
+
+                if (isAPinned !== isBPinned) return isBPinned - isAPinned;
+
+                const timeA = a.createdAt?.toMillis?.() || 0;
+                const timeB = b.createdAt?.toMillis?.() || 0;
+                return timeB - timeA;
+              });
+
+              setTopics(sortedTopics);
             });
 
             return unsubscribe;
