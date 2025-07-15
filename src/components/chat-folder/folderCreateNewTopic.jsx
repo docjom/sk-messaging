@@ -83,7 +83,7 @@ export const CreateNewTopic = () => {
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label htmlFor="topic-name">Chose a topic name</Label>
+              <Label htmlFor="topic-name">Choose a topic name</Label>
               <Input
                 id="topic-name"
                 name="name"
