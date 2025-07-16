@@ -11,9 +11,10 @@ import {
 } from "@/components/ui/popover";
 import { doc, updateDoc, arrayUnion, arrayRemove } from "firebase/firestore";
 import { db } from "@/firebase";
+import { TypingIndicator } from "../chat/TypingIndicator";
 
 export const FolderList = ({ topic }) => {
-  const { setCurrentTopic, setTopicIdTo, topicId, chatId } =
+  const { setCurrentTopic, setTopicIdTo, topicId, chatId, users } =
     useMessageActionStore();
   const { setFolderSidebar } = useChatFolderStore();
   const { user } = useUserStore();
@@ -24,6 +25,11 @@ export const FolderList = ({ topic }) => {
     if (window.innerWidth <= 640) {
       setFolderSidebar(false);
     }
+  };
+
+  const getDisplayName = () => {
+    const sender = users.find((u) => u.id === user?.uid);
+    return sender?.displayName || "Unknown User";
   };
 
   const handlePinToggle = async () => {
@@ -162,6 +168,7 @@ export const FolderList = ({ topic }) => {
                   )}
                 </>
               )}
+
               <span>{formatTimestamp(topic.lastMessageTime)}</span>
 
               <Popover>
@@ -220,6 +227,7 @@ export const FolderList = ({ topic }) => {
                   </>
                 )}
               </div>
+
               {topic.pin?.includes(user?.uid) && (
                 <div className="text-gray-400">
                   <svg
@@ -234,6 +242,11 @@ export const FolderList = ({ topic }) => {
                     />
                   </svg>
                 </div>
+              )}
+            </div>
+            <div className="text-[9px]">
+              {topic.id === topicId && (
+                <TypingIndicator chatId={chatId} getName={getDisplayName} />
               )}
             </div>
           </div>
