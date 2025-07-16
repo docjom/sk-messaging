@@ -154,40 +154,35 @@ export const FolderSidebar = ({
   return (
     <>
       <div className="sm:w-64 w-full  dark:bg-gray-800 border-r fixed lg:sticky top-0 left-0 z-30 overflow-y-auto bg-white flex h-full ">
-        <div className="border-r bg-gray-50 dark:bg-gray-700">
-          <div className="flex items-center justify-start gap-2 m-2">
+        <div className="border-r w-20 p-2 h-full overflow-y-auto bg-gray-50 dark:bg-gray-700">
+          <div className="flex items-center justify-start border-b pb-1">
             <div
               onClick={() => toggleMenu()}
-              className="rounded-full dark:bg-gray-700/20 p-2"
+              className="rounded-full flex justify-center items-center dark:bg-gray-700/20 p-2 border"
             >
               <Icon icon="duo-icons:menu" width="24" height="24" />
             </div>
           </div>
-          <div>
-            <div className="">
-              {filteredChats.map((chat) => (
-                <div
-                  key={chat.id}
-                  onClick={() => handleSelectChat(chat)}
-                  className="m-2"
-                >
-                  <Avatar
-                    className={`w-10 h-10 border  ${
-                      chatId === chat.id
-                        ? "border-2 border-blue-500 shadow-lg"
-                        : ""
-                    }`}
-                  >
-                    <AvatarImage src={getChatPhoto(chat)} />
-                    <AvatarFallback>
-                      {" "}
-                      {getChatDisplayName(chat)[0]?.toUpperCase() || "U"}
-                    </AvatarFallback>
-                  </Avatar>
-                </div>
-              ))}
+
+          {filteredChats.map((chat) => (
+            <div
+              key={chat.id}
+              onClick={() => handleSelectChat(chat)}
+              className="py-1"
+            >
+              <Avatar
+                className={`w-10 h-10 border  ${
+                  chatId === chat.id ? "border-2 border-blue-500 shadow-lg" : ""
+                }`}
+              >
+                <AvatarImage src={getChatPhoto(chat)} />
+                <AvatarFallback>
+                  {" "}
+                  {getChatDisplayName(chat)[0]?.toUpperCase() || "U"}
+                </AvatarFallback>
+              </Avatar>
             </div>
-          </div>
+          ))}
         </div>
         <div className="w-full h-full">
           <div className="flex justify-between items-center border-b p-2">

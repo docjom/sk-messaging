@@ -15,6 +15,7 @@ export const getRefs = ({ chatId, topicId = null, messageId = null }) => {
 
   const messageCollectionRef = collection(db, ...basePath, "messages");
   const pinnedMessagesRef = collection(db, ...basePath, "pinned-messages");
+  const filesRef = collection(db, ...basePath, "files");
 
   const pinnedMessageDoc = (docId) =>
     doc(db, ...basePath, "pinned-messages", docId);
@@ -27,6 +28,7 @@ export const getRefs = ({ chatId, topicId = null, messageId = null }) => {
     pinnedMessagesRef,
     pinnedMessageDoc,
     chatRef,
+    filesRef,
   };
 };
 
