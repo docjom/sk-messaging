@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { doc, updateDoc, onSnapshot } from "firebase/firestore";
-import { db } from "@/firebase";
+import { updateDoc, onSnapshot } from "firebase/firestore";
+import { getRefs } from "@/utils/firestoreRefs";
+import { useMessageActionStore } from "@/stores/useMessageActionStore";
 
 const emojis = [
   {
@@ -31,11 +32,17 @@ const emojis = [
 ];
 
 export const EmojiSet = ({ messageId, userId, chatId, onSelect }) => {
+  const { topicId } = useMessageActionStore();
   const [reactions, setReactions] = useState({});
 
   useEffect(() => {
     // Listen to reactions in real-time
-    const messageRef = doc(db, "chats", chatId, "messages", messageId);
+
+    const { messageRef } = getRefs({
+      chatId,
+      topicId,
+      messageId,
+    });
 
     const unsubscribe = onSnapshot(messageRef, (doc) => {
       if (doc.exists()) {
@@ -45,12 +52,16 @@ export const EmojiSet = ({ messageId, userId, chatId, onSelect }) => {
     });
 
     return () => unsubscribe();
-  }, [chatId, messageId]);
+  }, [chatId, messageId, topicId]);
 
   const handleEmojiClick = async (emoji) => {
     onSelect?.();
     try {
-      const messageRef = doc(db, "chats", chatId, "messages", messageId);
+      const { messageRef } = getRefs({
+        chatId,
+        topicId,
+        messageId,
+      });
 
       // Check if user already reacted with this specific emoji
       const currentEmojiReactions = reactions[emoji.srcSet] || [];
