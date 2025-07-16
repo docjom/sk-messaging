@@ -17,13 +17,13 @@ import {
   query,
   where,
   getDocs,
-  collection,
   updateDoc,
 } from "firebase/firestore";
 import { db } from "../../firebase";
 import { formatTimestamp } from "../../composables/scripts";
 import ForwardMessageDialog from "../message/ForwardMessageDialog";
 import { MessageOptionsMenu } from "../message/MessageOptionsMenu";
+import { getRefs, getUserRef } from "@/utils/firestoreRefs";
 
 export const MessageList = ({
   getSenderData,
@@ -38,7 +38,9 @@ export const MessageList = ({
   const [highlightedMessageId, setHighlightedMessageId] = useState(null);
   const prevMessagesLengthRef = useRef(0);
 
-  const { setEditMessage, setReplyTo, chatId, users } = useMessageActionStore();
+  const { setEditMessage, setReplyTo, chatId, users, topicId } =
+    useMessageActionStore();
+
   const userProfile = useUserStore((s) => s.userProfile);
   const user = userProfile;
   const currentUserId = user?.uid;
@@ -97,13 +99,15 @@ export const MessageList = ({
 
   const handlePinMessage = async (messageId) => {
     try {
-      const messageRef = doc(db, "chats", chatId, "messages", messageId);
-      const messageSnap = await getDoc(messageRef);
+      const { messageRef, chatRef, pinnedMessagesRef, messageCollectionRef } =
+        getRefs({
+          chatId,
+          topicId,
+          messageId,
+        });
 
-      if (!messageSnap.exists()) {
-        console.error("Message not found");
-        return;
-      }
+      const messageSnap = await getDoc(messageRef);
+      if (!messageSnap.exists()) return console.error("Message not found");
 
       const messageData = messageSnap.data();
 
@@ -112,8 +116,7 @@ export const MessageList = ({
         pinnedAt: serverTimestamp(),
       });
 
-      const chatRef = doc(db, "chats", chatId);
-      const userRef = doc(db, "users", currentUserId);
+      const userRef = getUserRef(currentUserId);
       const userSnap = await getDoc(userRef);
       const name = userSnap.data()?.displayName || "Someone";
 
@@ -121,22 +124,17 @@ export const MessageList = ({
       batch.update(chatRef, {
         lastMessage: `${name} pinned a message`,
         lastMessageTime: serverTimestamp(),
+        lastSenderName: name,
       });
-      const msgRef = collection(db, "chats", chatId, "messages");
-      batch.set(doc(msgRef), {
+
+      batch.set(doc(messageCollectionRef), {
         senderId: currentUserId,
         message: `${name} pinned a message`,
         timestamp: serverTimestamp(),
         type: "system",
       });
 
-      const pinnedMessageRef = collection(
-        db,
-        "chats",
-        chatId,
-        "pinned-messages"
-      );
-      await addDoc(pinnedMessageRef, {
+      await addDoc(pinnedMessagesRef, {
         originalMessageId: messageId,
         senderId: messageData.senderId,
         message: messageData.message,
@@ -151,52 +149,37 @@ export const MessageList = ({
 
       await batch.commit();
       setOpenPopoverId(null);
-    } catch (error) {
-      console.error("Failed to pin message:", error);
+    } catch (err) {
+      console.error("Failed to pin message:", err);
     }
   };
 
   const handleRemovePinMessage = async (messageId) => {
     try {
-      const pinnedMessagesRef = collection(
-        db,
-        "chats",
-        chatId,
-        "pinned-messages"
-      );
+      const { messageRef, pinnedMessagesRef, pinnedMessageDoc, chatRef } =
+        getRefs({ chatId, topicId, messageId });
+
       const q = query(
         pinnedMessagesRef,
         where("originalMessageId", "==", messageId)
       );
       const pinnedMessageSnap = await getDocs(q);
 
-      if (pinnedMessageSnap.empty) {
-        console.error("Pinned message not found");
-        return;
-      }
+      if (pinnedMessageSnap.empty)
+        return console.error("Pinned message not found");
 
-      const pinnedMessageDoc = pinnedMessageSnap.docs[0];
-      const userRef = doc(db, "users", currentUserId);
-      const userSnap = await getDoc(userRef);
-      const name = userSnap.data()?.displayName || "Someone";
+      const pinnedMessageId = pinnedMessageSnap.docs[0].id;
 
       const batch = writeBatch(db);
-      const msgRef = doc(db, "chats", chatId, "messages", messageId);
-      batch.update(msgRef, {
+      batch.update(messageRef, {
         pinned: false,
         pinnedAt: null,
       });
+      batch.delete(pinnedMessageDoc(pinnedMessageId));
 
-      const pinnedMessageRef = doc(
-        db,
-        "chats",
-        chatId,
-        "pinned-messages",
-        pinnedMessageDoc.id
-      );
-      batch.delete(pinnedMessageRef);
+      const userSnap = await getDoc(getUserRef(currentUserId));
+      const name = userSnap.data()?.displayName || "Someone";
 
-      const chatRef = doc(db, "chats", chatId);
       batch.update(chatRef, {
         lastMessage: `${name} unpinned a message`,
         lastMessageTime: serverTimestamp(),
@@ -204,25 +187,29 @@ export const MessageList = ({
 
       await batch.commit();
       setOpenPopoverId(null);
-    } catch (error) {
-      console.error("Error unpinning message:", error);
+    } catch (err) {
+      console.error("Error unpinning message:", err);
     }
   };
 
   const handleBumpMessage = async (messageId) => {
     try {
-      const userRef = doc(db, "users", currentUserId);
+      const userRef = getUserRef(currentUserId);
       const userSnap = await getDoc(userRef);
       const name = userSnap.data()?.displayName || "Someone";
 
-      const originalMsgRef = doc(db, "chats", chatId, "messages", messageId);
-      const originalMsgSnap = await getDoc(originalMsgRef);
+      const { messageRef, messageCollectionRef, chatRef } = getRefs({
+        chatId,
+        topicId,
+        messageId,
+      });
+
+      const originalMsgSnap = await getDoc(messageRef);
       const originalMsg = originalMsgSnap.data();
 
       if (!originalMsg) throw new Error("Message not found.");
 
-      const messagesRef = collection(db, "chats", chatId, "messages");
-      await addDoc(messagesRef, {
+      await addDoc(messageCollectionRef, {
         ...Object.fromEntries(
           Object.entries(originalMsg).filter(([key]) => key !== "reactions")
         ),
@@ -230,7 +217,6 @@ export const MessageList = ({
         timestamp: serverTimestamp(),
       });
 
-      const chatRef = doc(db, "chats", chatId);
       await updateDoc(chatRef, {
         lastMessage: `${name} bumped a message`,
         lastMessageTime: serverTimestamp(),
