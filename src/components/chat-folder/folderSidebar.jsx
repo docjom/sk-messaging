@@ -184,7 +184,7 @@ export const FolderSidebar = ({
             </div>
           ))}
         </div>
-        <div className="w-full h-full">
+        <div className="w-full h-full overflow-y-scroll">
           <div className="flex justify-between items-center border-b p-2">
             <div className="flex justify-start items-center gap-2">
               <div

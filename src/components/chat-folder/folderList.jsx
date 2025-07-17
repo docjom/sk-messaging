@@ -12,6 +12,7 @@ import {
 import { doc, updateDoc, arrayUnion, arrayRemove } from "firebase/firestore";
 import { db } from "@/firebase";
 import { TypingIndicator } from "../chat/TypingIndicator";
+import { EditTopicDialog } from "./editFolderTopic";
 
 export const FolderList = ({ topic }) => {
   const { setCurrentTopic, setTopicIdTo, topicId, chatId, users } =
@@ -209,6 +210,7 @@ export const FolderList = ({ topic }) => {
                       </>
                     )}
                   </Button>
+                  <EditTopicDialog topic={topic} />
                 </PopoverContent>
               </Popover>
             </div>
