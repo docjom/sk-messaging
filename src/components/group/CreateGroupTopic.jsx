@@ -20,7 +20,7 @@ import {
   serverTimestamp,
 } from "firebase/firestore";
 
-export const CreateGroupTopic = ({ chatId, currentUserId }) => {
+export const CreateGroupTopic = ({ chatId, currentUserId, onClose }) => {
   const handleCreateTopic = async () => {
     try {
       const topicRef = collection(db, "chats", chatId, "topics");
@@ -51,6 +51,7 @@ export const CreateGroupTopic = ({ chatId, currentUserId }) => {
         lastMessageTime: "",
         users: members,
       });
+      if (onClose) onClose();
     } catch (error) {
       console.error("Error creating topic:", error);
     }

@@ -220,7 +220,7 @@ export const FolderList = ({ topic }) => {
               <div className="flex gap-2">
                 {topic.lastSenderName && (
                   <>
-                    <p className="max-w-36 truncate">
+                    <p className="max-w-33 truncate">
                       <span className="text-blue-500 font-semibold">
                         {topic.lastSenderName}
                       </span>

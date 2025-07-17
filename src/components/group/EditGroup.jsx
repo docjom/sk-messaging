@@ -28,6 +28,7 @@ import {
 } from "firebase/storage";
 import { CreateGroupTopic } from "./CreateGroupTopic";
 import { useChatFolderStore } from "@/stores/chat-folder/useChatFolderStore";
+import { useMessageActionStore } from "@/stores/useMessageActionStore";
 
 export function EditGroup({ chatId, currentUserId }) {
   const [name, setName] = useState("");
@@ -37,7 +38,8 @@ export function EditGroup({ chatId, currentUserId }) {
   const [newProfilePhoto, setNewProfilePhoto] = useState(null);
   const [profilePhotoURL, setProfilePhotoURL] = useState("");
   const [imagePreview, setImagePreview] = useState("");
-  const { folderSidebar } = useChatFolderStore();
+  const { setFolderSidebar } = useChatFolderStore();
+  const { currentChat } = useMessageActionStore();
 
   useEffect(() => {
     async function load() {
@@ -58,6 +60,12 @@ export function EditGroup({ chatId, currentUserId }) {
       const fileUrl = URL.createObjectURL(file);
       setImagePreview(fileUrl);
     }
+  };
+
+  const handleCloseAll = () => {
+    setIsOpen(false);
+    setFolderSidebar(true);
+    toast("Topic created!");
   };
 
   const handleSubmit = async (e) => {
@@ -173,10 +181,11 @@ export function EditGroup({ chatId, currentUserId }) {
                   chatId={chatId}
                   currentUserId={currentUserId}
                 />
-                {!folderSidebar && (
+                {!currentChat.hasChatTopic && (
                   <CreateGroupTopic
                     chatId={chatId}
                     currentUserId={currentUserId}
+                    onClose={handleCloseAll}
                   />
                 )}
               </>

@@ -16,6 +16,7 @@ import { useMessageActionStore } from "@/stores/useMessageActionStore";
 import { db } from "@/firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { useUserStore } from "@/stores/useUserStore";
+import { toast } from "sonner";
 
 export const CreateNewTopic = () => {
   const { chatId } = useMessageActionStore();
@@ -39,10 +40,13 @@ export const CreateNewTopic = () => {
         lastMessageTime: "",
         pin: [],
       });
+
+      toast(`Topic ${topicName.trim()} created!`);
       setTopicName("");
       setOpen(false);
     } catch (error) {
       console.error("Error creating topic:", error);
+      toast.error("Error creating topic");
     } finally {
       setCreating(false);
     }
