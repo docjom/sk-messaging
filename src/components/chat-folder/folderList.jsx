@@ -170,7 +170,7 @@ export const FolderList = ({ topic }) => {
                 </>
               )}
 
-              <span>{formatTimestamp(topic.lastMessageTime)}</span>
+              <span className="text-[10px]">{formatTimestamp(topic.lastMessageTime)}</span>
 
               <Popover>
                 <PopoverTrigger
@@ -234,8 +234,8 @@ export const FolderList = ({ topic }) => {
                 <div className="text-gray-400">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    width="13"
-                    height="13"
+                    width="10"
+                    height="10"
                     viewBox="0 0 24 24"
                   >
                     <path

@@ -85,6 +85,13 @@ export const useMessageSending = () => {
         };
 
         await updateDoc(msgRef, updateData);
+        await updateDoc(chatRef, {
+          seenBy: [],
+          lastMessage: message,
+          lastMessageTime: serverTimestamp(),
+          lastSenderName: getSenderDisplayName(senderId),
+        });
+
         useMessageActionStore.getState().clearEdit();
       } else {
         const messagePayload = {

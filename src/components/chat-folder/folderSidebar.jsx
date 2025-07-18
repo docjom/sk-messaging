@@ -68,6 +68,8 @@ export const FolderSidebar = ({
       setCurrentChat(chat);
       setFolderSidebar(false);
     }
+    setChatIdTo(chat.id);
+    setCurrentChat(chat);
     console.log(chat.id, chat.type);
   };
 
@@ -154,8 +156,8 @@ export const FolderSidebar = ({
   return (
     <>
       <div className="sm:w-64 w-full  dark:bg-gray-800 border-r fixed lg:sticky top-0 left-0 z-30 overflow-y-auto bg-white flex h-full ">
-        <div className="border-r w-20 p-2 h-full overflow-y-auto bg-gray-50 dark:bg-gray-700">
-          <div className="flex items-center justify-start border-b pb-1">
+        <div className="border-r w-20 p-2 scrollbar-hide h-full overflow-y-auto bg-gray-50 dark:bg-gray-700">
+          <div className="flex items-center justify-center border-b pb-1">
             <div
               onClick={() => toggleMenu()}
               className="rounded-full flex justify-center items-center dark:bg-gray-700/20 p-2 border"
@@ -168,7 +170,7 @@ export const FolderSidebar = ({
             <div
               key={chat.id}
               onClick={() => handleSelectChat(chat)}
-              className="py-1"
+              className="py-1 flex justify-center items-center cursor-pointer"
             >
               <Avatar
                 className={`w-10 h-10 border  ${
@@ -184,7 +186,7 @@ export const FolderSidebar = ({
             </div>
           ))}
         </div>
-        <div className="w-full h-full overflow-y-scroll">
+        <div className="w-full h-full overflow-y-scroll scrollbar-hide">
           <div className="flex justify-between items-center border-b p-2">
             <div className="flex justify-start items-center gap-2">
               <div
