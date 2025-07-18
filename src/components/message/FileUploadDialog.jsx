@@ -213,7 +213,7 @@ const FileUploadDialog = ({
             /* File Preview */
             <div className="space-y-4">
               {/* Preview Area */}
-              <div className="border rounded-lg max-w- overflow-hidden bg-gray-50">
+              <div className="border rounded-lg max-w- overflow-hidden bg-gray-50 dark:bg-transparent">
                 {selectedFile.type.startsWith("image/") && filePreview ? (
                   <img
                     src={filePreview}
@@ -242,7 +242,7 @@ const FileUploadDialog = ({
               </div>
 
               {/* File Info */}
-              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                 <div className="flex items-center space-x-3">
                   {getFileIcon(selectedFile.type)}
                   <div>
