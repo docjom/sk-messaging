@@ -1,14 +1,9 @@
 import { toast } from "sonner";
-import { db } from "../firebase";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import {
-  addDoc,
-  collection,
-  serverTimestamp,
-  doc,
-  updateDoc,
-} from "firebase/firestore";
+import { addDoc, serverTimestamp, updateDoc } from "firebase/firestore";
 import { useMessageActionStore } from "../stores/useMessageActionStore";
+
+import { getRefs } from "@/utils/firestoreRefs";
 
 export const useMessageSending = () => {
   const users = useMessageActionStore.getState().users;
@@ -51,31 +46,18 @@ export const useMessageSending = () => {
         imageURL = await uploadImageToStorage(pastedImage.file, chatId);
       }
 
-      // Determine base paths
-      const messagesRef = topicId
-        ? collection(db, "chats", chatId, "topics", topicId, "messages")
-        : collection(db, "chats", chatId, "messages");
-
-      const filesRef = topicId
-        ? collection(db, "chats", chatId, "topics", topicId, "files")
-        : collection(db, "chats", chatId, "files");
-
-      const chatRef = topicId
-        ? doc(db, "chats", chatId, "topics", topicId)
-        : doc(db, "chats", chatId);
+      const { chatRef, filesRef, messageCollectionRef } = getRefs({
+        chatId,
+        topicId,
+      });
 
       if (edit?.messageId) {
-        const msgRef = topicId
-          ? doc(
-              db,
-              "chats",
-              chatId,
-              "topics",
-              topicId,
-              "messages",
-              edit.messageId
-            )
-          : doc(db, "chats", chatId, "messages", edit.messageId);
+        const messageId = edit?.messageId;
+        const { messageRef } = getRefs({
+          chatId,
+          topicId,
+          messageId,
+        });
 
         const updateData = {
           message,
@@ -84,7 +66,7 @@ export const useMessageSending = () => {
           editTimestamp: serverTimestamp(),
         };
 
-        await updateDoc(msgRef, updateData);
+        await updateDoc(messageRef, updateData);
         await updateDoc(chatRef, {
           seenBy: [],
           lastMessage: message,
@@ -149,7 +131,7 @@ export const useMessageSending = () => {
           });
         }
 
-        const msgRef = await addDoc(messagesRef, messagePayload);
+        const msgRef = await addDoc(messageCollectionRef, messagePayload);
         await updateDoc(msgRef, { status: "sent" });
 
         const lastMessageText = message.trim()
