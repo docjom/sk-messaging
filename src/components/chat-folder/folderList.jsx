@@ -216,8 +216,6 @@ export const FolderList = ({ topic }) => {
                     )}
                   </Button>
                   <EditTopicDialog topic={topic} />
-                  <PinnedMessages chatId={chatId} />
-                  <ChatFiles chatId={chatId} />
                 </PopoverContent>
               </Popover>
             </div>

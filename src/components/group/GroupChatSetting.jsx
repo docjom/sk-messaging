@@ -10,12 +10,14 @@ import { EditGroup } from "./EditGroup";
 import { LeaveGroup } from "./LeaveGroup";
 import { PinnedMessages } from "../chat/PinnedMessages";
 import { ChatFiles } from "../chat/ChatFiles";
+import { useMessageActionStore } from "@/stores/useMessageActionStore";
 
 export default function ManageGroupChat({
   chatId,
   currentUserId,
   clearCurrentChat,
 }) {
+  const { topicId } = useMessageActionStore();
   return (
     <>
       <DropdownMenu>
@@ -23,14 +25,22 @@ export default function ManageGroupChat({
           <Icon icon="solar:settings-broken" width="24" height="24" />
         </DropdownMenuTrigger>
         <DropdownMenuContent>
-          <DropdownMenuLabel>Group Settings</DropdownMenuLabel>
+          <DropdownMenuLabel>
+            {topicId ? <>Topic Settings</> : <>Group Settings</>}
+          </DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <EditGroup chatId={chatId} currentUserId={currentUserId} />
-          <LeaveGroup
-            chatId={chatId}
-            currentUserId={currentUserId}
-            onLeaveSuccess={clearCurrentChat}
-          />
+          {topicId ? (
+            <></>
+          ) : (
+            <>
+              <EditGroup chatId={chatId} currentUserId={currentUserId} />
+              <LeaveGroup
+                chatId={chatId}
+                currentUserId={currentUserId}
+                onLeaveSuccess={clearCurrentChat}
+              />
+            </>
+          )}
           <PinnedMessages chatId={chatId} />
           <ChatFiles chatId={chatId} />
         </DropdownMenuContent>
