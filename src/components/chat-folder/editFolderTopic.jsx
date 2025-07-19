@@ -24,7 +24,9 @@ export const EditTopicDialog = ({ topic }) => {
   const [updating, setUpdating] = useState(false);
 
   const updateTopicName = async (e) => {
+    e.stopPropagation();
     e.preventDefault();
+
     if (!topicName.trim() || !chatId || !topic?.id) return;
     setUpdating(true);
 
@@ -43,7 +45,14 @@ export const EditTopicDialog = ({ topic }) => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="sm" className="w-full  flex justify-start items-center">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={(e) => {
+            e.stopPropagation();
+          }}
+          className="w-full  flex justify-start items-center"
+        >
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="20"

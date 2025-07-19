@@ -135,7 +135,13 @@ export const PinnedMessages = ({ chatId }) => {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant={"ghost"} className="flex w-full justify-start">
+        <Button
+          variant={"ghost"}
+          onClick={(e) => {
+            e.stopPropagation();
+          }}
+          className="flex w-full justify-start"
+        >
           <Icon icon="solar:pin-line-duotone" width="20" height="20" />
           Pinned Messages
         </Button>

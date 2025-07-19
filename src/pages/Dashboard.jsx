@@ -54,7 +54,6 @@ function Dashboard() {
   const [isUploadingFile, setIsUploadingFile] = useState(false);
 
   const [messages, setMessages] = useState([]);
-
   const [messagesLoading, setMessagesLoading] = useState(false);
 
   const messagesEndRef = useRef(null);
@@ -78,7 +77,6 @@ function Dashboard() {
 
   const cleanup = useTypingStatus((state) => state.cleanup);
   const { setFolderSidebar } = useChatFolderStore();
-
   const { isOnline, wasOffline } = useInternetConnection();
 
   useEffect(() => {
@@ -108,13 +106,17 @@ function Dashboard() {
   useEffect(() => {
     if (chatId) {
       setMessagesLoading(true);
-      const isTopicChat = !!topicId;
 
-      const messagesRef = isTopicChat
-        ? collection(db, "chats", chatId, "topics", topicId, "messages")
-        : collection(db, "chats", chatId, "messages");
+      const { messageCollectionRef } = getRefs({
+        chatId,
+        topicId,
+      });
 
-      const q = query(messagesRef, orderBy("timestamp"), limitToLast(50));
+      const q = query(
+        messageCollectionRef,
+        orderBy("timestamp"),
+        limitToLast(50)
+      );
 
       const unsubscribe = onSnapshot(q, (querySnapshot) => {
         const messagesArray = [];

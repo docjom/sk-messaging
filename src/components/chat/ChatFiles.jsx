@@ -74,7 +74,13 @@ export const ChatFiles = ({ chatId }) => {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="ghost" className="flex w-full justify-start gap-2">
+        <Button
+          variant="ghost"
+          onClick={(e) => {
+            e.stopPropagation();
+          }}
+          className="flex w-full justify-start gap-2"
+        >
           <Icon icon="solar:folder-with-files-broken" width="20" height="20" />
           Media & Files
         </Button>
