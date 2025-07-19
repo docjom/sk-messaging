@@ -89,7 +89,13 @@ export const EditTopicDialog = ({ topic }) => {
           </div>
           <DialogFooter>
             <DialogClose asChild>
-              <Button variant="outline" type="button">
+              <Button
+                variant="outline"
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                }}
+              >
                 Cancel
               </Button>
             </DialogClose>

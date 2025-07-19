@@ -230,7 +230,13 @@ export const PinnedMessages = ({ chatId }) => {
 
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="outline" type="button">
+            <Button
+              variant="outline"
+              onClick={(e) => {
+                e.stopPropagation();
+              }}
+              type="button"
+            >
               Close
             </Button>
           </DialogClose>
