@@ -26,7 +26,7 @@ import {
   arrayUnion,
   getDoc,
 } from "firebase/firestore";
-import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { uploadBytes, getDownloadURL } from "firebase/storage";
 import { useMessageActionStore } from "../stores/useMessageActionStore";
 import { useUserStore } from "@/stores/useUserStore";
 import { useTypingStatus } from "@/stores/useTypingStatus";
@@ -34,6 +34,7 @@ import { useInternetConnection } from "@/hooks/CheckInternetConnection";
 //import { useInfiniteMessages } from "@/hooks/useInfiniteMessages";
 import { useMenu } from "@/hooks/useMenuState";
 import { useChatFolderStore } from "@/stores/chat-folder/useChatFolderStore";
+import { getRefs } from "@/utils/firestoreRefs";
 
 function Dashboard() {
   const user = useUserStore((s) => s.user);
@@ -134,24 +135,22 @@ function Dashboard() {
   const handleFileUpload = async ({ file, message, chatId }) => {
     setIsUploadingFile(true);
     try {
-      const storage = getStorage();
       const timestamp = Date.now();
       const fileName = `${timestamp}_${file.name}`;
 
-      const storageRef = topicId
-        ? ref(storage, `chat-files/${chatId}topics${topicId}/${fileName}`)
-        : ref(storage, `chat-files/${chatId}/${fileName}`);
+      const { chatRef, filesRef, messageCollectionRef } = getRefs({
+        chatId,
+        topicId,
+      });
+
+      const { storageRef } = getRefs({
+        chatId,
+        topicId,
+        fileName,
+      });
 
       const uploadResult = await uploadBytes(storageRef, file);
       const downloadURL = await getDownloadURL(uploadResult.ref);
-
-      const messagesRef = topicId
-        ? collection(db, "chats", chatId, "topics", topicId, "messages")
-        : collection(db, "chats", chatId, "messages");
-
-      const chatRef = topicId
-        ? doc(db, "chats", chatId, "topics", topicId)
-        : doc(db, "chats", chatId);
 
       const messageData = {
         senderId: user?.uid,
@@ -168,7 +167,35 @@ function Dashboard() {
           fileName: fileName,
         },
       };
-      await addDoc(messagesRef, messageData);
+      await addDoc(messageCollectionRef, messageData);
+
+      if (message && message.match(/(https?:\/\/[^\s]+)/g)) {
+        const foundLinks = message.match(/(https?:\/\/[^\s]+)/g);
+        for (const url of foundLinks) {
+          await addDoc(filesRef, {
+            senderId: user?.uid,
+            type: "link",
+            url,
+            timestamp: serverTimestamp(),
+          });
+        }
+      }
+
+      if (fileName) {
+        await addDoc(filesRef, {
+          senderId: user?.uid,
+          fileData: {
+            name: file.name,
+            size: file.size,
+            type: file.type,
+            url: downloadURL,
+            fileName: fileName,
+          },
+
+          timestamp: serverTimestamp(),
+        });
+      }
+
       const lastMessageText = message ? message : `📎 ${file.name}`;
       await updateDoc(chatRef, {
         lastMessage: lastMessageText,

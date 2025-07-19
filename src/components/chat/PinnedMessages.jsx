@@ -12,31 +12,23 @@ import {
 import { useEffect, useState } from "react";
 import { db } from "../../firebase";
 import { Textarea } from "../ui/textarea";
-import {
-  collection,
-  query,
-  orderBy,
-  doc,
-  getDoc,
-  onSnapshot,
-} from "firebase/firestore";
+import { query, orderBy, doc, getDoc, onSnapshot } from "firebase/firestore";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { getRefs } from "@/utils/firestoreRefs";
+import { useMessageActionStore } from "@/stores/useMessageActionStore";
 
 export const PinnedMessages = ({ chatId }) => {
   const [pinnedMessages, setPinnedMessages] = useState([]);
   const [loading, setLoading] = useState(false);
+  const { topicId } = useMessageActionStore();
 
   useEffect(() => {
     if (!chatId) return;
     setLoading(true);
 
-    const pinnedMessagesRef = collection(
-      db,
-      "chats",
-      chatId,
-      "pinned-messages"
-    );
+    const { pinnedMessagesRef } = getRefs({ topicId, chatId });
+
     const q = query(pinnedMessagesRef, orderBy("pinnedAt", "desc"));
 
     const unsubscribe = onSnapshot(q, async (snapshot) => {

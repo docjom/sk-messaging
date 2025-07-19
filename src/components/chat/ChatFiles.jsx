@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-import { db } from "../../firebase";
-import { collection, query, getDocs, orderBy } from "firebase/firestore";
+import { query, getDocs, orderBy } from "firebase/firestore";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@iconify/react";
 import {
@@ -13,15 +12,19 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { getRefs } from "@/utils/firestoreRefs";
+import { useMessageActionStore } from "@/stores/useMessageActionStore";
 
 export const ChatFiles = ({ chatId }) => {
   const [mediaFiles, setMediaFiles] = useState([]);
   const [documentFiles, setDocumentFiles] = useState([]);
   const [linkList, setLinkList] = useState([]);
+  const { topicId } = useMessageActionStore();
 
   useEffect(() => {
     const fetchFiles = async () => {
-      const filesRef = collection(db, "chats", chatId, "files");
+      const { filesRef } = getRefs({ chatId, topicId });
+
       const q = query(filesRef, orderBy("timestamp", "desc"));
       const snapshot = await getDocs(q);
       const media = [];
@@ -66,7 +69,7 @@ export const ChatFiles = ({ chatId }) => {
     };
 
     fetchFiles();
-  }, [chatId]);
+  }, [chatId, topicId]);
 
   return (
     <Dialog>

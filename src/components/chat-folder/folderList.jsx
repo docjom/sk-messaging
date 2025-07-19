@@ -13,6 +13,8 @@ import { doc, updateDoc, arrayUnion, arrayRemove } from "firebase/firestore";
 import { db } from "@/firebase";
 import { TypingIndicator } from "../chat/TypingIndicator";
 import { EditTopicDialog } from "./editFolderTopic";
+import { ChatFiles } from "../chat/ChatFiles";
+import { PinnedMessages } from "../chat/PinnedMessages";
 
 export const FolderList = ({ topic }) => {
   const { setCurrentTopic, setTopicIdTo, topicId, chatId, users } =
@@ -33,7 +35,8 @@ export const FolderList = ({ topic }) => {
     return sender?.displayName || "Unknown User";
   };
 
-  const handlePinToggle = async () => {
+  const handlePinToggle = async (e) => {
+    e.stopPropagation();
     try {
       const topicRef = doc(db, "chats", chatId, "topics", topic.id);
 
@@ -170,7 +173,9 @@ export const FolderList = ({ topic }) => {
                 </>
               )}
 
-              <span className="text-[10px]">{formatTimestamp(topic.lastMessageTime)}</span>
+              <span className="text-[10px]">
+                {formatTimestamp(topic.lastMessageTime)}
+              </span>
 
               <Popover>
                 <PopoverTrigger
@@ -191,12 +196,12 @@ export const FolderList = ({ topic }) => {
                     </g>
                   </svg>
                 </PopoverTrigger>
-                <PopoverContent className="w-20 p-0">
+                <PopoverContent className="w-40 p-0">
                   <Button
                     variant="ghost"
                     size="sm"
                     className="w-full justify-start px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700"
-                    onClick={handlePinToggle}
+                    onClick={(e) => handlePinToggle(e)}
                   >
                     {isPinned ? (
                       <>
@@ -211,6 +216,8 @@ export const FolderList = ({ topic }) => {
                     )}
                   </Button>
                   <EditTopicDialog topic={topic} />
+                  <PinnedMessages chatId={chatId} />
+                  <ChatFiles chatId={chatId} />
                 </PopoverContent>
               </Popover>
             </div>
