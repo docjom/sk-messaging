@@ -99,8 +99,10 @@ export function GroupMembers({ chatId }) {
                     )}
                   </Avatar>
                   <div>
-                    <p className="font-medium capitalize">{m.displayName}</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                    <p className="font-medium capitalize max-w-32 truncate sm:max-w-52">
+                      {m.displayName}
+                    </p>
+                    <p className="text-xs text-gray-500 max-w-32 sm:max-w-52 truncate dark:text-gray-400">
                       {m.email}
                     </p>
                   </div>

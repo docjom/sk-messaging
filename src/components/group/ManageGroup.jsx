@@ -157,10 +157,10 @@ export function ManageGroupMembers({ chatId, currentUserId }) {
                         )}
                       </Avatar>
                       <div>
-                        <p className="font-medium capitalize">
+                        <p className="font-medium max-w-32 sm:max-w-52 truncate capitalize">
                           {m.displayName}
                         </p>
-                        <p className="text-xs text-gray-500">{m.email}</p>
+                        <p className="text-xs max-w-32 sm:max-w-52 truncate text-gray-500">{m.email}</p>
                       </div>
                     </div>
                     <AlertDialog>

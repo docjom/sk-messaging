@@ -87,6 +87,11 @@ export const FolderSidebar = ({
     clearChat();
   };
 
+  const clearTopic = () => {
+    clearTopicId();
+    clearCurrentTopic();
+  };
+
   const [userRole, setUserRole] = useState("");
 
   useEffect(() => {
@@ -210,7 +215,7 @@ export const FolderSidebar = ({
                 </svg>
               </div>
               <div>
-                <p className="font-semibold text-base max-w-32 truncate">
+                <p className="font-semibold capitalize text-base max-w-32 truncate">
                   {groupName}
                 </p>
                 <p className="text-xs">{memberCount} members</p>
@@ -221,6 +226,7 @@ export const FolderSidebar = ({
                 <PopoverTrigger
                   onClick={(e) => {
                     e.stopPropagation();
+                    clearTopic();
                   }}
                 >
                   <svg

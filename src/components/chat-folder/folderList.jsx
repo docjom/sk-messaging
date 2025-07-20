@@ -139,7 +139,7 @@ export const FolderList = ({ topic }) => {
         </div>
         <div className="w-full">
           <div className="flex justify-between items-start">
-            <p className="font-semibold text-sm max-w-16 truncate">
+            <p className="font-semibold text-sm max-w-16 capitalize truncate">
               {topic.name}
             </p>
             <div className="flex justify-start text-xs items-center">
