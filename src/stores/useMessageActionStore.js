@@ -12,6 +12,7 @@ export const useMessageActionStore = create(
     users: [],
     selectedUser: null,
     currentChat: null,
+    message: "",
 
     topicId: null,
     currentTopic: null,
@@ -19,6 +20,9 @@ export const useMessageActionStore = create(
     clearCurrentTopic: () => set({ currentTopic: null }),
     setTopicIdTo: (data) => set({ topicId: data }),
     clearTopicId: () => set({ topicId: null }),
+
+    setMessage: (data) => set({ message: data }),
+    clearMessage: () => set({ message: "" }),
 
     setUsers: (data) => set({ users: data }),
 

@@ -11,14 +11,14 @@ export const SendButton = ({
       <button
         onClick={handleSendMessage}
         className={`p-2 rounded-full ${
-          !message.trim() && !pastedImage
+          !message && !pastedImage
             ? "bg-gray-400 dark:bg-gray-700 text-white cursor-not-allowed"
             : editMessage
             ? "bg-green-500 text-white"
             : "bg-blue-500 text-white"
         }`}
         disabled={
-          (!message.trim() && !pastedImage) ||
+          (!message && !pastedImage) ||
           messagesLoading ||
           isMessagesSending
         }

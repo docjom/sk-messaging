@@ -73,6 +73,7 @@ function Dashboard() {
     clearCurrentChat,
     clearSelectedUser,
     topicId,
+    clearMessage,
   } = useMessageActionStore();
 
   const cleanup = useTypingStatus((state) => state.cleanup);
@@ -238,6 +239,7 @@ function Dashboard() {
   };
 
   const handleSelectChat = (chat) => {
+    clearMessage();
     setChatIdTo(chat.id);
     setCurrentChat(chat);
     if (chat.hasChatTopic) {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { db } from "@/firebase";
 import { useMessageActionStore } from "@/stores/useMessageActionStore";
@@ -15,11 +15,17 @@ const MessageInputContainer = ({
   setIsFileDialogOpen,
   getSenderDisplayName,
 }) => {
-  const [message, setMessage] = useState("");
   const textareaRef = useRef(null);
 
-  const { replyTo, clearReply, editMessage, clearEdit } =
-    useMessageActionStore();
+  const {
+    replyTo,
+    clearReply,
+    editMessage,
+    clearEdit,
+    setMessage,
+    clearMessage,
+    message,
+  } = useMessageActionStore();
 
   const { sendMessage } = useMessageSending();
 
@@ -33,7 +39,7 @@ const MessageInputContainer = ({
   }, [replyTo, editMessage]);
 
   useEffect(() => {
-    if (textareaRef.current && message.trim() === "") {
+    if (textareaRef.current && message === "") {
       textareaRef.current.focus();
     }
   }, [message]);
@@ -50,7 +56,7 @@ const MessageInputContainer = ({
     }
 
     const pastedImage = useMessageActionStore.getState().pastedImage;
-    const msgToSend = message.trim();
+    const msgToSend = message
     const reply = useMessageActionStore.getState().replyTo;
     const edit = useMessageActionStore.getState().editMessage;
 
@@ -70,7 +76,7 @@ const MessageInputContainer = ({
 
     clearReply();
     clearEdit();
-    setMessage("");
+    clearMessage();
 
     if (pastedImage) {
       useMessageActionStore.getState().clearPastedImage();
@@ -100,7 +106,7 @@ const MessageInputContainer = ({
   const handleCancelEdit = () => {
     clearEdit();
     clearReply();
-    setMessage("");
+    clearMessage();
     textareaRef.current?.focus();
   };
 

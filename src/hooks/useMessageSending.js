@@ -7,6 +7,7 @@ import { getRefs } from "@/utils/firestoreRefs";
 
 export const useMessageSending = () => {
   const users = useMessageActionStore.getState().users;
+  const clearMessage = useMessageActionStore.getState().clearMessage;
 
   const uploadImageToStorage = async (imageFile, chatId) => {
     const storage = getStorage();
@@ -34,7 +35,7 @@ export const useMessageSending = () => {
     pastedImage,
     setIsMessagesSending,
   }) => {
-    if (!message.trim() && !pastedImage) return;
+    if (!message && !pastedImage) return;
 
     const topicId = useMessageActionStore.getState().topicId;
 
@@ -134,8 +135,8 @@ export const useMessageSending = () => {
         const msgRef = await addDoc(messageCollectionRef, messagePayload);
         await updateDoc(msgRef, { status: "sent" });
 
-        const lastMessageText = message.trim()
-          ? message.trim()
+        const lastMessageText = message
+          ? message
           : imageURL
           ? `📎 ${pastedImage.name}`
           : "";
@@ -154,6 +155,7 @@ export const useMessageSending = () => {
       toast.error("Error sending message ");
     } finally {
       setIsMessagesSending(false);
+      clearMessage();
     }
   };
 

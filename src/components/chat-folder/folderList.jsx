@@ -15,13 +15,19 @@ import { TypingIndicator } from "../chat/TypingIndicator";
 import { EditTopicDialog } from "./editFolderTopic";
 
 export const FolderList = ({ topic }) => {
-
-  const { setCurrentTopic, setTopicIdTo, topicId, chatId, users } =
-    useMessageActionStore();
+  const {
+    setCurrentTopic,
+    setTopicIdTo,
+    topicId,
+    chatId,
+    users,
+    clearMessage,
+  } = useMessageActionStore();
   const { setFolderSidebar } = useChatFolderStore();
   const { user } = useUserStore();
 
   const handleSelectTopic = (id, topic) => {
+    clearMessage();
     setTopicIdTo(id);
     setCurrentTopic(topic);
     if (window.innerWidth <= 640) {
