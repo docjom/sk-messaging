@@ -28,9 +28,7 @@ export const PinnedMessages = ({ chatId }) => {
     setLoading(true);
 
     const { pinnedMessagesRef } = getRefs({ topicId, chatId });
-
     const q = query(pinnedMessagesRef, orderBy("pinnedAt", "desc"));
-
     const unsubscribe = onSnapshot(q, async (snapshot) => {
       try {
         const messagesWithUserData = await Promise.all(
