@@ -24,9 +24,9 @@ export const EditTopicDialog = ({ topic }) => {
   const [updating, setUpdating] = useState(false);
 
   const updateTopicName = async (e) => {
-    e.stopPropagation();
-
     if (!topicName.trim() || !chatId || !topic?.id) return;
+    e.stopPropagation();
+    e.preventDefault();
     setUpdating(true);
 
     try {
@@ -70,7 +70,11 @@ export const EditTopicDialog = ({ topic }) => {
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
-        <form onSubmit={updateTopicName}>
+        <form
+          onSubmit={(e) => {
+            updateTopicName(e);
+          }}
+        >
           <DialogHeader>
             <DialogTitle>Edit Topic</DialogTitle>
             <DialogDescription>

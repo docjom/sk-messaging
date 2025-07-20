@@ -15,7 +15,7 @@ import { TypingIndicator } from "../chat/TypingIndicator";
 import { EditTopicDialog } from "./editFolderTopic";
 
 export const FolderList = ({ topic }) => {
-  
+
   const { setCurrentTopic, setTopicIdTo, topicId, chatId, users } =
     useMessageActionStore();
   const { setFolderSidebar } = useChatFolderStore();
@@ -139,10 +139,10 @@ export const FolderList = ({ topic }) => {
         </div>
         <div className="w-full">
           <div className="flex justify-between items-start">
-            <p className="font-semibold text-sm max-w-20 truncate">
+            <p className="font-semibold text-sm max-w-16 truncate">
               {topic.name}
             </p>
-            <div className="flex justify-start text-xs items-center gap-1">
+            <div className="flex justify-start text-xs items-center">
               {topic.lastSenderName && (
                 <>
                   {topic.seenBy?.includes(user?.uid) && (

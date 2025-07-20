@@ -12,7 +12,7 @@ import { doc, updateDoc, arrayUnion, arrayRemove } from "firebase/firestore";
 import { db } from "../../firebase";
 import { useMessageActionStore } from "../../stores/useMessageActionStore";
 import { formatTimestamp } from "../../composables/scripts";
-import { TypingIndicator } from "./TypingIndicator";
+//import { TypingIndicator } from "./TypingIndicator";
 //import { useTypingStatus } from "@/stores/useTypingStatus";
 
 const ChatList = ({
@@ -21,7 +21,7 @@ const ChatList = ({
   getOtherUserInDirectChat,
   getChatPhoto,
   getChatDisplayName,
-  getSenderDisplayName,
+  //getSenderDisplayName,
   currentUserId,
   clearCurrentChat,
 }) => {
@@ -215,12 +215,6 @@ const ChatList = ({
                 {getChatDisplayName(chat)[0]?.toUpperCase() || "U"}
               </AvatarFallback>
             </Avatar>
-            <div className=" min-w-32 -top-3 left-12 absolute truncate text-[10px]">
-              <TypingIndicator
-                chatId={chat.id}
-                getName={getSenderDisplayName}
-              />
-            </div>
           </div>
 
           <div className="w-full">
@@ -245,57 +239,62 @@ const ChatList = ({
               </h1>
             </div>
             <div
-              className={`text-xs max-w-32 relative capitalize flex items-center gap-1 ${
+              className={`text-xs w-full relative capitalize flex items-center gap-1 ${
                 !chat.seenBy?.includes(currentUserId)
                   ? "font-bold text-blue-500 dark:text-white"
                   : "dark:text-gray-400 "
               }`}
             >
-              <div>
+              <div className="flex justify-between w-full items-center">
                 {chat.lastMessage && (
-                  <div className="text-[10px] min-w-32 truncate">
+                  <div className="text-[10px] max-w-32 truncate">
                     {chat.lastMessage}
+                  </div>
+                )}
+                {/* Show timestamp */}
+                {chat.lastMessageTime && (
+                  <div className="flex justify-start text-[10px] items-center">
+                    {chat.seenBy?.includes(currentUserId) && (
+                      <p>
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="14"
+                          height="14"
+                          viewBox="0 0 24 24"
+                          className="text-green-500"
+                        >
+                          <g fill="none">
+                            <path
+                              fill="currentColor"
+                              d="M4.565 12.407a.75.75 0 1 0-1.13.986zM7.143 16.5l-.565.493a.75.75 0 0 0 1.13 0zm8.422-8.507a.75.75 0 1 0-1.13-.986zm-5.059 3.514a.75.75 0 0 0 1.13.986zm-.834 3.236a.75.75 0 1 0-1.13-.986zm-6.237-1.35l3.143 3.6l1.13-.986l-3.143-3.6zm4.273 3.6l1.964-2.25l-1.13-.986l-1.964 2.25zm3.928-4.5l1.965-2.25l-1.13-.986l-1.965 2.25zm1.965-2.25l1.964-2.25l-1.13-.986l-1.964 2.25z"
+                            />
+                            <path
+                              stroke="currentColor"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="1.5"
+                              d="m20 7.563l-4.286 4.5M11 16l.429.563l2.143-2.25"
+                            />
+                          </g>
+                        </svg>
+                      </p>
+                    )}
+
+                    <p className="flex">
+                      {formatTimestamp(chat.lastMessageTime)}
+                    </p>
                   </div>
                 )}
               </div>
             </div>
+            {/* <div className="min-w-32  text-[10px]">
+              <TypingIndicator
+                chatId={chat.id}
+                getName={getSenderDisplayName}
+              />
+            </div> */}
           </div>
         </div>
-        {/* Show timestamp */}
-        {chat.lastMessageTime && (
-          <div className="text-[10px] absolute bottom-0 right-2 ">
-            <div className="flex justify-start items-center">
-              {chat.seenBy?.includes(currentUserId) && (
-                <span>
-                  {" "}
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    className="text-green-500"
-                  >
-                    <g fill="none">
-                      <path
-                        fill="currentColor"
-                        d="M4.565 12.407a.75.75 0 1 0-1.13.986zM7.143 16.5l-.565.493a.75.75 0 0 0 1.13 0zm8.422-8.507a.75.75 0 1 0-1.13-.986zm-5.059 3.514a.75.75 0 0 0 1.13.986zm-.834 3.236a.75.75 0 1 0-1.13-.986zm-6.237-1.35l3.143 3.6l1.13-.986l-3.143-3.6zm4.273 3.6l1.964-2.25l-1.13-.986l-1.964 2.25zm3.928-4.5l1.965-2.25l-1.13-.986l-1.965 2.25zm1.965-2.25l1.964-2.25l-1.13-.986l-1.964 2.25z"
-                      />
-                      <path
-                        stroke="currentColor"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="1.5"
-                        d="m20 7.563l-4.286 4.5M11 16l.429.563l2.143-2.25"
-                      />
-                    </g>
-                  </svg>
-                </span>
-              )}
-
-              {formatTimestamp(chat.lastMessageTime)}
-            </div>
-          </div>
-        )}
       </div>
     );
   };

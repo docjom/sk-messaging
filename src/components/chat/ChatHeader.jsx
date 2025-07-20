@@ -209,17 +209,14 @@ const GroupChatHeader = ({
         </>
       )}
 
-      <div className=" relative sm:max-w-52 max-w-20">
-        <div className="font-semibold text-sm sm:max-w-52 max-w-20 truncate sm:text-lg capitalize">
-          {topicId ? (
-            <>{currentTopic.name}</>
-          ) : (
-            <> {getChatDisplayName(currentChat)}</>
-          )}
-
-          <div className="absolute -bottom-2.5  text-xs left-0">
-            <TypingIndicator chatId={chatId} getName={getSenderDisplayName} />
-          </div>
+      <div className="font-semibold text-sm sm:max-w-52 max-w-20 truncate sm:text-base capitalize">
+        {topicId ? (
+          <>{currentTopic.name}</>
+        ) : (
+          <> {getChatDisplayName(currentChat)}</>
+        )}
+        <div className=" text-xs">
+          <TypingIndicator chatId={chatId} getName={getSenderDisplayName} />
         </div>
       </div>
     </div>
@@ -256,25 +253,25 @@ const DirectChatHeader = ({
     <Button
       type="button"
       variant="ghost"
-      className="flex items-center relative p-0"
+      className="flex items-center justify-start relative p-0"
       onClick={() => setIfUserInfoOpen(true)}
     >
-      <Avatar className="h-10 w-10">
-        <AvatarImage
-          src={selectedUser.photoURL}
-          alt={selectedUser.displayName}
-        />
-        <AvatarFallback>
-          {selectedUser.displayName[0]?.toUpperCase() || "P"}
-        </AvatarFallback>
-      </Avatar>
-      <div className="relative sm:max-w-96 max-w-40 truncate">
-        <span className="text-lg truncate font-semibold capitalize">
-          {selectedUser.displayName}
-        </span>
-      </div>
-      <div className="absolute -bottom-1.5 text-xs left-12">
-        <TypingIndicator chatId={chatId} getName={getSenderDisplayName} />
+      <div className="flex gap-2 justify-start items-center">
+        <Avatar className="h-10 w-10">
+          <AvatarImage
+            src={selectedUser.photoURL}
+            alt={selectedUser.displayName}
+          />
+          <AvatarFallback></AvatarFallback>
+        </Avatar>
+        <div className="">
+          <div className="text-base flex justify-start items-center font-semibold  capitalize">
+            {selectedUser.displayName}
+          </div>
+          <div className="text-xs ">
+            <TypingIndicator chatId={chatId} getName={getSenderDisplayName} />
+          </div>
+        </div>
       </div>
     </Button>
     <div>
