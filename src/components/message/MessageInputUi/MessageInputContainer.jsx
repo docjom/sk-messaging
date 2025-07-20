@@ -9,7 +9,6 @@ import { doc, getDoc } from "firebase/firestore";
 const MessageInputContainer = ({
   chatId,
   user,
-
   messagesLoading,
   isMessagesSending,
   setIsMessagesSending,
