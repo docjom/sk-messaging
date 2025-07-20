@@ -34,10 +34,8 @@ export const PinnedMessages = ({ chatId }) => {
         const messagesWithUserData = await Promise.all(
           snapshot.docs.map(async (docSnap) => {
             const pinnedData = docSnap.data();
-
             const userRef = doc(db, "users", pinnedData.senderId);
             const userSnap = await getDoc(userRef);
-
             const pinnedByUserRef = doc(db, "users", pinnedData.pinnedBy);
             const pinnedByUserSnap = await getDoc(pinnedByUserRef);
 

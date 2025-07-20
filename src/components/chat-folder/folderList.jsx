@@ -13,10 +13,9 @@ import { doc, updateDoc, arrayUnion, arrayRemove } from "firebase/firestore";
 import { db } from "@/firebase";
 import { TypingIndicator } from "../chat/TypingIndicator";
 import { EditTopicDialog } from "./editFolderTopic";
-import { ChatFiles } from "../chat/ChatFiles";
-import { PinnedMessages } from "../chat/PinnedMessages";
 
 export const FolderList = ({ topic }) => {
+  
   const { setCurrentTopic, setTopicIdTo, topicId, chatId, users } =
     useMessageActionStore();
   const { setFolderSidebar } = useChatFolderStore();

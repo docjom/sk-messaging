@@ -25,7 +25,6 @@ export const EditTopicDialog = ({ topic }) => {
 
   const updateTopicName = async (e) => {
     e.stopPropagation();
-    e.preventDefault();
 
     if (!topicName.trim() || !chatId || !topic?.id) return;
     setUpdating(true);
