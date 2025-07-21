@@ -58,7 +58,9 @@ const GroupChatListItem = ({ chat, selected, onSelect }) => (
       <AvatarFallback>{chat.name?.charAt(0) || "G"}</AvatarFallback>
     </Avatar>
     <div>
-      <p className="font-medium text-sm truncate">{chat.name}</p>
+      <p className="font-medium text-sm truncate max-w-40 sm:max-w-96">
+        {chat.name}
+      </p>
       <p className="text-xs text-gray-500">Group</p>
     </div>
   </div>

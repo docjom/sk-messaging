@@ -409,7 +409,7 @@ export const MessageList = ({
                     }`}
                   >
                     {msg.pinned && (
-                      <div className="absolute -top-1 right-0 text-red-500">
+                      <div className="absolute z-20 -top-1 right-0 text-red-500">
                         <Icon icon="solar:pin-bold" width="14" height="14" />
                       </div>
                     )}

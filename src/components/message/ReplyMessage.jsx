@@ -82,7 +82,7 @@ export const ReplyMessageDisplay = ({ message, onReplyClick }) => {
   return (
     <div
       onClick={handleReplyClick}
-      className="mb-2 border-l-4 border border-blue-400   bg-opacity-60 p-2 rounded-r-xl rounded-l-lg"
+      className="mb-2 border-l-4 border border-blue-400   bg-white dark:bg-gray-800 dark:text-white  text-gray-800 p-2 rounded-r-xl rounded-l-lg"
     >
       {/* Reply header */}
       <div className="flex items-center gap-1 mb-1">

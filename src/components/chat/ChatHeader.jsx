@@ -265,7 +265,7 @@ const DirectChatHeader = ({
           <AvatarFallback></AvatarFallback>
         </Avatar>
         <div className="">
-          <div className="text-base flex justify-start items-center font-semibold  capitalize">
+          <div className="text-sm flex justify-start max-w-40 sm:max-w-96 truncate sm:text-base items-center font-semibold  capitalize">
             {selectedUser.displayName}
           </div>
           <div className="text-xs ">
