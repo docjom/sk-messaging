@@ -35,6 +35,7 @@ import { useInternetConnection } from "@/hooks/CheckInternetConnection";
 import { useMenu } from "@/hooks/useMenuState";
 import { useChatFolderStore } from "@/stores/chat-folder/useChatFolderStore";
 import { getRefs } from "@/utils/firestoreRefs";
+import { NoInternetConnectionAlert } from "@/components/notification/AlertNoInternet";
 
 function Dashboard() {
   const user = useUserStore((s) => s.user);
@@ -571,6 +572,15 @@ function Dashboard() {
 
   return (
     <div className="h-screen flex flex-col lg:flex-row">
+      {!isOnline && wasOffline && (
+        <div className="top-0 absolute w-full z-50">
+          <div className="flex justify-center items-center m-2">
+            <NoInternetConnectionAlert />
+          </div>
+        </div>
+      )}
+
+      {/* Toast Notifications */}
       <Toaster />
 
       {/* Menu */}
