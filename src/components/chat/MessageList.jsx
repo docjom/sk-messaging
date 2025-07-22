@@ -327,7 +327,7 @@ export const MessageList = ({
             id={`message-${msg.id}`}
             className={`flex mb-2 transition-all duration-300 ${
               highlightedMessageId === msg.id
-                ? "bg-blue-100 dark:bg-yellow-900/30 rounded-lg py-2 -mx-0"
+                ? "bg-blue-100 dark:bg-blue-500/20 rounded-lg py-2 -mx-0"
                 : ""
             } ${
               msg.type === "system"
