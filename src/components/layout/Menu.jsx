@@ -28,7 +28,7 @@ export const Menu = ({
           <div className=" rounded mb-4 flex items-center gap-2 justify-start">
             <Avatar className="w-12 h-12">
               <AvatarImage src={displayUser?.photoURL} />
-              <AvatarFallback>P</AvatarFallback>
+              <AvatarFallback></AvatarFallback>
             </Avatar>
             <h1 className="text-lg font-semibold max-w-32 truncate capitalize">
               {displayUser?.displayName}

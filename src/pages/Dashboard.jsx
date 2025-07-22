@@ -15,11 +15,9 @@ import {
   collection,
   serverTimestamp,
   query,
-  getDocs,
   doc,
   updateDoc,
   onSnapshot,
-  where,
   writeBatch,
   limitToLast,
   orderBy,
@@ -36,6 +34,13 @@ import { useMenu } from "@/hooks/useMenuState";
 import { useChatFolderStore } from "@/stores/chat-folder/useChatFolderStore";
 import { getRefs } from "@/utils/firestoreRefs";
 import { NoInternetConnectionAlert } from "@/components/notification/AlertNoInternet";
+import {
+  checkExistingDirectChat,
+  getSenderDisplayName,
+  createChat,
+  getSenderData,
+  clearChatId,
+} from "@/hooks/useDashboard";
 
 function Dashboard() {
   const user = useUserStore((s) => s.user);
@@ -71,7 +76,6 @@ function Dashboard() {
     setCurrentChat,
     currentChat,
     selectedUser,
-    clearCurrentChat,
     clearSelectedUser,
     topicId,
     clearMessage,
@@ -92,11 +96,6 @@ function Dashboard() {
       cleanup();
     };
   }, [cleanup]);
-
-  const getSenderDisplayName = (senderId) => {
-    const sender = users.find((u) => u.id === senderId);
-    return sender?.displayName || "Unknown User";
-  };
 
   useEffect(() => {
     if (messages > prevMessageCountRef.current) {
@@ -195,11 +194,9 @@ function Dashboard() {
             url: downloadURL,
             fileName: fileName,
           },
-
           timestamp: serverTimestamp(),
         });
       }
-
       const lastMessageText = message ? message : `📎 ${file.name}`;
       if (chatRef) {
         await updateDoc(chatRef, {
@@ -225,20 +222,13 @@ function Dashboard() {
       endOfMessagesRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages]);
-
   const displayUser = userProfile || user;
-
   const toggleMenu = useCallback(() => {
     setMenu((prev) => !prev);
   }, []);
 
   const closeMenu = () => {
     setMenu(false);
-  };
-  const clearChatId = () => {
-    clearChat();
-    clearCurrentChat();
-    clearSelectedUser();
   };
 
   const handleSelectChat = (chat) => {
@@ -248,7 +238,6 @@ function Dashboard() {
     if (chat.hasChatTopic) {
       setFolderSidebar(true);
     }
-
     if (chat.type === "direct") {
       const otherUserId = chat.users.find((uid) => uid !== user?.uid);
       const otherUser = users.find((u) => u.id === otherUserId);
@@ -422,67 +411,11 @@ function Dashboard() {
           lastMessage: null,
           lastMessageTime: null,
         };
-
         setChatIdTo(newChatId);
         setCurrentChat(newChat);
       }
     }
     setMenu(false);
-  };
-
-  const checkExistingDirectChat = async (selectedUserId) => {
-    try {
-      const chatsRef = collection(db, "chats");
-      const q = query(chatsRef, where("type", "==", "direct"));
-      const querySnapshot = await getDocs(q);
-
-      for (const doc of querySnapshot.docs) {
-        const chatData = doc.data();
-        if (
-          chatData.users.includes(user?.uid) &&
-          chatData.users.includes(selectedUserId)
-        ) {
-          return { id: doc.id, ...chatData };
-        }
-      }
-      return null;
-    } catch (error) {
-      console.error("Error checking existing chat:", error);
-      return null;
-    }
-  };
-
-  const createChat = async (type, userIds, name = "") => {
-    try {
-      const chatsRef = collection(db, "chats");
-      const chatData = {
-        type,
-        name: name || (type === "direct" ? "Direct Chat" : "Group Chat"),
-        users: userIds,
-        pin: [],
-        createdAt: serverTimestamp(),
-        lastMessage: null,
-        lastMessageTime: null,
-      };
-      if (type === "direct") {
-        const otherUserId = userIds.find((id) => id !== user?.uid);
-        const otherUser = users.find((u) => u.id === otherUserId);
-        chatData.photoURL = otherUser?.photoURL || ErrorProfileImage;
-      } else if (type === "group") {
-        chatData.photoURL = "";
-        chatData.admin = user?.uid;
-        chatData.userRoles = {};
-        userIds.forEach((userId) => {
-          chatData.userRoles[userId] =
-            userId === user?.uid ? "admin" : "member";
-        });
-      }
-      const chatDoc = await addDoc(chatsRef, chatData);
-      return chatDoc.id;
-    } catch (e) {
-      toast.error("Failed to create chat. Please try again.", e);
-      return null;
-    }
   };
 
   // Create a group chat
@@ -527,12 +460,6 @@ function Dashboard() {
     } finally {
       setIsCreatingGroup(false);
     }
-  };
-
-  const getSenderData = (senderId) => {
-    if (!senderId) return null;
-    const sender = users.find((u) => u.id === senderId);
-    return sender || null;
   };
 
   const getChatDisplayName = useCallback(
