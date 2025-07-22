@@ -201,12 +201,14 @@ function Dashboard() {
       }
 
       const lastMessageText = message ? message : `📎 ${file.name}`;
-      await updateDoc(chatRef, {
-        lastMessage: lastMessageText,
-        seenBy: [],
-        lastMessageTime: serverTimestamp(),
-        lastSenderName: getSenderDisplayName(user?.uid),
-      });
+      if (chatRef) {
+        await updateDoc(chatRef, {
+          lastMessage: lastMessageText,
+          seenBy: [],
+          lastMessageTime: serverTimestamp(),
+          lastSenderName: getSenderDisplayName(user?.uid),
+        });
+      }
       toast.success("File sent successfully!");
       setIsFileDialogOpen(false);
     } catch (error) {
@@ -360,33 +362,40 @@ function Dashboard() {
 
   useEffect(() => {
     if (!chatId || !messages || !user?.uid) return;
-    const batch = writeBatch(db);
-    messages
-      .filter(
+    const updateSeenStatus = async () => {
+      const batch = writeBatch(db);
+      for (const m of messages.filter(
         (m) =>
           m.senderId !== user?.uid &&
           (!Array.isArray(m.seenBy) || !m.seenBy.includes(user?.uid))
-      )
-      .forEach((m) => {
-        const msgRef = topicId
-          ? doc(db, "chats", chatId, "topics", topicId, "messages", m?.id)
-          : doc(db, "chats", chatId, "messages", m?.id);
-
-        batch.update(msgRef, {
-          seenBy: arrayUnion(user?.uid),
-          seen: true,
+      )) {
+        const messageId = m.id;
+        const { messageRef } = getRefs({
+          chatId,
+          topicId,
+          messageId,
         });
+        const msgSnap = await getDoc(messageRef);
+        if (msgSnap.exists()) {
+          batch.update(messageRef, {
+            seenBy: arrayUnion(user?.uid),
+            seen: true,
+          });
+        }
+      }
+      const { chatRef } = getRefs({
+        chatId,
+        topicId,
       });
-
-    const chatRef = topicId
-      ? doc(db, "chats", chatId, "topics", topicId)
-      : doc(db, "chats", chatId);
-
-    updateDoc(chatRef, {
-      seenBy: arrayUnion(user?.uid),
-    });
-
-    batch.commit();
+      const chatSnap = await getDoc(chatRef);
+      if (chatSnap.exists()) {
+        batch.update(chatRef, {
+          seenBy: arrayUnion(user?.uid),
+        });
+      }
+      await batch.commit();
+    };
+    updateSeenStatus();
   }, [chatId, messages, user?.uid, topicId]);
 
   const handleSelectUser = async (selectedUserData) => {
@@ -540,9 +549,7 @@ function Dashboard() {
 
   useEffect(() => {
     if (!chatId || !user?.uid) return;
-
     const chatRef = doc(db, "chats", chatId);
-
     const unsubscribe = onSnapshot(
       chatRef,
       async (docSnap) => {
