@@ -45,10 +45,8 @@ import {
 function Dashboard() {
   const user = useUserStore((s) => s.user);
   const userProfile = useUserStore((s) => s.userProfile);
-
   // const { messages, messagesLoading } = useInfiniteMessages;
   const { menu, setMenu } = useMenu();
-
   const endOfMessagesRef = useRef(null);
 
   const [isAddingUsers, setIsAddingUsers] = useState(false);
@@ -90,13 +88,11 @@ function Dashboard() {
       toast.error("Internet connection was interrupted!");
     }
   }, [isOnline, wasOffline]);
-
   useEffect(() => {
     return () => {
       cleanup();
     };
   }, [cleanup]);
-
   useEffect(() => {
     if (messages > prevMessageCountRef.current) {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -107,18 +103,15 @@ function Dashboard() {
   useEffect(() => {
     if (chatId) {
       setMessagesLoading(true);
-
       const { messageCollectionRef } = getRefs({
         chatId,
         topicId,
       });
-
       const q = query(
         messageCollectionRef,
         orderBy("timestamp"),
         limitToLast(50)
       );
-
       const unsubscribe = onSnapshot(q, (querySnapshot) => {
         const messagesArray = [];
         querySnapshot.forEach((doc) => {
@@ -127,7 +120,6 @@ function Dashboard() {
         setMessages(messagesArray);
         setMessagesLoading(false);
       });
-
       return () => unsubscribe();
     } else {
       setMessages([]);
@@ -140,12 +132,10 @@ function Dashboard() {
     try {
       const timestamp = Date.now();
       const fileName = `${timestamp}_${file.name}`;
-
       const { chatRef, filesRef, messageCollectionRef } = getRefs({
         chatId,
         topicId,
       });
-
       const { storageRef } = getRefs({
         chatId,
         topicId,
@@ -183,7 +173,6 @@ function Dashboard() {
           });
         }
       }
-
       if (fileName) {
         await addDoc(filesRef, {
           senderId: user?.uid,
@@ -215,7 +204,6 @@ function Dashboard() {
       setIsUploadingFile(false);
     }
   };
-
   useEffect(() => {
     textareaRef.current?.focus();
     if (endOfMessagesRef.current) {
@@ -226,11 +214,9 @@ function Dashboard() {
   const toggleMenu = useCallback(() => {
     setMenu((prev) => !prev);
   }, []);
-
   const closeMenu = () => {
     setMenu(false);
   };
-
   const handleSelectChat = (chat) => {
     clearMessage();
     setChatIdTo(chat.id);
@@ -246,7 +232,6 @@ function Dashboard() {
       clearSelectedUser();
     }
   };
-
   const addUsersToGroup = async (selectedUsersToAdd) => {
     if (!currentChat || !currentChat.id || selectedUsersToAdd.length === 0) {
       toast.error("Please select users to add.");
@@ -274,7 +259,6 @@ function Dashboard() {
             userRoles: updatedUserRoles,
             updatedAt: serverTimestamp(),
           });
-
           const usersRef = collection(db, "users");
           const newUsersData = await Promise.all(
             newUsers.map(async (userId) => {
@@ -417,7 +401,6 @@ function Dashboard() {
     }
     setMenu(false);
   };
-
   // Create a group chat
   const createGroupChat = async (groupName, selectedUsers) => {
     setIsCreatingGroup(true);
@@ -448,7 +431,6 @@ function Dashboard() {
         setChatIdTo(newChatId);
         setCurrentChat(newChat);
         setSelectedUser(newChat);
-
         toast.success(`Group "${groupName}" created successfully!`);
         setMenu(false);
       } else {
@@ -461,7 +443,6 @@ function Dashboard() {
       setIsCreatingGroup(false);
     }
   };
-
   const getChatDisplayName = useCallback(
     (chat) => {
       if (chat.type === "direct") {
@@ -473,7 +454,6 @@ function Dashboard() {
     },
     [user, users]
   );
-
   useEffect(() => {
     if (!chatId || !user?.uid) return;
     const chatRef = doc(db, "chats", chatId);
@@ -485,10 +465,8 @@ function Dashboard() {
           clearChat();
           return;
         }
-
         const chatData = docSnap.data();
         const users = chatData.users || [];
-
         if (!users.includes(user.uid)) {
           toast.error("This chat no longer exists.");
           clearChat();
@@ -500,7 +478,6 @@ function Dashboard() {
         toast.error("Connection error. Please refresh.");
       }
     );
-
     return () => unsubscribe();
   }, [chatId, user?.uid, clearChat]);
 
@@ -513,10 +490,8 @@ function Dashboard() {
           </div>
         </div>
       )}
-
       {/* Toast Notifications */}
       <Toaster />
-
       {/* Menu */}
       {menu && (
         <Menu
@@ -535,7 +510,6 @@ function Dashboard() {
         handleSelectChat={handleSelectChat}
         getSenderDisplayName={getSenderDisplayName}
       />
-
       {/* Center Chat Area */}
       <div className="flex-1 bg-gray-white  sm:ml-64 lg:ml-0 sticky top-0 left-0 z-20 overflow-y-hidden flex flex-col h-full">
         {/* Header */}
@@ -579,7 +553,6 @@ function Dashboard() {
           />
         )}
       </div>
-
       {/* Dialogs */}
       <FileUploadDialog
         isOpen={isFileDialogOpen}
@@ -588,7 +561,6 @@ function Dashboard() {
         chatId={chatId}
         isLoading={isUploadingFile}
       />
-
       <UserInfo
         isOpen={ifUserInfoOpen}
         onClose={() => setIfUserInfoOpen(false)}
