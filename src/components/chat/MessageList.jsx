@@ -266,31 +266,31 @@ export const MessageList = ({
   };
 
   const copyImageToClipboard = async (imageUrl) => {
+    // try {
+    //   const response = await fetch(imageUrl, { mode: "cors" });
+    //   if (!response.ok) throw new Error("Failed to fetch image");
+
+    //   const blob = await response.blob();
+    //   console.log("Blob type:", blob.type);
+
+    //   if (navigator.clipboard && window.ClipboardItem) {
+    //     const clipboardItem = new ClipboardItem({ [blob.type]: blob });
+    //     await navigator.clipboard.write([clipboardItem]);
+    //     toast.success("Image copied to clipboard!");
+    //   } else {
+    //     await navigator.clipboard.writeText(imageUrl);
+    //     toast.success("Image URL copied to clipboard!");
+    //   }
+    // } catch (err) {
+    //   console.error("Failed to copy image:", err);
     try {
-      const response = await fetch(imageUrl, { mode: "cors" });
-      if (!response.ok) throw new Error("Failed to fetch image");
-
-      const blob = await response.blob();
-      console.log("Blob type:", blob.type);
-
-      if (navigator.clipboard && window.ClipboardItem) {
-        const clipboardItem = new ClipboardItem({ [blob.type]: blob });
-        await navigator.clipboard.write([clipboardItem]);
-        toast.success("Image copied to clipboard!");
-      } else {
-        await navigator.clipboard.writeText(imageUrl);
-        toast.success("Image URL copied to clipboard!");
-      }
-    } catch (err) {
-      console.error("Failed to copy image:", err);
-      try {
-        await navigator.clipboard.writeText(imageUrl);
-        toast.success("Image URL copied to clipboard!");
-      } catch (e) {
-        toast.error("Failed to copy image");
-        console.log(e);
-      }
+      await navigator.clipboard.writeText(imageUrl);
+      toast.success("Image URL copied to clipboard!");
+    } catch (e) {
+      toast.error("Failed to copy image");
+      console.log(e);
     }
+    //}
   };
 
   const handleImageLoad = useCallback((messageId) => {
@@ -319,7 +319,7 @@ export const MessageList = ({
     <>
       <div
         ref={messagesContainerRef}
-        className="flex-1 overflow-y-auto scroll-smooth"
+        className="flex-1 overflow-y-auto overflow-x-hidden scroll-smooth"
       >
         {messages.map((msg) => (
           <div

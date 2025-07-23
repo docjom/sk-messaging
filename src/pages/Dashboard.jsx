@@ -340,10 +340,10 @@ function Dashboard() {
           m.senderId !== user?.uid &&
           (!Array.isArray(m.seenBy) || !m.seenBy.includes(user?.uid))
       )) {
-        const messageId = m.id;
+        const messageId = m?.id;
         const { messageRef } = getRefs({
           chatId,
-          topicId,
+          ...(topicId ? { topicId } : {}),
           messageId,
         });
         const msgSnap = await getDoc(messageRef);
@@ -356,7 +356,7 @@ function Dashboard() {
       }
       const { chatRef } = getRefs({
         chatId,
-        topicId,
+        ...(topicId ? { topicId } : {}),
       });
       const chatSnap = await getDoc(chatRef);
       if (chatSnap.exists()) {

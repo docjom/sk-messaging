@@ -171,7 +171,7 @@ const ChatList = ({
           </Popover>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center  gap-2">
           <div className="relative">
             {chat.type === "direct" && (
               <div
@@ -292,6 +292,9 @@ const ChatList = ({
                 getName={getSenderDisplayName}
               />
             </div> */}
+            {!chat.pin?.includes(currentUserId) && chat.lastMessage && (
+              <hr className="mt-2" />
+            )}
           </div>
         </div>
       </div>

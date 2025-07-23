@@ -143,7 +143,7 @@ export function EditProfile({ currentUserId }) {
 
           <div className="flex items-center gap-4 mb-4">
             {/* Display current or selected profile image */}
-            <Avatar className="w-20 h-20">
+            <Avatar className="w-20 h-20 border">
               <AvatarImage src={imagePreview || profilePhotoURL} />
               <AvatarFallback> {name[0]?.toUpperCase() || "P"}</AvatarFallback>
             </Avatar>
@@ -167,6 +167,8 @@ export function EditProfile({ currentUserId }) {
             </Label>
             <Input
               id="name"
+              required
+              type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
             />
@@ -178,6 +180,9 @@ export function EditProfile({ currentUserId }) {
             </Label>
             <Input
               id="department"
+              type="text"
+              placeholder="e.g. Marketing"
+              required
               value={department}
               onChange={(e) => setDepartment(e.target.value)}
             />
@@ -189,6 +194,10 @@ export function EditProfile({ currentUserId }) {
             </Label>
             <Input
               id="phone"
+              required
+              type="tel"
+              placeholder="e.g. +63 123 456 7890"
+              pattern="^\+?[0-9]{10,15}$"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
             />
@@ -200,6 +209,9 @@ export function EditProfile({ currentUserId }) {
             </Label>
             <Input
               id="position"
+              type="text"
+              placeholder="e.g. Software Engineer"
+              required
               value={position}
               onChange={(e) => setPosition(e.target.value)}
             />
