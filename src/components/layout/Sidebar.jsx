@@ -66,7 +66,7 @@ function SidebarPanel({
                       getSenderDisplayName={getSenderDisplayName}
                     />
                   ) : (
-                    <div className="mx-1 p-2 border-gray-600/50 rounded-lg border text-gray-500">
+                    <div className="mx-1 p-2  rounded-lg text-sm text-gray-500">
                       No Recent Chats
                     </div>
                   )}

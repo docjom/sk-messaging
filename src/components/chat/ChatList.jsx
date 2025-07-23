@@ -83,22 +83,6 @@ const ChatList = ({
   }
 `}
       >
-        {chat.pin?.includes(currentUserId) && (
-          <div className="absolute -top-1 left-2 text-red-500">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-            >
-              <path
-                fill="currentColor"
-                d="m19.184 7.805l-2.965-2.967c-2.027-2.03-3.04-3.043-4.129-2.803s-1.581 1.587-2.568 4.28l-.668 1.823c-.263.718-.395 1.077-.632 1.355a2 2 0 0 1-.36.332c-.296.213-.664.314-1.4.517c-1.66.458-2.491.687-2.804 1.23a1.53 1.53 0 0 0-.204.773c.004.627.613 1.236 1.83 2.455L6.7 16.216l-4.476 4.48a.764.764 0 0 0 1.08 1.08l4.475-4.48l1.466 1.468c1.226 1.226 1.839 1.84 2.47 1.84c.265 0 .526-.068.757-.2c.548-.313.778-1.149 1.239-2.822c.202-.735.303-1.102.515-1.399q.14-.194.322-.352c.275-.238.632-.372 1.345-.64l1.844-.693c2.664-1 3.996-1.501 4.23-2.586c.235-1.086-.77-2.093-2.783-4.107"
-              />
-            </svg>
-          </div>
-        )}
-
         <div className="absolute top-0 right-0 z-10 sm:not-visited:opacity-0 sm:group-hover:opacity-100  transition-opacity duration-150 backdrop-blur-sm">
           <Popover>
             <PopoverTrigger
@@ -253,7 +237,7 @@ const ChatList = ({
                 )}
                 {/* Show timestamp */}
                 {chat.lastMessageTime && (
-                  <div className="flex justify-start text-[10px] items-center">
+                  <div className="flex justify-start text-[10px] gap-0.5 items-center">
                     {chat.seenBy?.includes(currentUserId) && (
                       <p>
                         <svg
@@ -283,6 +267,21 @@ const ChatList = ({
                     <p className="flex">
                       {formatTimestamp(chat.lastMessageTime)}
                     </p>
+                    {chat.pin?.includes(currentUserId) && (
+                      <div className=" text-gray-500">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="12"
+                          height="12"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            fill="currentColor"
+                            d="m19.184 7.805l-2.965-2.967c-2.027-2.03-3.04-3.043-4.129-2.803s-1.581 1.587-2.568 4.28l-.668 1.823c-.263.718-.395 1.077-.632 1.355a2 2 0 0 1-.36.332c-.296.213-.664.314-1.4.517c-1.66.458-2.491.687-2.804 1.23a1.53 1.53 0 0 0-.204.773c.004.627.613 1.236 1.83 2.455L6.7 16.216l-4.476 4.48a.764.764 0 0 0 1.08 1.08l4.475-4.48l1.466 1.468c1.226 1.226 1.839 1.84 2.47 1.84c.265 0 .526-.068.757-.2c.548-.313.778-1.149 1.239-2.822c.202-.735.303-1.102.515-1.399q.14-.194.322-.352c.275-.238.632-.372 1.345-.64l1.844-.693c2.664-1 3.996-1.501 4.23-2.586c.235-1.086-.77-2.093-2.783-4.107"
+                          />
+                        </svg>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

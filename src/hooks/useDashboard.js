@@ -13,7 +13,6 @@ import { useUserStore } from "@/stores/useUserStore";
 
 const { clearChat, clearCurrentChat, clearSelectedUser, users } =
   useMessageActionStore.getState();
-
 const { user } = useUserStore.getState();
 
 export const checkExistingDirectChat = async (selectedUserId) => {
@@ -36,17 +35,6 @@ export const checkExistingDirectChat = async (selectedUserId) => {
     console.error("Error checking existing chat:", error);
     return null;
   }
-};
-
-export const getSenderDisplayName = (senderId) => {
-  const sender = users.find((u) => u.id === senderId);
-  return sender?.displayName || "Unknown User";
-};
-
-export const getSenderData = (senderId) => {
-  if (!senderId) return null;
-  const sender = users.find((u) => u.id === senderId);
-  return sender || null;
 };
 
 export const clearChatId = () => {

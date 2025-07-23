@@ -36,9 +36,7 @@ import { getRefs } from "@/utils/firestoreRefs";
 import { NoInternetConnectionAlert } from "@/components/notification/AlertNoInternet";
 import {
   checkExistingDirectChat,
-  getSenderDisplayName,
   createChat,
-  getSenderData,
   clearChatId,
 } from "@/hooks/useDashboard";
 
@@ -454,6 +452,17 @@ function Dashboard() {
     },
     [user, users]
   );
+
+  const getSenderDisplayName = (senderId) => {
+    const sender = users.find((u) => u.id === senderId);
+    return sender?.displayName || "Unknown User";
+  };
+
+  const getSenderData = (senderId) => {
+    if (!senderId) return null;
+    const sender = users.find((u) => u.id === senderId);
+    return sender || null;
+  };
   useEffect(() => {
     if (!chatId || !user?.uid) return;
     const chatRef = doc(db, "chats", chatId);
