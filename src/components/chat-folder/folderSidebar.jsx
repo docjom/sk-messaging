@@ -27,6 +27,7 @@ import { EditGroup } from "../group/EditGroup";
 import { PinnedMessages } from "../chat/PinnedMessages";
 import { ChatFiles } from "../chat/ChatFiles";
 import { CreateNewTopic } from "./folderCreateNewTopic";
+import { useMentions } from "@/stores/useUsersMentions";
 export const FolderSidebar = ({
   filteredChats,
   getChatPhoto,
@@ -44,9 +45,11 @@ export const FolderSidebar = ({
     setSelectedUser,
     clearCurrentChat,
     clearChat,
+    clearMessage,
   } = useMessageActionStore();
   const { user } = useUserStore();
   const { setFolderSidebar } = useChatFolderStore();
+  const { clearMentionSuggestions } = useMentions();
 
   const [topics, setTopics] = useState([]);
   const [groupName, setGroupName] = useState("");
@@ -58,6 +61,8 @@ export const FolderSidebar = ({
   };
 
   const handleSelectChat = (chat) => {
+    clearMentionSuggestions();
+    clearMessage();
     if (!chat.hasChatTopic) {
       const otherUserId = chat.users.find((uid) => uid !== user?.uid);
       const otherUser = users.find((u) => u.id === otherUserId);

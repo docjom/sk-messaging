@@ -1,8 +1,25 @@
 import { Icon } from "@iconify/react";
-import React, { lazy, Suspense, useState, useCallback, memo } from "react";
+import React, {
+  lazy,
+  Suspense,
+  useState,
+  useCallback,
+  useEffect,
+  memo,
+} from "react";
 import { useMessageActionStore } from "@/stores/useMessageActionStore";
 import { SendButton } from "./SendButton";
 import { useUserStore } from "@/stores/useUserStore";
+import { onSnapshot, doc } from "firebase/firestore";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { db } from "@/firebase";
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  documentId,
+} from "firebase/firestore";
 // Lazy load
 const LazyEmojiPicker = lazy(() => import("emoji-picker-react"));
 import {
@@ -11,6 +28,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { useTypingForChat } from "../../../hooks/userTypingForChat";
+import { useMentions } from "@/stores/useUsersMentions";
 
 const MessageInput = memo(
   ({
@@ -28,10 +46,19 @@ const MessageInput = memo(
     setMessage,
   }) => {
     const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
+    const [groupUsers, setGroupUsers] = useState([]);
+    const [cursorPosition, setCursorPosition] = useState(null);
+    const [showMentions, setShowMentions] = useState(false);
+
+    const {
+      mentionSuggestions,
+      setMentionSuggestions,
+      clearMentionSuggestions,
+    } = useMentions();
 
     const { setTyping } = useTypingForChat(chatId);
     const user = useUserStore((s) => s.user);
-    // Use the store directly to avoid selector issues
+
     const pastedImage = useMessageActionStore((state) => state.pastedImage);
     const setPastedImage = useMessageActionStore(
       (state) => state.setPastedImage
@@ -40,7 +67,171 @@ const MessageInput = memo(
       (state) => state.clearPastedImage
     );
 
-    // Memoize event handlers - FIXED dependencies
+    useEffect(() => {
+      if (!chatId) return;
+
+      const unsub = onSnapshot(doc(db, "chats", chatId), async (docSnap) => {
+        const data = docSnap.data();
+        if (data && data.users) {
+          const userPromises = data.users.map(async (userId) => {
+            try {
+              const userDoc = await getDocs(
+                query(
+                  collection(db, "users"),
+                  where(documentId(), "==", userId)
+                )
+              );
+
+              if (!userDoc.empty) {
+                const userData = userDoc.docs[0].data();
+                return {
+                  id: userId,
+                  displayName: userData.displayName || "Unknown User",
+                  photoURL: userData.photoURL || null,
+                  email: userData.email || "",
+                  username:
+                    userData.username ||
+                    userData.displayName?.toLowerCase().replace(/\s+/g, "") ||
+                    "unknown",
+                  role: data.userRoles?.[userId] || "member",
+                };
+              }
+              return null;
+            } catch (error) {
+              console.error("Error fetching user data:", error);
+              return null;
+            }
+          });
+
+          const users = await Promise.all(userPromises);
+          const validUsers = users.filter((user) => user !== null);
+          setGroupUsers(validUsers);
+        }
+      });
+
+      return () => unsub();
+    }, [chatId]);
+
+    const handleMentionDetection = useCallback(
+      (text, cursorPos) => {
+        const beforeCursor = text.slice(0, cursorPos);
+        const match = beforeCursor.match(/@(\w*)$/);
+
+        if (match) {
+          const query = match[1].toLowerCase();
+          const filteredUsers = groupUsers.filter(
+            (user) =>
+              user.id !== user?.uid &&
+              (user.displayName.toLowerCase().includes(query) ||
+                user.username.toLowerCase().includes(query))
+          );
+
+          setMentionSuggestions(filteredUsers);
+          setShowMentions(true);
+        } else {
+          clearMentionSuggestions();
+          setShowMentions(false);
+        }
+      },
+      [groupUsers, clearMentionSuggestions, setMentionSuggestions]
+    );
+
+    const handleTextareaChange = useCallback(
+      (e) => {
+        const newMessage = e.target.value;
+        const cursorPos = e.target.selectionStart;
+        setMessage(newMessage);
+        setCursorPosition(cursorPos);
+        handleMentionDetection(newMessage, cursorPos);
+        if (newMessage.trim() && user?.uid && user?.displayName && chatId) {
+          setTyping(user.uid, user.displayName);
+        }
+      },
+      [
+        setMessage,
+        setTyping,
+        user?.uid,
+        user?.displayName,
+        chatId,
+        handleMentionDetection,
+      ]
+    );
+
+    const handleMentionInsert = useCallback(
+      (selectedUser) => {
+        const before = message.slice(0, cursorPosition);
+        const after = message.slice(cursorPosition);
+
+        const match = before.match(/@(\w*)$/);
+        if (!match) return;
+
+        const mentionStart = before.lastIndexOf("@" + match[1]);
+        const newText =
+          before.slice(0, mentionStart) + `@${selectedUser.username} ` + after;
+
+        setMessage(newText);
+        clearMentionSuggestions();
+        setShowMentions(false);
+
+        // Focus back to textarea
+        setTimeout(() => {
+          if (textareaRef.current) {
+            textareaRef.current.focus();
+            const newCursorPos =
+              mentionStart + `@${selectedUser.username} `.length;
+            textareaRef.current.setSelectionRange(newCursorPos, newCursorPos);
+          }
+        }, 0);
+      },
+      [message, cursorPosition, setMessage, textareaRef]
+    );
+
+    // Handle keyboard navigation for mentions
+    const handleMentionKeyDown = useCallback(
+      (e) => {
+        if (!showMentions || mentionSuggestions.length === 0) return false;
+
+        if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+          e.preventDefault();
+          return true;
+        }
+
+        if (e.key === "Enter" || e.key === "Tab") {
+          e.preventDefault();
+          if (mentionSuggestions.length > 0) {
+            handleMentionInsert(mentionSuggestions[0]);
+          }
+          return true;
+        }
+
+        if (e.key === "Escape") {
+          setShowMentions(false);
+          clearMentionSuggestions();
+          return true;
+        }
+
+        return false;
+      },
+      [
+        showMentions,
+        mentionSuggestions,
+        handleMentionInsert,
+        clearMentionSuggestions,
+      ]
+    );
+
+    const enhancedHandleKeyPress = useCallback(
+      (e) => {
+        if (handleMentionKeyDown(e)) {
+          return;
+        }
+        if (handleKeyPress) {
+          handleKeyPress(e);
+        }
+      },
+      [handleMentionKeyDown, handleKeyPress]
+    );
+
     const handleEmojiClick = useCallback(
       (emojiData) => {
         const emoji = emojiData.emoji;
@@ -51,7 +242,6 @@ const MessageInput = memo(
 
         setMessage(newText);
 
-        // Use requestAnimationFrame instead of setTimeout
         requestAnimationFrame(() => {
           if (textareaRef.current) {
             textareaRef.current.focus();
@@ -60,7 +250,7 @@ const MessageInput = memo(
         });
       },
       [message, setMessage, textareaRef]
-    ); // Removed textareaRef from deps
+    );
 
     const handlePaste = useCallback(
       (e) => {
@@ -109,28 +299,55 @@ const MessageInput = memo(
       }
     }, []);
 
-    const handleTextareaChange = useCallback(
-      (e) => {
-        const newMessage = e.target.value;
-        setMessage(newMessage);
-        if (newMessage.trim() && user?.uid && user?.displayName && chatId) {
-          setTyping(user.uid, user.displayName);
-        }
-      },
-      [setMessage, setTyping, user?.uid, user?.displayName, chatId]
-    );
-
     const isInputDisabled = messagesLoading || isMessagesSending;
     const isFileButtonDisabled =
       !chatId || messagesLoading || isMessagesSending;
 
     return (
-      <div className="fixed bottom-0 left-0 right-0  shadow-lg sm:ml-64 z-30">
+      <div className="fixed bottom-0 left-0 right-0 shadow-lg sm:ml-64 z-30">
         <div className="px-4 py-2 border-t backdrop-blur-sm border-gray-300 dark:border-gray-700">
           <div className="flex flex-col gap-1">
+            {/* Mention Suggestions */}
+            {showMentions && mentionSuggestions.length > 0 && (
+              <div className="absolute bottom-full mb-2 left-4 right-4 z-50 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg rounded-lg max-h-48 overflow-y-auto">
+                {mentionSuggestions.map((suggestedUser) => (
+                  <div
+                    key={suggestedUser.id}
+                    className="flex items-center gap-3 p-3 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors border-b border-gray-100 dark:border-gray-700 last:border-b-0"
+                    onClick={() => handleMentionInsert(suggestedUser)}
+                  >
+                    <Avatar className="border w-8 h-8 object-cover">
+                      <AvatarImage
+                        src={suggestedUser.photoURL}
+                        alt={suggestedUser.displayName}
+                      />
+                      <AvatarFallback>
+                        {" "}
+                        {suggestedUser.displayName.charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                        {suggestedUser.displayName}
+                        {suggestedUser.role === "admin" && (
+                          <span className="ml-2 px-1.5 py-0.5 text-xs bg-blue-100 text-blue-600 rounded-full">
+                            Admin
+                          </span>
+                        )}
+                      </p>
+                      {/* <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                        @{suggestedUser.username}
+                      </p> */}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
             {/* Display pasted image */}
             {pastedImage && (
-              <div className="flex justify-between border backdrop-blur-sm p-2 rounded-2xl items-start gap-2 ">
+              <div className="flex justify-between border backdrop-blur-sm p-2 rounded-2xl items-start gap-2">
                 <div className="flex gap-2 items-start">
                   <div className="relative">
                     <img
@@ -155,6 +372,7 @@ const MessageInput = memo(
               </div>
             )}
 
+            {/* Reply/Edit indicator */}
             {(replyTo || editMessage) && (
               <div className="flex items-start justify-between bg-gray-100 border-l-4 border-blue-500 px-3 py-2 rounded-t-md w-full mb-1">
                 <div className="text-sm text-gray-800 max-w-[80%]">
@@ -183,7 +401,7 @@ const MessageInput = memo(
                         {replyTo?.message || (
                           <>
                             {replyTo?.fileData && (
-                              <div className="p-2  rounded border flex items-center gap-2">
+                              <div className="p-2 rounded border flex items-center gap-2">
                                 {replyTo?.fileData.type?.startsWith(
                                   "image/"
                                 ) ? (
@@ -241,6 +459,8 @@ const MessageInput = memo(
                 </button>
               </div>
             )}
+
+            {/* Input area */}
             <div className="flex justify-center items-end gap-2">
               {!editMessage && (
                 <div>
@@ -276,7 +496,7 @@ const MessageInput = memo(
                 ref={textareaRef}
                 required
                 onChange={handleTextareaChange}
-                onKeyDown={handleKeyPress}
+                onKeyDown={enhancedHandleKeyPress}
                 onPaste={handlePaste}
                 placeholder={
                   editMessage ? "Edit your message..." : "Write a message..."
@@ -289,7 +509,7 @@ const MessageInput = memo(
 
               <Popover open={emojiPickerOpen} onOpenChange={setEmojiPickerOpen}>
                 <PopoverTrigger asChild>
-                  <button className="p-2 rounded-full bg-gray-200 dark:bg-gray-700  hover:bg-gray-300 text-blue-500 transition">
+                  <button className="p-2 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 text-blue-500 transition">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       width="20"

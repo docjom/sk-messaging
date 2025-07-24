@@ -39,6 +39,7 @@ import {
   createChat,
   clearChatId,
 } from "@/hooks/useDashboard";
+import { useMentions } from "@/stores/useUsersMentions";
 
 function Dashboard() {
   const user = useUserStore((s) => s.user);
@@ -76,6 +77,7 @@ function Dashboard() {
     topicId,
     clearMessage,
   } = useMessageActionStore();
+  const { clearMentionSuggestions } = useMentions();
 
   const cleanup = useTypingStatus((state) => state.cleanup);
   const { setFolderSidebar } = useChatFolderStore();
@@ -216,6 +218,7 @@ function Dashboard() {
     setMenu(false);
   };
   const handleSelectChat = (chat) => {
+    clearMentionSuggestions();
     clearMessage();
     setChatIdTo(chat.id);
     setCurrentChat(chat);

@@ -13,6 +13,7 @@ import { doc, updateDoc, arrayUnion, arrayRemove } from "firebase/firestore";
 import { db } from "@/firebase";
 import { TypingIndicator } from "../chat/TypingIndicator";
 import { EditTopicDialog } from "./editFolderTopic";
+import { useMentions } from "@/stores/useUsersMentions";
 
 export const FolderList = ({ topic }) => {
   const {
@@ -25,9 +26,12 @@ export const FolderList = ({ topic }) => {
   } = useMessageActionStore();
   const { setFolderSidebar } = useChatFolderStore();
   const { user } = useUserStore();
+  const { clearMentionSuggestions } = useMentions();
 
   const handleSelectTopic = (id, topic) => {
+    clearMentionSuggestions();
     clearMessage();
+
     setTopicIdTo(id);
     setCurrentTopic(topic);
     if (window.innerWidth <= 640) {
