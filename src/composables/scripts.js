@@ -43,16 +43,14 @@ export const formatTimestamp = (timestamp) => {
     year: "numeric",
   });
 };
-
 export const formatMessageWithLinks = (text, senderId, userId) => {
   if (!text) return "";
 
-  // Regular expressions for different patterns
   const urlRegex = /(https?:\/\/[^\s]+)/g;
   const emailRegex = /([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g;
   const phoneRegex = /(\+?[\d\s\-()]{10,})/g;
+  const mentionRegex = /(^|\s)(@[\w.-]+)/g;
 
-  // Determine styling based on sender
   const isCurrentUser = senderId === userId;
   const linkClasses = isCurrentUser
     ? "text-white font-bold underline hover:text-gray-200 cursor-pointer"
@@ -60,30 +58,28 @@ export const formatMessageWithLinks = (text, senderId, userId) => {
 
   let formattedText = text;
 
-  // Replace URLs with clickable links
   formattedText = formattedText.replace(urlRegex, (url) => {
-    return `<a href="${url}" target="_blank" rel="noopener noreferrer" 
-            class="${linkClasses}"
-           >${url}</a>`;
+    return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="${linkClasses}">${url}</a>`;
   });
 
-  // Replace emails with clickable mailto links
   formattedText = formattedText.replace(emailRegex, (email) => {
-    return `<a href="mailto:${email}" 
-            class="${linkClasses}"
-            >${email}</a>`;
+    return `<a href="mailto:${email}" class="${linkClasses}">${email}</a>`;
   });
 
-  // Replace phone numbers with clickable tel links
   formattedText = formattedText.replace(phoneRegex, (phone) => {
     const cleanPhone = phone.replace(/\s+/g, "");
     if (cleanPhone.length >= 10) {
-      return `<a href="tel:${cleanPhone}" 
-              class="${linkClasses}"
-             >${phone}</a>`;
+      return `<a href="tel:${cleanPhone}" class="${linkClasses}">${phone}</a>`;
     }
     return phone;
   });
+
+  formattedText = formattedText.replace(
+    mentionRegex,
+    (match, space, handle) => {
+      return `${space}<strong class="font-bold">${handle}</strong>`;
+    }
+  );
 
   return formattedText;
 };
