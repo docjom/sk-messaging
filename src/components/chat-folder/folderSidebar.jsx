@@ -46,6 +46,9 @@ export const FolderSidebar = ({
     clearCurrentChat,
     clearChat,
     clearMessage,
+    clearReply,
+    clearEdit,
+    clearPastedImage,
   } = useMessageActionStore();
   const { user } = useUserStore();
   const { setFolderSidebar } = useChatFolderStore();
@@ -62,6 +65,9 @@ export const FolderSidebar = ({
 
   const handleSelectChat = (chat) => {
     clearMentionSuggestions();
+    clearReply();
+    clearEdit();
+    clearPastedImage();
     clearMessage();
     if (!chat.hasChatTopic) {
       const otherUserId = chat.users.find((uid) => uid !== user?.uid);

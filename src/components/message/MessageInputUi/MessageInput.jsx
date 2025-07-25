@@ -309,11 +309,11 @@ const MessageInput = memo(
           <div className="flex flex-col gap-1">
             {/* Mention Suggestions */}
             {showMentions && mentionSuggestions.length > 0 && (
-              <div className="absolute bottom-full mb-2 left-4 right-4 z-50 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg rounded-lg max-h-48 overflow-y-auto">
+              <div className="absolute bottom-full mb-0 left-0 right-0 z-50 bg-white dark:bg-gray-800 border-y dark:border-gray-700 max-h-48 overflow-y-auto">
                 {mentionSuggestions.map((suggestedUser) => (
                   <div
                     key={suggestedUser.id}
-                    className="flex items-center gap-3 p-3 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors border-b border-gray-100 dark:border-gray-700 last:border-b-0"
+                    className="flex items-center gap-3 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors  dark:border-gray-700 "
                     onClick={() => handleMentionInsert(suggestedUser)}
                   >
                     <Avatar className="border w-8 h-8 object-cover">
@@ -336,9 +336,9 @@ const MessageInput = memo(
                           </span>
                         )}
                       </p>
-                      {/* <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                        @{suggestedUser.username}
-                      </p> */}
+                      <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                        {suggestedUser.email}
+                      </p>
                     </div>
                   </div>
                 ))}
@@ -374,8 +374,8 @@ const MessageInput = memo(
 
             {/* Reply/Edit indicator */}
             {(replyTo || editMessage) && (
-              <div className="flex items-start justify-between bg-gray-100 border-l-4 border-blue-500 px-3 py-2 rounded-t-md w-full mb-1">
-                <div className="text-sm text-gray-800 max-w-[80%]">
+              <div className="flex items-start justify-between  border-l-4 border-blue-500 px-2 w-full mb-1">
+                <div className="text-sm  max-w-[80%]">
                   <span className="font-medium text-blue-600">
                     {editMessage ? (
                       <>
@@ -393,7 +393,7 @@ const MessageInput = memo(
                   </span>
                   <div className="truncate">
                     {editMessage ? (
-                      <span className="text-gray-600">
+                      <span className="">
                         {editMessage.message || "No content"}
                       </span>
                     ) : (
@@ -412,7 +412,7 @@ const MessageInput = memo(
                                       width="16"
                                       height="16"
                                     />
-                                    <span className="text-xs text-gray-600">
+                                    <span className="text-xs ">
                                       Image: {replyTo?.fileData.name}
                                     </span>
                                   </div>

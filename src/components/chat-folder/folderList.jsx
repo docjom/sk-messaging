@@ -23,6 +23,9 @@ export const FolderList = ({ topic }) => {
     chatId,
     users,
     clearMessage,
+    clearReply,
+    clearEdit,
+    clearPastedImage,
   } = useMessageActionStore();
   const { setFolderSidebar } = useChatFolderStore();
   const { user } = useUserStore();
@@ -31,6 +34,9 @@ export const FolderList = ({ topic }) => {
   const handleSelectTopic = (id, topic) => {
     clearMentionSuggestions();
     clearMessage();
+    clearReply();
+    clearEdit();
+    clearPastedImage();
 
     setTopicIdTo(id);
     setCurrentTopic(topic);

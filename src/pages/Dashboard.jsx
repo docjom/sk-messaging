@@ -75,6 +75,9 @@ function Dashboard() {
     selectedUser,
     clearSelectedUser,
     topicId,
+    clearEdit,
+    clearReply,
+    clearPastedImage,
     clearMessage,
   } = useMessageActionStore();
   const { clearMentionSuggestions } = useMentions();
@@ -218,6 +221,9 @@ function Dashboard() {
     setMenu(false);
   };
   const handleSelectChat = (chat) => {
+    clearReply();
+    clearEdit();
+    clearPastedImage();
     clearMentionSuggestions();
     clearMessage();
     setChatIdTo(chat.id);
