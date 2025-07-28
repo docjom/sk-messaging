@@ -3,7 +3,7 @@ import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
-import { getMessaging, getToken } from "firebase/messaging";
+//import { getMessaging, getToken } from "firebase/messaging";
 // Firebase configuration
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -25,22 +25,22 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 const storage = getStorage(app);
-const messaging = getMessaging(app);
+//const messaging = getMessaging(app);
 
-navigator.serviceWorker
-  .register("/firebase-messaging-sw.js")
-  .then((registration) => {
-    return getToken(messaging, {
-      vapidKey:
-        "BF_k7as4bzLHQseEEfXlODjuay9g_JfPK2dRrXcYo4_QaWw9yrgAhsR7D12h1Csad8Nr9-vJfIVxD463ZiweNc0",
-      serviceWorkerRegistration: registration,
-    });
-  })
-  .then((token) => {
-    console.log("FCM token:", token);
-  })
-  .catch((err) => {
-    console.error("Error getting FCM token", err);
-  });
+// navigator.serviceWorker
+//   .register("/firebase-messaging-sw.js")
+//   .then((registration) => {
+//     return getToken(messaging, {
+//       vapidKey:
+//         "BF_k7as4bzLHQseEEfXlODjuay9g_JfPK2dRrXcYo4_QaWw9yrgAhsR7D12h1Csad8Nr9-vJfIVxD463ZiweNc0",
+//       serviceWorkerRegistration: registration,
+//     });
+//   })
+//   .then((token) => {
+//     console.log("FCM token:", token);
+//   })
+//   .catch((err) => {
+//     console.error("Error getting FCM token", err);
+//   });
 
-export { auth, provider, db, storage, messaging };
+export { auth, provider, db, storage };

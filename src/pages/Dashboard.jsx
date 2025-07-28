@@ -40,7 +40,6 @@ import {
   clearChatId,
 } from "@/hooks/useDashboard";
 import { useMentions } from "@/stores/useUsersMentions";
-import { NotificationHandler } from "@/components/notification/NotificationHandler";
 
 function Dashboard() {
   const user = useUserStore((s) => s.user);
@@ -511,7 +510,7 @@ function Dashboard() {
       )}
       {/* Toast Notifications */}
       <Toaster />
-      <NotificationHandler />
+
       {/* Menu */}
       {menu && (
         <Menu
