@@ -88,7 +88,7 @@ export const useNotifications = () => {
     try {
       if ("serviceWorker" in navigator) {
         const registration = await navigator.serviceWorker.register(
-          "/firebase-messaging-sw.js"
+          "firebase-messaging-sw.js"
         );
         console.log("✅ Service Worker registered:", registration);
 

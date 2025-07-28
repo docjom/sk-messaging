@@ -5,5 +5,5 @@
       "@/*": ["*"]
     }
   },
-  "include": ["src", "public/public", "public/firebase-messaging-sw.js"]
+  "include": ["src", "public/public", "src/firebase-messaging-sw.js"]
 }

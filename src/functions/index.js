@@ -37,12 +37,12 @@ export const sendMessageNotification = onDocumentCreated(
         return;
       }
 
-      if (!messageData.text && !messageData.type) {
+      if (!messageData.message) {
         console.log("⚠️ Message has no text or type - skipping notification");
         return;
       }
 
-      // Get chat participants (excluding sender)
+      // Get chat users (excluding sender)
       const chatDoc = await db.collection("chats").doc(chatId).get();
 
       if (!chatDoc.exists) {
@@ -54,8 +54,7 @@ export const sendMessageNotification = onDocumentCreated(
       console.log("💬 Chat data:", JSON.stringify(chatData, null, 2));
 
       const recipients =
-        chatData.participants?.filter((id) => id !== messageData.senderId) ||
-        [];
+        chatData.users?.filter((id) => id !== messageData.senderId) || [];
 
       console.log("👥 Recipients found:", recipients);
 
@@ -84,7 +83,7 @@ export const sendMessageNotification = onDocumentCreated(
         sendNotificationToUser(
           recipientId,
           senderName,
-          messageData.text || `Sent a ${messageData.type || "message"}`,
+          messageData.text || "Sent a message",
           chatId,
           messageData.senderId,
           chatName
