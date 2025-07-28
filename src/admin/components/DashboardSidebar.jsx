@@ -18,7 +18,7 @@ export function DashboardSidebar() {
       icon: Home,
     },
     {
-      title: "Inbox",
+      title: "User Management",
       url: "/adminDashboard/management",
       icon: Inbox,
     },
