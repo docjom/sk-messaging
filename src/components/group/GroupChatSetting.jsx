@@ -11,6 +11,7 @@ import { LeaveGroup } from "./LeaveGroup";
 import { PinnedMessages } from "../chat/PinnedMessages";
 import { ChatFiles } from "../chat/ChatFiles";
 import { useMessageActionStore } from "@/stores/useMessageActionStore";
+import { AddAdmin } from "../chat-folder/addAdmin";
 
 export default function ManageGroupChat({
   chatId,
@@ -41,6 +42,7 @@ export default function ManageGroupChat({
               />
             </>
           )}
+          <AddAdmin chatId={chatId} currentUserId={currentUserId} />
           <PinnedMessages chatId={chatId} />
           <ChatFiles chatId={chatId} />
         </DropdownMenuContent>
