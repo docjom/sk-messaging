@@ -244,7 +244,7 @@ function Dashboard() {
       endOfMessagesRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages]);
-  const displayUser = userProfile || user;
+  const displayUser = userProfile;
   const toggleMenu = useCallback(() => {
     setMenu((prev) => !prev);
   }, []);
