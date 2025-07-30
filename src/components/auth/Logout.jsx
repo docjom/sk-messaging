@@ -16,6 +16,7 @@ import { getAuth, signOut } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 import { getFirestore, doc, updateDoc } from "firebase/firestore";
 import { useUserStore } from "@/stores/useUserStore";
+import { useMenu } from "../../hooks/useMenuState";
 
 export function Logout() {
   const navigate = useNavigate();
@@ -23,6 +24,7 @@ export function Logout() {
   const db = getFirestore();
   const [loading, setLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const { setMenu } = useMenu();
 
   const handleLogout = async (e) => {
     e.preventDefault();
@@ -38,6 +40,7 @@ export function Logout() {
       useUserStore.getState().cleanup();
       await signOut(auth);
       setIsOpen(false);
+      setMenu(false);
       navigate("/");
     } catch (e) {
       console.error("Error logging out: ", e);

@@ -1,48 +1,70 @@
 export const formatTimestamp = (timestamp) => {
   if (!timestamp) return "";
 
-  const messageDate = timestamp.toDate();
+  let messageDate;
+
+  // Handle different timestamp formats
+  if (timestamp && typeof timestamp.toDate === "function") {
+    // Firestore Timestamp
+    messageDate = timestamp.toDate();
+  } else if (timestamp instanceof Date) {
+    // Already a Date object
+    messageDate = timestamp;
+  } else if (typeof timestamp === "number") {
+    // Unix timestamp (milliseconds)
+    messageDate = new Date(timestamp);
+  } else if (timestamp && timestamp.seconds) {
+    messageDate = new Date(timestamp.seconds * 1000);
+  } else {
+    // Fallback - try to create Date from whatever we have
+    messageDate = new Date(timestamp);
+  }
+
+  // If we still don't have a valid date, return empty
+  if (isNaN(messageDate.getTime())) return "";
+
   const now = new Date();
-  const diffInMs = now - messageDate;
-  const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
-  const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
-  const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
+  const isToday = now.toDateString() === messageDate.toDateString();
 
-  // If less than 1 minute ago
-  if (diffInMinutes < 1) {
-    return "Just now";
+  const yesterday = new Date();
+  yesterday.setDate(now.getDate() - 1);
+  const isYesterday = yesterday.toDateString() === messageDate.toDateString();
+
+  const isSameYear = now.getFullYear() === messageDate.getFullYear();
+
+  if (isToday) {
+    return messageDate.toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+    });
   }
 
-  // If less than 1 hour ago
-  if (diffInMinutes < 60) {
-    return `${diffInMinutes}m ago`;
+  if (isYesterday) {
+    return "Yesterday";
   }
 
-  // If less than 24 hours ago
-  if (diffInHours < 24) {
-    return `${diffInHours}h ago`;
-  }
+  const diffInDays = Math.floor((now - messageDate) / (1000 * 60 * 60 * 24));
 
-  // If less than 7 days ago
   if (diffInDays < 7) {
-    return `${diffInDays}d ago`;
+    return messageDate.toLocaleDateString("en-US", {
+      weekday: "long",
+    });
   }
 
-  // If same year
-  if (messageDate.getFullYear() === now.getFullYear()) {
+  if (isSameYear) {
     return messageDate.toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
     });
   }
 
-  // Different year
   return messageDate.toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
     year: "numeric",
   });
 };
+
 export const formatMessageWithLinks = (text, senderId, userId) => {
   if (!text) return "";
 

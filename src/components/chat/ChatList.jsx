@@ -12,23 +12,17 @@ import { doc, updateDoc, arrayUnion, arrayRemove } from "firebase/firestore";
 import { db } from "../../firebase";
 import { useMessageActionStore } from "../../stores/useMessageActionStore";
 import { formatTimestamp } from "../../composables/scripts";
-//import { TypingIndicator } from "./TypingIndicator";
-//import { useTypingStatus } from "@/stores/useTypingStatus";
-
+import { ChevronDown } from "lucide-react";
 const ChatList = ({
   filteredChats,
   handleSelectChat,
   getOtherUserInDirectChat,
   getChatPhoto,
   getChatDisplayName,
-  //getSenderDisplayName,
   currentUserId,
   clearCurrentChat,
 }) => {
   const { chatId } = useMessageActionStore();
-  //const { userNames } = useTypingStatus();
-  //const chatTypingUsers = userNames;
-  //console.log(chatTypingUsers);
 
   const markAsRead = async (chatId) => {
     const chatRef = doc(db, "chats", chatId);
@@ -92,7 +86,7 @@ const ChatList = ({
               className="p-1 border border-gray-500 m-0.5 rounded-full"
             >
               {" "}
-              <Icon icon="uiw:down" width="12" height="12" />
+              <ChevronDown size={14} />
             </PopoverTrigger>
             <PopoverContent className="w-40 p-1">
               {!chat.pin?.includes(currentUserId) ? (
@@ -286,12 +280,7 @@ const ChatList = ({
                 )}
               </div>
             </div>
-            {/* <div className="min-w-32  text-[10px]">
-              <TypingIndicator
-                chatId={chat.id}
-                getName={getSenderDisplayName}
-              />
-            </div> */}
+
             {!chat.pin?.includes(currentUserId) && chat.lastMessage && (
               <hr className="mt-2" />
             )}
