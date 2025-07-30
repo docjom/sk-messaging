@@ -1,5 +1,6 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import { WelcomePage } from "./WelcomePage";
@@ -11,11 +12,28 @@ import { AdminHome } from "./admin/pages/Home";
 import { Management } from "./admin/pages/Management";
 
 function App() {
-  const { user, initAuthListener } = useUserStore();
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  const initAuthListener = useUserStore((s) => s.initAuthListener);
 
   useEffect(() => {
     initAuthListener();
-  }, [initAuthListener]);
+  }, []);
+
+  useEffect(() => {
+    const auth = getAuth();
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setUser(user);
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  if (loading) {
+    return <div className="flex items-center justify-center h-screen"></div>;
+  }
 
   return (
     <Router>

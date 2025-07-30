@@ -1,9 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   signInWithPopup,
   signInWithEmailAndPassword,
   sendPasswordResetEmail,
-  onAuthStateChanged,
 } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 import { auth, provider, db } from "../firebase";
@@ -26,22 +25,11 @@ import { Icon } from "@iconify/react";
 
 function Login() {
   const navigate = useNavigate();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isResetLoading, setIsResetLoading] = useState(false);
-  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        navigate("/dashboard", { replace: true });
-      } else {
-        setIsCheckingAuth(false);
-      }
-    });
-    return () => unsubscribe();
-  }, [navigate]);
 
   const handleGoogleLogin = async () => {
     try {
@@ -157,19 +145,6 @@ function Login() {
       setIsResetLoading(false);
     }
   };
-
-  if (isCheckingAuth) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
-          <p className="mt-2 text-sm text-gray-600">
-            Checking authentication...
-          </p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <>
