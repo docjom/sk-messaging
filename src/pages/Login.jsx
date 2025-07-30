@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   signInWithPopup,
   signInWithEmailAndPassword,
@@ -22,14 +22,24 @@ import { Label } from "@/components/ui/label";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 import { Icon } from "@iconify/react";
+import { useUserStore } from "@/stores/useUserStore";
 
 function Login() {
   const navigate = useNavigate();
-
   const [email, setEmail] = useState("");
+  const { user } = useUserStore();
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isResetLoading, setIsResetLoading] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+
+  useEffect(() => {
+    if (user) {
+      navigate("/dashboard", { replace: true });
+    } else {
+      setIsCheckingAuth(false);
+    }
+  }, [user, navigate]);
 
   const handleGoogleLogin = async () => {
     try {
@@ -145,6 +155,19 @@ function Login() {
       setIsResetLoading(false);
     }
   };
+
+  if (isCheckingAuth) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
+          <p className="mt-2 text-sm text-gray-600">
+            Checking authentication...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
