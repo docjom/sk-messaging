@@ -42,8 +42,8 @@ import {
 import { useMentions } from "@/stores/useUsersMentions";
 
 function Dashboard() {
-  const user = useUserStore((s) => s.user);
-  const userProfile = useUserStore((s) => s.userProfile);
+  const user = useUserStore((s) => s.user || s.userProfile);
+  const userProfile = useUserStore((s) => s.userProfile || s.user);
   // const { messages, messagesLoading } = useInfiniteMessages;
   const { menu, setMenu } = useMenu();
   const endOfMessagesRef = useRef(null);
