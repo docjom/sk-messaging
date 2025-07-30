@@ -165,7 +165,7 @@ const ChatList = ({
           </Popover>
         </div>
 
-        <div className="flex items-center  gap-2">
+        <div className="flex items-center gap-2">
           <div className="relative">
             {chat.type === "direct" && (
               <div
@@ -212,7 +212,7 @@ const ChatList = ({
                   </svg>
                 </span>
               )}
-              <h1 className="max-w-40 sm:max-w-32 truncate">
+              <h1 className="max-w-52 sm:max-w-32 truncate">
                 {getChatDisplayName(chat)}
               </h1>
             </div>
@@ -225,9 +225,9 @@ const ChatList = ({
             >
               <div className="flex justify-between w-full items-center">
                 {chat.lastMessage && (
-                  <div className="text-[10px] max-w-32 truncate">
+                  <p className="text-[10px] max-w-52 sm:max-w-28 truncate">
                     {chat.lastMessage}
-                  </div>
+                  </p>
                 )}
                 {/* Show timestamp */}
                 {chat.lastMessageTime && (
