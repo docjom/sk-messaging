@@ -14,7 +14,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useMessageActionStore } from "@/stores/useMessageActionStore";
 import { db } from "@/firebase";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import {
+  collection,
+  doc,
+  addDoc,
+  serverTimestamp,
+  arrayUnion,
+  updateDoc,
+} from "firebase/firestore";
 import { useUserStore } from "@/stores/useUserStore";
 import { toast } from "sonner";
 
@@ -31,6 +38,8 @@ export const CreateNewTopic = () => {
     setCreating(true);
     try {
       const topicRef = collection(db, "chats", chatId, "topics");
+      const chatDocRef = doc(db, "chats", chatId);
+
       await addDoc(topicRef, {
         name: topicName.trim(),
         createdBy: user?.uid,
@@ -39,6 +48,10 @@ export const CreateNewTopic = () => {
         lastMessage: "",
         lastMessageTime: "",
         pin: [],
+      });
+
+      await updateDoc(chatDocRef, {
+        topicNameList: arrayUnion(topicName.trim()),
       });
 
       toast(`Topic ${topicName.trim()} created!`);

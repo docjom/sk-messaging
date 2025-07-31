@@ -38,6 +38,7 @@ export const CreateGroupTopic = ({ chatId, currentUserId, onClose }) => {
         chatDocRef,
         {
           hasChatTopic: true,
+          topicNameList: ["General"],
         },
         { merge: true }
       );

@@ -186,9 +186,15 @@ const ChatList = ({
               </div>
             )}
 
-            <Avatar className="w-10 h-10 border">
+            <Avatar
+              className={`w-10 h-10 border ${
+                chat.hasChatTopic ? "rounded-sm" : ""
+              }`}
+            >
               <AvatarImage src={getChatPhoto(chat)} />
-              <AvatarFallback>
+              <AvatarFallback
+                className={` ${chat.hasChatTopic ? "rounded-sm" : ""}`}
+              >
                 {" "}
                 {getChatDisplayName(chat)[0]?.toUpperCase() || "U"}
               </AvatarFallback>
@@ -197,7 +203,7 @@ const ChatList = ({
 
           <div className="w-full">
             <div className="text-sm capitalize flex justify-start items-center gap-1.5 font-semibold">
-              {chat.type === "group" && (
+              {chat.type === "group" && chat.hasChatTopic && (
                 <span>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -212,10 +218,36 @@ const ChatList = ({
                   </svg>
                 </span>
               )}
+              {chat.type === "group" && !chat.hasChatTopic && (
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width={16}
+                  height={16}
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    fill="currentColor"
+                    d="M2.596 16.97q0-.697.36-1.198q.361-.5.97-.8q1.301-.62 2.584-.988q1.282-.369 3.086-.369t3.087.369t2.584.987q.608.3.969.801q.36.501.36 1.197v.608q0 .382-.299.71t-.74.328H3.636q-.44 0-.74-.299q-.299-.299-.299-.739zm15.777 1.646q.102-.239.163-.504q.06-.264.06-.535v-.654q0-.87-.352-1.641q-.351-.772-.998-1.324q.737.15 1.42.416t1.35.599q.65.327 1.019.837t.369 1.113v.654q0 .44-.3.74q-.298.298-.738.298zm-8.777-7.231q-1.237 0-2.118-.882t-.882-2.118t.882-2.12t2.118-.88t2.119.88t.881 2.12t-.881 2.118t-2.119.882m7.27-3q0 1.237-.882 2.118t-2.118.882q-.064 0-.162-.015t-.162-.031q.509-.623.781-1.382q.273-.758.273-1.575t-.285-1.56q-.286-.745-.769-1.391q.081-.029.162-.038t.162-.009q1.237 0 2.118.882t.882 2.118"
+                  ></path>
+                </svg>
+              )}
               <h1 className="max-w-52 sm:max-w-32 truncate">
                 {getChatDisplayName(chat)}
               </h1>
             </div>
+            {chat.hasChatTopic && (
+              <div className="flex gap-0.5 truncate max-w-52 sm:max-w-32">
+                {chat.topicNameList &&
+                  chat.topicNameList.map((topic, index) => (
+                    <span
+                      key={index++}
+                      className="text-[10px] border px-0.5 rounded-sm  text-gray-400 "
+                    >
+                      {topic}
+                    </span>
+                  ))}
+              </div>
+            )}
             <div
               className={`text-xs w-full relative capitalize flex items-center gap-1 ${
                 !chat.seenBy?.includes(currentUserId)
