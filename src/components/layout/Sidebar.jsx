@@ -83,7 +83,7 @@ function SidebarPanel({
 const Sidebar = ({ toggleMenu, handleSelectChat, getSenderDisplayName }) => {
   const { chats, setChats, clearChat, chatId, users } = useMessageActionStore();
   const [searchTerm, setSearchTerm] = useState("");
-  const user = useUserStore((s) => s.userProfile || s.user);
+  const user = useUserStore((s) => s?.userProfile);
   const [chatsLoading, setChatsLoading] = useState(true);
   const { folderSidebar } = useChatFolderStore();
 

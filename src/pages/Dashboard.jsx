@@ -42,8 +42,8 @@ import {
 import { useMentions } from "@/stores/useUsersMentions";
 
 function Dashboard() {
-  const user = useUserStore((s) => s.user || s.userProfile);
-  const userProfile = useUserStore((s) => s.userProfile || s.user);
+  const user = useUserStore((s) => s.user);
+  const userProfile = useUserStore((s) => s.userProfile);
   // const { messages, messagesLoading } = useInfiniteMessages;
   const { menu, setMenu } = useMenu();
   const endOfMessagesRef = useRef(null);
@@ -244,7 +244,9 @@ function Dashboard() {
       endOfMessagesRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages]);
+  
   const displayUser = userProfile;
+
   const toggleMenu = useCallback(() => {
     setMenu((prev) => !prev);
   }, []);
