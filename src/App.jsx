@@ -10,6 +10,7 @@ import { useUserStore } from "@/stores/useUserStore";
 import { AdminDashboard } from "./admin/pages/Dashboard";
 import { AdminHome } from "./admin/pages/Home";
 import { Management } from "./admin/pages/Management";
+import { MainLoading } from "./components/loading/mainLoading";
 
 function App() {
   const [user, setUser] = useState(null);
@@ -32,7 +33,7 @@ function App() {
   }, []);
 
   if (loading) {
-    return <div className="flex items-center justify-center h-screen"></div>;
+    return <MainLoading />;
   }
 
   return (

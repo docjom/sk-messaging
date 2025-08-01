@@ -34,11 +34,7 @@ import { useMenu } from "@/hooks/useMenuState";
 import { useChatFolderStore } from "@/stores/chat-folder/useChatFolderStore";
 import { getRefs } from "@/utils/firestoreRefs";
 import { NoInternetConnectionAlert } from "@/components/notification/AlertNoInternet";
-import {
-  checkExistingDirectChat,
-  createChat,
-  clearChatId,
-} from "@/hooks/useDashboard";
+import { checkExistingDirectChat, clearChatId } from "@/hooks/useDashboard";
 import { useMentions } from "@/stores/useUsersMentions";
 
 function Dashboard() {
@@ -244,7 +240,7 @@ function Dashboard() {
       endOfMessagesRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages]);
-  
+
   const displayUser = userProfile;
 
   const toggleMenu = useCallback(() => {
@@ -420,7 +416,7 @@ function Dashboard() {
     } else {
       const newChatId = await createChat(
         "direct",
-        [user?.uid, selectedUserData.id],
+        [user?.uid, selectedUserData?.id],
         selectedUserData.displayName
       );
       if (newChatId) {
@@ -483,6 +479,40 @@ function Dashboard() {
       setIsCreatingGroup(false);
     }
   };
+
+  const createChat = async (type, userIds, name = "") => {
+    try {
+      const chatsRef = collection(db, "chats");
+      const chatData = {
+        type,
+        name: name || (type === "direct" ? "Direct Chat" : "Group Chat"),
+        users: userIds,
+        pin: [],
+        createdAt: serverTimestamp(),
+        lastMessage: null,
+        lastMessageTime: null,
+      };
+      if (type === "direct") {
+        const otherUserId = userIds.find((id) => id !== user?.uid);
+        const otherUser = users.find((u) => u.id === otherUserId);
+        chatData.photoURL = otherUser?.photoURL;
+      } else if (type === "group") {
+        chatData.photoURL = "";
+        chatData.admin = user?.uid;
+        chatData.userRoles = {};
+        userIds.forEach((userId) => {
+          chatData.userRoles[userId] =
+            userId === user?.uid ? "admin" : "member";
+        });
+      }
+      const chatDoc = await addDoc(chatsRef, chatData);
+      return chatDoc.id;
+    } catch (e) {
+      toast.error("Failed to create chat. Please try again.", e);
+      return null;
+    }
+  };
+
   const getChatDisplayName = useCallback(
     (chat) => {
       if (chat.type === "direct") {

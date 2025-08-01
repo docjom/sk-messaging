@@ -83,7 +83,7 @@ function SidebarPanel({
 const Sidebar = ({ toggleMenu, handleSelectChat, getSenderDisplayName }) => {
   const { chats, setChats, clearChat, chatId, users } = useMessageActionStore();
   const [searchTerm, setSearchTerm] = useState("");
-  const user = useUserStore((s) => s?.userProfile);
+  const user = useUserStore((s) => s?.user);
   const [chatsLoading, setChatsLoading] = useState(true);
   const { folderSidebar } = useChatFolderStore();
 
@@ -135,19 +135,56 @@ const Sidebar = ({ toggleMenu, handleSelectChat, getSenderDisplayName }) => {
   );
 
   useEffect(() => {
-    if (user) {
-      const chatsRef = collection(db, "chats");
-      const q = query(chatsRef, where("users", "array-contains", user?.uid));
-      const unsubscribe = onSnapshot(q, (querySnapshot) => {
-        const chatsArray = [];
-        querySnapshot.forEach((doc) => {
-          chatsArray.push({ id: doc.id, ...doc.data() });
-        });
-        setChats(chatsArray);
-        setChatsLoading(false);
-      });
-      return () => unsubscribe();
+    if (!user) {
+      setChats([]);
+      setChatsLoading(false);
+      return;
     }
+    setChatsLoading(true);
+    const cacheKey = `user_${user.uid}_chats`;
+    const cached = localStorage.getItem(cacheKey);
+    if (cached) {
+      try {
+        const { data, timestamp } = JSON.parse(cached);
+        const cacheAge = Date.now() - timestamp;
+        const maxCacheAge = 5 * 60 * 1000;
+        if (cacheAge < maxCacheAge) {
+          setChats(data);
+          setChatsLoading(false);
+        }
+      } catch (err) {
+        console.warn("Chats cache parse failed:", err);
+        localStorage.removeItem(cacheKey);
+      }
+    }
+    const chatsRef = collection(db, "chats");
+    const q = query(chatsRef, where("users", "array-contains", user.uid));
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const chatsArray = [];
+      querySnapshot.forEach((doc) => {
+        chatsArray.push({
+          id: doc.id,
+          ...doc.data(),
+          createdAt: doc.data().createdAt?.toDate?.() || doc.data().createdAt,
+          updatedAt: doc.data().updatedAt?.toDate?.() || doc.data().updatedAt,
+        });
+      });
+      setChats(chatsArray);
+      setChatsLoading(false);
+      try {
+        localStorage.setItem(
+          cacheKey,
+          JSON.stringify({
+            data: chatsArray,
+            timestamp: Date.now(),
+          })
+        );
+      } catch (err) {
+        console.warn("Failed to cache chats:", err);
+      }
+    });
+
+    return () => unsubscribe();
   }, [user, setChats]);
 
   const sortedChats = React.useMemo(() => {
