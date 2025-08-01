@@ -28,26 +28,16 @@ export function Logout() {
   const handleLogout = async (e) => {
     e.preventDefault();
     setLoading(true);
-
     try {
       const user = auth.currentUser;
       if (user) {
-        // Update user status to inactive
         const userRef = doc(db, "users", user.uid);
         await updateDoc(userRef, { active: false });
       }
-
-      // Sign out - this will trigger the auth state change in the store
       await signOut(auth);
-
-      // Close dialog and reset menu state
       setIsOpen(false);
       setMenu(false);
-
-      // Navigate to home page
       navigate("/");
-
-      // Show success message
       toast.success("Logged out successfully");
     } catch (error) {
       console.error("Error logging out: ", error);

@@ -12,13 +12,11 @@ export const useUserStore = create((set, get) => ({
   unsubscribeProfile: null,
 
   initAuthListener: () => {
-    // Prevent multiple listeners
     if (get().unsubscribeAuth) {
       return;
     }
 
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      // Always set initialized to true once we get the first auth state change
       set({ initialized: true });
 
       if (currentUser) {
@@ -29,7 +27,6 @@ export const useUserStore = create((set, get) => ({
           user: null,
           userProfile: null,
         });
-        // Clean up profile subscription if user logs out
         const { unsubscribeProfile } = get();
         if (unsubscribeProfile) {
           unsubscribeProfile();
@@ -42,7 +39,6 @@ export const useUserStore = create((set, get) => ({
   },
 
   subscribeToUserProfile: (uid) => {
-    // Clean up existing profile subscription
     const { unsubscribeProfile } = get();
     if (unsubscribeProfile) {
       unsubscribeProfile();

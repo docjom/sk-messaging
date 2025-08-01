@@ -39,7 +39,6 @@ import { useMentions } from "@/stores/useUsersMentions";
 
 function Dashboard() {
   const user = useUserStore((s) => s.userProfile);
-  const userProfile = useUserStore((s) => s.userProfile);
   // const { messages, messagesLoading } = useInfiniteMessages;
   const { menu, setMenu } = useMenu();
   const endOfMessagesRef = useRef(null);
@@ -241,8 +240,6 @@ function Dashboard() {
     }
   }, [messages]);
 
-  const displayUser = userProfile;
-
   const toggleMenu = useCallback(() => {
     setMenu((prev) => !prev);
   }, []);
@@ -317,7 +314,7 @@ function Dashboard() {
             await addDoc(messagesRef, {
               senderId: "system",
               message: `${newUsersData[0].name} was added to the group by ${
-                userProfile?.displayName || "Admin"
+                user?.displayName || "Admin"
               }`,
               timestamp: serverTimestamp(),
               type: "system",
@@ -327,7 +324,7 @@ function Dashboard() {
             await addDoc(messagesRef, {
               senderId: "system",
               message: `${userNames} were added to the group by ${
-                userProfile?.displayName || "Admin"
+                user?.displayName || "Admin"
               }`,
               timestamp: serverTimestamp(),
               type: "system",
@@ -581,7 +578,7 @@ function Dashboard() {
           isCreatingGroup={isCreatingGroup}
           createGroupChat={createGroupChat}
           user={user}
-          displayUser={displayUser}
+          displayUser={user}
           handleSelectUser={handleSelectUser}
           closeMenu={closeMenu}
         />
@@ -617,7 +614,7 @@ function Dashboard() {
           messages={messages}
           messagesLoading={messagesLoading}
           user={user}
-          userProfile={userProfile}
+          userProfile={user}
           getSenderData={getSenderData}
           getSenderDisplayName={getSenderDisplayName}
         />
