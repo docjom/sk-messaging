@@ -4,7 +4,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import { onSnapshot, doc } from "firebase/firestore";
 import { auth, db } from "../firebase";
 
-export const useUserStore = create((set) => ({
+export const useUserStore = create((set, get) => ({
   user: null,
   userProfile: null,
   initialized: false,
@@ -12,18 +12,42 @@ export const useUserStore = create((set) => ({
   unsubscribeProfile: null,
 
   initAuthListener: () => {
+    // Prevent multiple listeners
+    if (get().unsubscribeAuth) {
+      return;
+    }
+
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      // Always set initialized to true once we get the first auth state change
+      set({ initialized: true });
+
       if (currentUser) {
         set({ user: currentUser });
-        useUserStore.getState().subscribeToUserProfile(currentUser.uid);
+        get().subscribeToUserProfile(currentUser.uid);
       } else {
-        set({ user: null, userProfile: null });
+        set({
+          user: null,
+          userProfile: null,
+        });
+        // Clean up profile subscription if user logs out
+        const { unsubscribeProfile } = get();
+        if (unsubscribeProfile) {
+          unsubscribeProfile();
+          set({ unsubscribeProfile: null });
+        }
       }
     });
+
     set({ unsubscribeAuth: unsubscribe });
   },
 
   subscribeToUserProfile: (uid) => {
+    // Clean up existing profile subscription
+    const { unsubscribeProfile } = get();
+    if (unsubscribeProfile) {
+      unsubscribeProfile();
+    }
+
     const userRef = doc(db, "users", uid);
     const unsubscribe = onSnapshot(userRef, (docSnap) => {
       if (docSnap.exists()) {
@@ -32,16 +56,22 @@ export const useUserStore = create((set) => ({
         set({ userProfile: null });
       }
     });
+
     set({ unsubscribeProfile: unsubscribe });
   },
 
   cleanup: () => {
-    const { unsubscribeAuth, unsubscribeProfile } = useUserStore.getState();
-    if (unsubscribeAuth) unsubscribeAuth();
-    if (unsubscribeProfile) unsubscribeProfile();
+    const { unsubscribeAuth, unsubscribeProfile } = get();
+    if (unsubscribeAuth) {
+      unsubscribeAuth();
+    }
+    if (unsubscribeProfile) {
+      unsubscribeProfile();
+    }
     set({
       user: null,
       userProfile: null,
+      initialized: false,
       unsubscribeAuth: null,
       unsubscribeProfile: null,
     });

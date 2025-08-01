@@ -1,6 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
-import { getAuth, onAuthStateChanged } from "firebase/auth";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import { WelcomePage } from "./WelcomePage";
@@ -13,26 +12,20 @@ import { Management } from "./admin/pages/Management";
 import { MainLoading } from "./components/loading/mainLoading";
 
 function App() {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  const initAuthListener = useUserStore((s) => s.initAuthListener);
+  // Use only the Zustand store for user state
+  const { user, initialized, initAuthListener } = useUserStore();
 
   useEffect(() => {
     initAuthListener();
-  }, []);
 
-  useEffect(() => {
-    const auth = getAuth();
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
-      setLoading(false);
-    });
+    // Cleanup function
+    return () => {
+      useUserStore.getState().cleanup();
+    };
+  }, [initAuthListener]);
 
-    return () => unsubscribe();
-  }, []);
-
-  if (loading) {
+  // Show loading until auth state is initialized
+  if (!initialized) {
     return <MainLoading />;
   }
 
