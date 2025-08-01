@@ -38,7 +38,7 @@ import { checkExistingDirectChat, clearChatId } from "@/hooks/useDashboard";
 import { useMentions } from "@/stores/useUsersMentions";
 
 function Dashboard() {
-  const user = useUserStore((s) => s.user);
+  const user = useUserStore((s) => s.userProfile);
   const userProfile = useUserStore((s) => s.userProfile);
   // const { messages, messagesLoading } = useInfiniteMessages;
   const { menu, setMenu } = useMenu();
