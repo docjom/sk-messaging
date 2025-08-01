@@ -23,6 +23,8 @@ import {
   orderBy,
   arrayUnion,
   getDoc,
+  getDocs,
+  where,
 } from "firebase/firestore";
 import { uploadBytes, getDownloadURL } from "firebase/storage";
 import { useMessageActionStore } from "../stores/useMessageActionStore";
@@ -34,7 +36,7 @@ import { useMenu } from "@/hooks/useMenuState";
 import { useChatFolderStore } from "@/stores/chat-folder/useChatFolderStore";
 import { getRefs } from "@/utils/firestoreRefs";
 import { NoInternetConnectionAlert } from "@/components/notification/AlertNoInternet";
-import { checkExistingDirectChat, clearChatId } from "@/hooks/useDashboard";
+import { clearChatId } from "@/hooks/useDashboard";
 import { useMentions } from "@/stores/useUsersMentions";
 
 function Dashboard() {
@@ -242,7 +244,7 @@ function Dashboard() {
 
   const toggleMenu = useCallback(() => {
     setMenu((prev) => !prev);
-  }, []);
+  }, [setMenu]);
   const closeMenu = () => {
     setMenu(false);
   };
@@ -474,6 +476,28 @@ function Dashboard() {
       toast.error("Failed to create group chat. Please try again.");
     } finally {
       setIsCreatingGroup(false);
+    }
+  };
+
+  const checkExistingDirectChat = async (selectedUserId) => {
+    try {
+      const chatsRef = collection(db, "chats");
+      const q = query(chatsRef, where("type", "==", "direct"));
+      const querySnapshot = await getDocs(q);
+
+      for (const doc of querySnapshot.docs) {
+        const chatData = doc.data();
+        if (
+          chatData.users.includes(user?.uid) &&
+          chatData.users.includes(selectedUserId)
+        ) {
+          return { id: doc.id, ...chatData };
+        }
+      }
+      return null;
+    } catch (error) {
+      console.error("Error checking existing chat:", error);
+      return null;
     }
   };
 
