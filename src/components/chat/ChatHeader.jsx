@@ -37,7 +37,7 @@ const ChatHeader = ({
   };
   return (
     <div className="fixed top-0 left-0 right-0 border-b sm:ml-64 z-30">
-      <div className="px-4 py-2 dark:bg-gray-800 bg-white rounded shadow w-full flex items-center">
+      <div className="px-4 py-2 dark:bg-gray-800 bg-white shadow w-full flex items-center">
         <div className="w-full flex justify-start items-center gap-2">
           {/* Back button */}
           {topicId ? (
