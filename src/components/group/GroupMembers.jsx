@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from "react";
 import {
-  doc,
-  getDoc,
   collection,
   query,
   where,
@@ -20,22 +18,18 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { useMessageActionStore } from "@/stores/useMessageActionStore";
 
 export function GroupMembers({ chatId }) {
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(false);
+  const { currentChat } = useMessageActionStore();
 
   useEffect(() => {
     if (!chatId) return;
     setLoading(true);
     (async () => {
-      const chatSnap = await getDoc(doc(db, "chats", chatId));
-      if (!chatSnap.exists()) {
-        setMembers([]);
-        setLoading(false);
-        return;
-      }
-      const { users: userIds = [], userRoles = {} } = chatSnap.data();
+      const { users: userIds = [], userRoles = {} } = currentChat;
 
       const batches = [];
       for (let i = 0; i < userIds.length; i += 10) {
@@ -64,7 +58,7 @@ export function GroupMembers({ chatId }) {
       setMembers(fetched);
       setLoading(false);
     })();
-  }, [chatId]);
+  }, [chatId, currentChat]);
 
   return (
     <Dialog>
@@ -73,7 +67,7 @@ export function GroupMembers({ chatId }) {
           variant="ghost"
           className="w-full border flex justify-between items-center"
         >
-          Members <span>{members.length}</span>
+          Members <span>{currentChat.users.length}</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">

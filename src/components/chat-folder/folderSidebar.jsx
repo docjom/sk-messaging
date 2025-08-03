@@ -1,13 +1,6 @@
 import { Icon } from "@iconify/react";
 import { useEffect, useState } from "react";
-import {
-  doc,
-  getDoc,
-  collection,
-  query,
-  orderBy,
-  onSnapshot,
-} from "firebase/firestore";
+import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
 import { db } from "@/firebase";
 import { useMenu } from "@/hooks/useMenuState";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -49,14 +42,13 @@ export const FolderSidebar = ({
     clearReply,
     clearEdit,
     clearPastedImage,
+    currentChat,
   } = useMessageActionStore();
   const { user } = useUserStore();
   const { setFolderSidebar } = useChatFolderStore();
   const { clearMentionSuggestions } = useMentions();
 
   const [topics, setTopics] = useState([]);
-  const [groupName, setGroupName] = useState("");
-  const [memberCount, setMemberCount] = useState(0);
   const [userRole, setUserRole] = useState("");
 
   const toggleMenu = () => {
@@ -78,13 +70,13 @@ export const FolderSidebar = ({
     clearPastedImage();
     clearMessage();
     if (!chat.hasChatTopic) {
-      const otherUserId = chat.users.find((uid) => uid !== user?.uid);
-      const otherUser = users.find((u) => u.id === otherUserId);
-      setSelectedUser(otherUser);
+      setFolderSidebar(false);
       clearTopic();
       setChatIdTo(chat.id);
       setCurrentChat(chat);
-      setFolderSidebar(false);
+      const otherUserId = chat.users.find((uid) => uid !== user?.uid);
+      const otherUser = users.find((u) => u.id === otherUserId);
+      setSelectedUser(otherUser);
     }
     // console.log(chat.id, chat.type);
   };
@@ -103,67 +95,47 @@ export const FolderSidebar = ({
   };
 
   useEffect(() => {
-    if (!chatId) return;
+    if (!chatId || !currentChat) return;
 
-    const fetchGroupData = async () => {
-      try {
-        const chatRef = doc(db, "chats", chatId);
-        const chatSnap = await getDoc(chatRef);
+    const role = currentChat.userRoles?.[user.uid] || "member";
+    setUserRole(role);
 
-        if (chatSnap.exists()) {
-          const chatData = chatSnap.data();
-          setGroupName(chatData.name || "Unnamed Group");
-          setMemberCount(chatData.users?.length || 0);
+    let unsubscribe;
 
-          const role = chatData.userRoles?.[user.uid];
-          setUserRole(role || "member");
+    if (currentChat.hasChatTopic) {
+      const topicsRef = collection(db, "chats", chatId, "topics");
+      const topicsQuery = query(topicsRef, orderBy("lastMessageTime", "desc"));
 
-          if (chatData.hasChatTopic) {
-            const topicsRef = collection(db, "chats", chatId, "topics");
-            const topicsQuery = query(
-              topicsRef,
-              orderBy("lastMessageTime", "desc")
-            );
+      unsubscribe = onSnapshot(topicsQuery, (snapshot) => {
+        const loadedTopics = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
 
-            const unsubscribe = onSnapshot(topicsQuery, (snapshot) => {
-              const loadedTopics = snapshot.docs.map((doc) => ({
-                id: doc.id,
-                ...doc.data(),
-              }));
-              const sortedTopics = loadedTopics.sort((a, b) => {
-                const isAPinned = a.pin?.includes(user.uid) ? 1 : 0;
-                const isBPinned = b.pin?.includes(user.uid) ? 1 : 0;
+        const sortedTopics = loadedTopics.sort((a, b) => {
+          const isAPinned = a.pin?.includes(user.uid) ? 1 : 0;
+          const isBPinned = b.pin?.includes(user.uid) ? 1 : 0;
 
-                if (isAPinned !== isBPinned) return isBPinned - isAPinned;
+          if (isAPinned !== isBPinned) return isBPinned - isAPinned;
 
-                const timeA = a.createdAt?.toMillis?.() || 0;
-                const timeB = b.createdAt?.toMillis?.() || 0;
-                return timeB - timeA;
-              });
+          const timeA = a.createdAt?.toMillis?.() || 0;
+          const timeB = b.createdAt?.toMillis?.() || 0;
 
-              setTopics(sortedTopics);
-            });
+          return timeB - timeA;
+        });
 
-            return unsubscribe;
-          } else {
-            setTopics([]);
-          }
-        }
-      } catch (err) {
-        console.error("Error loading chat/group topics:", err);
-      }
-    };
-
-    const unsubscribePromise = fetchGroupData();
+        setTopics(sortedTopics);
+      });
+    } else {
+      setTopics([]);
+    }
 
     return () => {
-      if (typeof unsubscribePromise === "function") {
-        unsubscribePromise();
-      } else if (unsubscribePromise instanceof Promise) {
-        unsubscribePromise.then((unsub) => unsub && unsub());
+      if (typeof unsubscribe === "function") {
+        unsubscribe();
       }
     };
-  }, [chatId, user.uid]);
+  }, [chatId, user.uid, currentChat]);
 
   return (
     <>
@@ -230,9 +202,9 @@ export const FolderSidebar = ({
                 </div>
                 <div>
                   <p className="font-semibold capitalize text-base max-w-32 truncate">
-                    {groupName}
+                    {currentChat.name}
                   </p>
-                  <p className="text-xs">{memberCount} members</p>
+                  <p className="text-xs">{currentChat.users.length} members</p>
                 </div>
               </div>
               <div>

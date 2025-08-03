@@ -37,22 +37,18 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { toast } from "sonner";
+import { useMessageActionStore } from "@/stores/useMessageActionStore";
 
 export function ManageGroupMembers({ chatId, currentUserId }) {
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(false);
+  const { currentChat } = useMessageActionStore();
 
   useEffect(() => {
     if (!chatId) return;
     setLoading(true);
     (async () => {
-      const chatSnap = await getDoc(doc(db, "chats", chatId));
-      if (!chatSnap.exists()) {
-        setMembers([]);
-        setLoading(false);
-        return;
-      }
-      const { users: userIds = [], userRoles = {} } = chatSnap.data();
+      const { users: userIds = [], userRoles = {} } = currentChat;
 
       const batches = [];
       for (let i = 0; i < userIds.length; i += 10) {
@@ -81,7 +77,7 @@ export function ManageGroupMembers({ chatId, currentUserId }) {
       setMembers(fetched);
       setLoading(false);
     })();
-  }, [chatId]);
+  }, [chatId, currentChat]);
 
   const handleRemoveMember = async (memberId, memberName) => {
     try {
@@ -160,7 +156,9 @@ export function ManageGroupMembers({ chatId, currentUserId }) {
                         <p className="font-medium max-w-32 sm:max-w-52 truncate capitalize">
                           {m.displayName}
                         </p>
-                        <p className="text-xs max-w-32 sm:max-w-52 truncate text-gray-500">{m.email}</p>
+                        <p className="text-xs max-w-32 sm:max-w-52 truncate text-gray-500">
+                          {m.email}
+                        </p>
                       </div>
                     </div>
                     <AlertDialog>
