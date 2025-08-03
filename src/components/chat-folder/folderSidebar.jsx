@@ -57,13 +57,21 @@ export const FolderSidebar = ({
   const [topics, setTopics] = useState([]);
   const [groupName, setGroupName] = useState("");
   const [memberCount, setMemberCount] = useState(0);
+  const [userRole, setUserRole] = useState("");
 
   const toggleMenu = () => {
     console.log(menu);
     setMenu(true);
   };
 
+  const clearTopic = () => {
+    clearTopicId();
+    clearCurrentTopic();
+  };
+
   const handleSelectChat = (chat) => {
+    setChatIdTo(chat.id);
+    setCurrentChat(chat);
     clearMentionSuggestions();
     clearReply();
     clearEdit();
@@ -73,15 +81,12 @@ export const FolderSidebar = ({
       const otherUserId = chat.users.find((uid) => uid !== user?.uid);
       const otherUser = users.find((u) => u.id === otherUserId);
       setSelectedUser(otherUser);
-      clearTopicId();
-      clearCurrentTopic();
+      clearTopic();
       setChatIdTo(chat.id);
       setCurrentChat(chat);
       setFolderSidebar(false);
     }
-    setChatIdTo(chat.id);
-    setCurrentChat(chat);
-    console.log(chat.id, chat.type);
+    // console.log(chat.id, chat.type);
   };
 
   const viewAsMessages = () => {
@@ -91,19 +96,11 @@ export const FolderSidebar = ({
   };
 
   const closeFolderSidebar = () => {
-    clearTopicId();
-    clearCurrentTopic();
+    clearTopic();
     setFolderSidebar(false);
     clearCurrentChat();
     clearChat();
   };
-
-  const clearTopic = () => {
-    clearTopicId();
-    clearCurrentTopic();
-  };
-
-  const [userRole, setUserRole] = useState("");
 
   useEffect(() => {
     if (!chatId) return;
@@ -118,7 +115,6 @@ export const FolderSidebar = ({
           setGroupName(chatData.name || "Unnamed Group");
           setMemberCount(chatData.users?.length || 0);
 
-          // ✅ Get current user's role from userRoles
           const role = chatData.userRoles?.[user.uid];
           setUserRole(role || "member");
 

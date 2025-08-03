@@ -17,6 +17,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { getRefs } from "@/utils/firestoreRefs";
 import { useMessageActionStore } from "@/stores/useMessageActionStore";
+import { Pin } from "lucide-react";
 
 export const PinnedMessages = ({ chatId }) => {
   const [pinnedMessages, setPinnedMessages] = useState([]);
@@ -138,7 +139,7 @@ export const PinnedMessages = ({ chatId }) => {
           }}
           className="flex w-full justify-start"
         >
-          <Icon icon="solar:pin-line-duotone" width="20" height="20" />
+          <Pin size={20} />
           Pinned Messages
         </Button>
       </DialogTrigger>
@@ -146,7 +147,7 @@ export const PinnedMessages = ({ chatId }) => {
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Icon icon="solar:pin-line-duotone" width="20" height="20" />
+            <Pin size={20} />
             Pinned Messages
           </DialogTitle>
         </DialogHeader>

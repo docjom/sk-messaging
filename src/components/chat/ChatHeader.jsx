@@ -14,6 +14,7 @@ import { ChatFiles } from "@/components/chat/ChatFiles";
 import { TypingIndicator } from "./TypingIndicator";
 import { useMessageActionStore } from "@/stores/useMessageActionStore";
 import { useChatFolderStore } from "@/stores/chat-folder/useChatFolderStore";
+import { SquareUser, Menu } from "lucide-react";
 
 const ChatHeader = ({
   currentChat,
@@ -278,7 +279,7 @@ const DirectChatHeader = ({
       <Popover>
         <PopoverTrigger asChild>
           <button className="p-2 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 transition">
-            <Icon icon="solar:hamburger-menu-broken" width="20" height="20" />
+            <Menu size={20} />
           </button>
         </PopoverTrigger>
         <PopoverContent className="w-full p-0">
@@ -288,7 +289,7 @@ const DirectChatHeader = ({
               variant="ghost"
               className="flex justify-start"
             >
-              <Icon icon="hugeicons:profile-02" width="20" height="20" />
+              <SquareUser size={20} />
               View Profile
             </Button>
             <PinnedMessages chatId={chatId} />

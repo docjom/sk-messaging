@@ -14,6 +14,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getRefs } from "@/utils/firestoreRefs";
 import { useMessageActionStore } from "@/stores/useMessageActionStore";
+import { FolderKanban } from "lucide-react";
 
 export const ChatFiles = ({ chatId }) => {
   const [mediaFiles, setMediaFiles] = useState([]);
@@ -81,7 +82,7 @@ export const ChatFiles = ({ chatId }) => {
           }}
           className="flex w-full justify-start gap-2"
         >
-          <Icon icon="solar:folder-with-files-broken" width="20" height="20" />
+          <FolderKanban size={20} />
           Media & Files
         </Button>
       </DialogTrigger>

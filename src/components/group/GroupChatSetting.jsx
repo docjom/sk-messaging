@@ -5,13 +5,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Icon } from "@iconify/react";
 import { EditGroup } from "./EditGroup";
 import { LeaveGroup } from "./LeaveGroup";
 import { PinnedMessages } from "../chat/PinnedMessages";
 import { ChatFiles } from "../chat/ChatFiles";
 import { useMessageActionStore } from "@/stores/useMessageActionStore";
 import { AddAdmin } from "../chat-folder/addAdmin";
+import { Settings } from "lucide-react";
 
 export default function ManageGroupChat({
   chatId,
@@ -23,7 +23,7 @@ export default function ManageGroupChat({
     <>
       <DropdownMenu>
         <DropdownMenuTrigger className="bg-gray-500/20  rounded-full p-1">
-          <Icon icon="solar:settings-broken" width="24" height="24" />
+        <Settings size={20} />
         </DropdownMenuTrigger>
         <DropdownMenuContent>
           <DropdownMenuLabel>

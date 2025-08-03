@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Checkbox } from "@/components/ui/checkbox";
+import { UserPlus } from "lucide-react";
 
 export function AddUsersToGroup({
   users,
@@ -70,7 +71,7 @@ export function AddUsersToGroup({
           variant="ghost"
           className="border flex justify-start rounded-full"
         >
-          <Icon icon="solar:widget-add-broken" width="20" height="20" /> Add
+          <UserPlus size={20} /> Add
           user
         </Button>
       </DialogTrigger>
