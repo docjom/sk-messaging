@@ -33,25 +33,27 @@ function SidebarPanel({
           {" "}
           <div className="">
             <div className={className}>
-              <div className="">
-                <div className="flex items-center justify-start gap-2 p-2">
-                  <div
-                    onClick={() => toggleMenu()}
-                    className="rounded-full dark:bg-gray-700/20 p-2"
-                  >
-                    <Icon icon="duo-icons:menu" width="24" height="24" />
-                  </div>
-                  <div className="w-full">
-                    <Input
-                      type="search"
-                      placeholder="Search..."
-                      className="w-full rounded-full border border-gray-600"
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                    />
+              <div className="relative">
+                <div className="absolute top-0 left-0 z-50 bg-white dark:bg-gray-800 w-full border-b ">
+                  <div className="flex items-center justify-start gap-2 px-2 pt-1.5 pb-1.5">
+                    <div
+                      onClick={() => toggleMenu()}
+                      className="rounded-full dark:bg-gray-700/20 p-2"
+                    >
+                      <Icon icon="duo-icons:menu" width="24" height="24" />
+                    </div>
+                    <div className="w-full">
+                      <Input
+                        type="search"
+                        placeholder="Search..."
+                        className="w-full rounded-full border border-gray-600"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                      />
+                    </div>
                   </div>
                 </div>
-                <div className="h-full overflow-y-auto scrollbar-hide">
+                <div className="h-screen pt-13 overflow-auto ">
                   {chatsLoading ? (
                     <ChatListLoading />
                   ) : filteredChats.length > 0 ? (
@@ -220,7 +222,7 @@ const Sidebar = ({ toggleMenu, handleSelectChat, getSenderDisplayName }) => {
           clearChat={clearChat}
           getSenderDisplayName={getSenderDisplayName}
           toggleMenu={toggleMenu}
-          className="w-screen bg-white dark:bg-gray-800 border-r sm:hidden fixed lg:sticky top-0 left-0 z-30 overflow-y-auto flex-col h-full"
+          className="w-screen bg-white dark:bg-gray-800 border-r sm:hidden fixed lg:sticky top-0 left-0 z-30  flex-col h-full"
         />
       )}
       {folderSidebar && (
@@ -245,7 +247,7 @@ const Sidebar = ({ toggleMenu, handleSelectChat, getSenderDisplayName }) => {
         folderSidebar={folderSidebar}
         getSenderDisplayName={getSenderDisplayName}
         toggleMenu={toggleMenu}
-        className="w-64 hidden bg-white dark:bg-gray-800 border-r sm:fixed lg:sticky top-0 left-0 z-10 overflow-y-auto  sm:flex flex-col h-full"
+        className="w-64 hidden bg-white dark:bg-gray-800 border-r sm:fixed lg:sticky top-0 left-0 z-10   sm:flex flex-col h-full"
       />
     </>
   );

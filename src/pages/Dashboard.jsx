@@ -19,8 +19,8 @@ import {
   updateDoc,
   onSnapshot,
   writeBatch,
-  limitToLast,
-  orderBy,
+  // limitToLast,
+  // orderBy,
   arrayUnion,
   getDoc,
   getDocs,
@@ -31,7 +31,7 @@ import { useMessageActionStore } from "../stores/useMessageActionStore";
 import { useUserStore } from "@/stores/useUserStore";
 import { useTypingStatus } from "@/stores/useTypingStatus";
 import { useInternetConnection } from "@/hooks/CheckInternetConnection";
-//import { useInfiniteMessages } from "@/hooks/useInfiniteMessages";
+import { useInfiniteMessages } from "@/hooks/useInfiniteMessages";
 import { useMenu } from "@/hooks/useMenuState";
 import { useChatFolderStore } from "@/stores/chat-folder/useChatFolderStore";
 import { getRefs } from "@/utils/firestoreRefs";
@@ -41,7 +41,7 @@ import { useMentions } from "@/stores/useUsersMentions";
 
 function Dashboard() {
   const user = useUserStore((s) => s.userProfile);
-  // const { messages, messagesLoading } = useInfiniteMessages;
+
   const { menu, setMenu } = useMenu();
   const endOfMessagesRef = useRef(null);
 
@@ -52,9 +52,6 @@ function Dashboard() {
   const [isFileDialogOpen, setIsFileDialogOpen] = useState(false);
   const [ifUserInfoOpen, setIfUserInfoOpen] = useState(false);
   const [isUploadingFile, setIsUploadingFile] = useState(false);
-
-  const [messages, setMessages] = useState([]);
-  const [messagesLoading, setMessagesLoading] = useState(false);
 
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
@@ -83,6 +80,9 @@ function Dashboard() {
   const { setFolderSidebar } = useChatFolderStore();
   const { isOnline, wasOffline } = useInternetConnection();
 
+  const { messages, messagesLoading, loadOlderMessages } =
+    useInfiniteMessages(chatId);
+
   useEffect(() => {
     if (!isOnline && wasOffline) {
       toast.error("Internet connection was interrupted!");
@@ -100,63 +100,63 @@ function Dashboard() {
     prevMessageCountRef.current = messages;
   }, [messages]);
 
-  useEffect(() => {
-    if (!chatId) {
-      setMessages([]);
-      setMessagesLoading(false);
-      return;
-    }
+  // useEffect(() => {
+  //   if (!chatId) {
+  //     setMessages([]);
+  //     setMessagesLoading(false);
+  //     return;
+  //   }
 
-    setMessagesLoading(true);
-    const cacheKey = `chat_${chatId}_messages`;
+  //   setMessagesLoading(true);
+  //   const cacheKey = `chat_${chatId}_messages`;
 
-    // Load from cache immediately for fast UI
-    const cached = localStorage.getItem(cacheKey);
-    if (cached) {
-      try {
-        const { data } = JSON.parse(cached);
-        setMessages(data);
-        setMessagesLoading(false);
-      } catch (err) {
-        console.warn("Cache parse failed:", err);
-      }
-    }
+  //   // Load from cache immediately for fast UI
+  //   const cached = localStorage.getItem(cacheKey);
+  //   if (cached) {
+  //     try {
+  //       const { data } = JSON.parse(cached);
+  //       setMessages(data);
+  //       setMessagesLoading(false);
+  //     } catch (err) {
+  //       console.warn("Cache parse failed:", err);
+  //     }
+  //   }
 
-    const { messageCollectionRef } = getRefs({ chatId, topicId });
+  //   const { messageCollectionRef } = getRefs({ chatId, topicId });
 
-    // Always query all recent messages to catch updates
-    const q = query(
-      messageCollectionRef,
-      orderBy("timestamp"),
-      limitToLast(50)
-    );
+  //   // Always query all recent messages to catch updates
+  //   const q = query(
+  //     messageCollectionRef,
+  //     orderBy("timestamp"),
+  //     limitToLast(50)
+  //   );
 
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      const messagesArray = [];
-      querySnapshot.forEach((doc) => {
-        messagesArray.push({
-          id: doc.id,
-          ...doc.data(),
-          // Normalize timestamp for consistency
-          timestamp: doc.data().timestamp?.toDate?.() || doc.data().timestamp,
-        });
-      });
+  //   const unsubscribe = onSnapshot(q, (querySnapshot) => {
+  //     const messagesArray = [];
+  //     querySnapshot.forEach((doc) => {
+  //       messagesArray.push({
+  //         id: doc.id,
+  //         ...doc.data(),
+  //         // Normalize timestamp for consistency
+  //         timestamp: doc.data().timestamp?.toDate?.() || doc.data().timestamp,
+  //       });
+  //     });
 
-      setMessages(messagesArray);
-      setMessagesLoading(false);
+  //     setMessages(messagesArray);
+  //     setMessagesLoading(false);
 
-      // Cache the updated messages
-      localStorage.setItem(
-        cacheKey,
-        JSON.stringify({
-          data: messagesArray,
-          timestamp: Date.now(),
-        })
-      );
-    });
+  //     // Cache the updated messages
+  //     localStorage.setItem(
+  //       cacheKey,
+  //       JSON.stringify({
+  //         data: messagesArray,
+  //         timestamp: Date.now(),
+  //       })
+  //     );
+  //   });
 
-    return () => unsubscribe();
-  }, [chatId, topicId]);
+  //   return () => unsubscribe();
+  // }, [chatId, topicId]);
 
   const handleFileUpload = async ({ file, message, chatId }) => {
     setIsUploadingFile(true);
@@ -637,6 +637,7 @@ function Dashboard() {
           chatId={chatId}
           messages={messages}
           messagesLoading={messagesLoading}
+          loadOlderMessages={loadOlderMessages}
           user={user}
           userProfile={user}
           getSenderData={getSenderData}

@@ -36,7 +36,6 @@ export const MessageList = ({
   const [loadingStates, setLoadingStates] = useState({});
   const [openPopoverId, setOpenPopoverId] = useState(null);
   const [highlightedMessageId, setHighlightedMessageId] = useState(null);
-  const prevMessagesLengthRef = useRef(0);
 
   const { setEditMessage, setReplyTo, chatId, users, topicId } =
     useMessageActionStore();
@@ -44,14 +43,6 @@ export const MessageList = ({
   const userProfile = useUserStore((s) => s.userProfile);
   const user = userProfile;
   const currentUserId = user?.uid;
-
-  useEffect(() => {
-    const isNewMessage = messages.length > prevMessagesLengthRef.current;
-    if (isNewMessage) {
-      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-      prevMessagesLengthRef.current = messages.length;
-    }
-  }, [messages]);
 
   // Clear highlight after 3 seconds
   useEffect(() => {
@@ -321,9 +312,18 @@ export const MessageList = ({
         ref={messagesContainerRef}
         className="flex-1 overflow-y-auto overflow-x-hidden scroll-smooth"
       >
-        {messages.map((msg) => (
+        {messages?.length === 0 && (
+          <div className="flex items-center justify-center h-full">
+            <div className="border rounded-full px-4 py-1">
+              <h1 className="text-sm font-semibold">
+                No messages yet! Start the conversation.
+              </h1>
+            </div>
+          </div>
+        )}
+        {messages?.map((msg, index) => (
           <div
-            key={msg.id}
+            key={`${msg.id}-${index}`}
             id={`message-${msg.id}`}
             className={`flex mb-2 transition-all duration-300 ${
               highlightedMessageId === msg.id

@@ -1,90 +1,147 @@
-import React, { useRef, useEffect, useCallback, useState } from "react";
+import React, { useRef, useEffect, useCallback, memo } from "react";
 import { MessagesLoading } from "../message/MessagesLoading";
 import { MessageList } from "@/components/chat/MessageList";
-import { useInfiniteMessages } from "@/hooks/useInfiniteMessages";
+import { useMessageActionStore } from "@/stores/useMessageActionStore";
+
+const MemoizedMessageList = memo(MessageList);
+
 const ChatContent = ({
   chatId,
   messages,
   messagesLoading,
+  loadOlderMessages,
   user,
   userProfile,
   getSenderData,
   getSenderDisplayName,
 }) => {
-  const [lastChatId, setLastChatId] = useState("");
-
   const messagesEndRef = useRef(null);
-  const messagesContainerRef = useRef();
+  const messagesContainerRef = useRef(null);
+  const scrollPositionRef = useRef(0);
   const prevMessagesLengthRef = useRef(0);
+  const isInitialLoadRef = useRef(true);
+  const isLoadingOlderRef = useRef(false);
+  const isUserScrollingRef = useRef(false);
+  const scrollTimeoutRef = useRef(null);
+  const { topicId } = useMessageActionStore();
 
+  // Reset refs when chat or topic changes
+  useEffect(() => {
+    scrollPositionRef.current = 0;
+    prevMessagesLengthRef.current = 0;
+    isInitialLoadRef.current = true;
+    isLoadingOlderRef.current = false;
+    isUserScrollingRef.current = false;
+
+    if (scrollTimeoutRef.current) {
+      clearTimeout(scrollTimeoutRef.current);
+    }
+  }, [chatId, topicId]);
+
+  // Handle scroll behavior when messages change
   useEffect(() => {
     const container = messagesContainerRef.current;
-    const wasPrepending = messages.length === prevMessagesLengthRef.current;
+    if (!container || !messages?.length) return;
 
-    if (container && lastChatId !== chatId) {
+    const currentMessagesLength = messages.length;
+    const prevMessagesLength = prevMessagesLengthRef.current;
+
+    // Initial load - immediately position at bottom (no animation, no blinking)
+    if (isInitialLoadRef.current) {
+      // Set scroll position immediately without any delay or animation
       container.scrollTop = container.scrollHeight;
-      setLastChatId(chatId);
+      isInitialLoadRef.current = false;
     }
-    if (!wasPrepending && container) {
-      container.scrollTop = container.scrollHeight;
+    // Loading older messages - maintain scroll position
+    else if (
+      isLoadingOlderRef.current &&
+      currentMessagesLength > prevMessagesLength
+    ) {
+      const newScrollTop = container.scrollHeight - scrollPositionRef.current;
+      container.scrollTop = newScrollTop;
+      isLoadingOlderRef.current = false;
     }
+    // New message arrived - scroll to bottom only if user was at bottom
+    else if (
+      currentMessagesLength > prevMessagesLength &&
+      !isLoadingOlderRef.current
+    ) {
+      const isAtBottom =
+        container.scrollHeight - container.scrollTop - container.clientHeight <
+        100;
+
+      if (isAtBottom || !isUserScrollingRef.current) {
+        // Use smooth scrolling for new messages
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      }
+    }
+
+    prevMessagesLengthRef.current = currentMessagesLength;
   }, [messages]);
 
-  const { loadingOlder, hasMoreMessages, loadOlderMessages } =
-    useInfiniteMessages(chatId);
-
   const handleScroll = useCallback(() => {
-    console.log("🌀 handleScroll triggered");
-
     const container = messagesContainerRef.current;
     if (!container) return;
 
-    const { scrollTop } = container;
+    // Mark that user is actively scrolling
+    isUserScrollingRef.current = true;
 
-    if (scrollTop === 0 && hasMoreMessages && !loadingOlder) {
-      console.log("⬆ Reached top — loading older messages...");
+    // Clear existing timeout
+    if (scrollTimeoutRef.current) {
+      clearTimeout(scrollTimeoutRef.current);
+    }
+
+    // Reset scrolling flag after user stops scrolling
+    scrollTimeoutRef.current = setTimeout(() => {
+      isUserScrollingRef.current = false;
+    }, 150);
+
+    // Load older messages when scrolled to top
+    if (
+      container.scrollTop === 0 &&
+      !isLoadingOlderRef.current &&
+      !messagesLoading
+    ) {
+      scrollPositionRef.current = container.scrollHeight;
+      isLoadingOlderRef.current = true;
       loadOlderMessages();
     }
-  }, [hasMoreMessages, loadingOlder, loadOlderMessages]);
+  }, [loadOlderMessages, messagesLoading]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const renderContent = () => {
     if (!chatId) {
       return (
         <div className="hidden sm:flex items-center justify-center h-full">
-          <div className="flex items-center justify-center h-full">
-            <div className="border rounded-full px-4 py-1">
-              <h1 className="text-sm font-semibold">
-                Select a chat to start messaging!
-              </h1>
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    if (messagesLoading) {
-      return <MessagesLoading />;
-    }
-
-    if (messages.length === 0) {
-      return (
-        <div className="flex items-center justify-center h-full">
           <div className="border rounded-full px-4 py-1">
             <h1 className="text-sm font-semibold">
-              No messages yet. Start the conversation!
+              Select a chat to start messaging!
             </h1>
           </div>
         </div>
       );
     }
 
+    if (messagesLoading && !messages?.length) {
+      return <MessagesLoading />;
+    }
+
     return (
       <div
-        className="flex-1 overflow-y-auto h-full py-4 px-2"
+        className="flex-1 overflow-y-auto h-full py-4 px-2 messages-container"
+        style={{ scrollBehavior: "auto" }}
         ref={messagesContainerRef}
         onScroll={handleScroll}
       >
-        <MessageList
+        <MemoizedMessageList
           messages={messages}
           user={userProfile}
           messagesLoading={messagesLoading}
@@ -104,4 +161,4 @@ const ChatContent = ({
   );
 };
 
-export default ChatContent;
+export default memo(ChatContent);

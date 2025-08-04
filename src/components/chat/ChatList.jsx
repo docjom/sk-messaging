@@ -64,7 +64,7 @@ const ChatList = ({
       <div
         key={chat.id}
         onClick={() => handleSelectChat(chat)}
-        className={`group cursor-pointer p-2 relative  transition-colors
+        className={`group cursor-pointer p-2 relative   transition-colors
   ${
     chatId === chat.id
       ? "bg-blue-500/30 hover:bg-blue-500/40"
@@ -169,7 +169,7 @@ const ChatList = ({
           <div className="relative">
             {chat.type === "direct" && (
               <div
-                className={`absolute top-0 right-0 z-50 border-2 rounded-full dark:border-gray-800 ${
+                className={`absolute top-0 right-0 z-40 border-2 rounded-full dark:border-gray-800 ${
                   getOtherUserInDirectChat(chat)?.active
                     ? "text-green-500"
                     : " text-gray-500"
@@ -324,16 +324,16 @@ const ChatList = ({
 
   return (
     <>
-      <div className="">
+      <>
         {pinnedChats.map((chat) => (
           <ChatCard key={chat.id} chat={chat} />
         ))}
-      </div>
-      <div className="">
+      </>
+      <>
         {unpinnedChats.map((chat) => (
           <ChatCard key={chat.id} chat={chat} />
         ))}
-      </div>
+      </>
     </>
   );
 };
