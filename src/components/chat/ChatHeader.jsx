@@ -76,7 +76,7 @@ const ChatHeader = ({
           )}
 
           {/* Group Chat Header */}
-          {currentChat?.type === "group" && (
+          {(currentChat?.type === "group" || currentChat?.type === "saved") && (
             <GroupChatHeader
               currentChat={currentChat}
               user={user}
@@ -216,6 +216,7 @@ const GroupChatHeader = ({
         ) : (
           <> {getChatDisplayName(currentChat)}</>
         )}
+
         <div className=" text-xs">
           <TypingIndicator chatId={chatId} getName={getSenderDisplayName} />
         </div>
@@ -225,14 +226,19 @@ const GroupChatHeader = ({
       {topicId ? (
         <></>
       ) : (
-        <AddUsersToGroup
-          users={users}
-          currentUserId={user?.uid}
-          currentChat={currentChat}
-          submitText="Add Members"
-          onSubmit={addUsersToGroup}
-          isLoading={isAddingUsers}
-        />
+        currentChat?.type !== "saved" && (
+          <>
+            {" "}
+            <AddUsersToGroup
+              users={users}
+              currentUserId={user?.uid}
+              currentChat={currentChat}
+              submitText="Add Members"
+              onSubmit={addUsersToGroup}
+              isLoading={isAddingUsers}
+            />
+          </>
+        )
       )}
 
       <ManageGroupChat

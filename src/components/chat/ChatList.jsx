@@ -12,7 +12,7 @@ import { doc, updateDoc, arrayUnion, arrayRemove } from "firebase/firestore";
 import { db } from "../../firebase";
 import { useMessageActionStore } from "../../stores/useMessageActionStore";
 import { formatTimestamp } from "../../composables/scripts";
-import { ChevronDown } from "lucide-react";
+import { Check, CheckCheck, ChevronDown, Pin } from "lucide-react";
 const ChatList = ({
   filteredChats,
   handleSelectChat,
@@ -98,7 +98,7 @@ const ChatList = ({
                     pinChat(chat.id);
                   }}
                 >
-                  <Icon icon="solar:pin-bold" width="20" height="20" />
+                  <Pin size={20} />
                   Pin chat {chat.pin?.includes(currentUserId)}
                 </Button>
               ) : (
@@ -110,7 +110,7 @@ const ChatList = ({
                     unpinChat(chat.id);
                   }}
                 >
-                  <Icon icon="solar:pin-line-duotone" width="20" height="20" />
+                  <Pin size={20} />
                   Unpin chat
                 </Button>
               )}
@@ -123,11 +123,7 @@ const ChatList = ({
                     markAsUnread(chat.id);
                   }}
                 >
-                  <Icon
-                    icon="solar:chat-unread-broken"
-                    width="20"
-                    height="20"
-                  />
+                  <Check size={20} />
                   Mark as unread
                 </Button>
               ) : (
@@ -139,11 +135,7 @@ const ChatList = ({
                     markAsRead(chat.id);
                   }}
                 >
-                  <Icon
-                    icon="solar:chat-unread-bold-duotone"
-                    width="20"
-                    height="20"
-                  />
+                  <CheckCheck size={20} />
                   Mark as read
                 </Button>
               )}
@@ -295,17 +287,7 @@ const ChatList = ({
                     </p>
                     {chat.pin?.includes(currentUserId) && (
                       <div className=" text-gray-500">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="12"
-                          height="12"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            fill="currentColor"
-                            d="m19.184 7.805l-2.965-2.967c-2.027-2.03-3.04-3.043-4.129-2.803s-1.581 1.587-2.568 4.28l-.668 1.823c-.263.718-.395 1.077-.632 1.355a2 2 0 0 1-.36.332c-.296.213-.664.314-1.4.517c-1.66.458-2.491.687-2.804 1.23a1.53 1.53 0 0 0-.204.773c.004.627.613 1.236 1.83 2.455L6.7 16.216l-4.476 4.48a.764.764 0 0 0 1.08 1.08l4.475-4.48l1.466 1.468c1.226 1.226 1.839 1.84 2.47 1.84c.265 0 .526-.068.757-.2c.548-.313.778-1.149 1.239-2.822c.202-.735.303-1.102.515-1.399q.14-.194.322-.352c.275-.238.632-.372 1.345-.64l1.844-.693c2.664-1 3.996-1.501 4.23-2.586c.235-1.086-.77-2.093-2.783-4.107"
-                          />
-                        </svg>
+                        <Pin size={12} />
                       </div>
                     )}
                   </div>

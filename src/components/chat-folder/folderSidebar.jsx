@@ -21,6 +21,7 @@ import { PinnedMessages } from "../chat/PinnedMessages";
 import { ChatFiles } from "../chat/ChatFiles";
 import { CreateNewTopic } from "./folderCreateNewTopic";
 import { useMentions } from "@/stores/useUsersMentions";
+import { ChevronLeft, EllipsisVertical } from "lucide-react";
 export const FolderSidebar = ({
   filteredChats,
   getChatPhoto,
@@ -184,21 +185,9 @@ export const FolderSidebar = ({
                   onClick={() => closeFolderSidebar()}
                   className="text-gray-700 dark:text-gray-300"
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="20"
-                    height="20"
-                    viewBox="0 0 512 512"
-                  >
-                    <path
-                      fill="none"
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="48"
-                      d="M244 400L100 256l144-144M120 256h292"
-                    />
-                  </svg>
+                  <div className="rounded-full p-0.5 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer">
+                    <ChevronLeft size={20} />
+                  </div>
                 </div>
                 <div>
                   <p className="font-semibold capitalize text-base max-w-32 truncate">
@@ -215,18 +204,9 @@ export const FolderSidebar = ({
                       clearTopic();
                     }}
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width={20}
-                      height={20}
-                      viewBox="0 0 21 21"
-                    >
-                      <g fill="currentColor" fillRule="evenodd">
-                        <circle cx={10.5} cy={10.5} r={1}></circle>
-                        <circle cx={10.5} cy={5.5} r={1}></circle>
-                        <circle cx={10.5} cy={15.5} r={1}></circle>
-                      </g>
-                    </svg>
+                    <div className="rounded-full p-0.5 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer">
+                      <EllipsisVertical size={16} strokeWidth={1} />
+                    </div>
                   </PopoverTrigger>
                   <PopoverContent className="w-40 p-0">
                     <Button

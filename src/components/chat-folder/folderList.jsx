@@ -11,9 +11,9 @@ import {
 } from "@/components/ui/popover";
 import { doc, updateDoc, arrayUnion, arrayRemove } from "firebase/firestore";
 import { db } from "@/firebase";
-import { TypingIndicator } from "../chat/TypingIndicator";
 import { EditTopicDialog } from "./editFolderTopic";
 import { useMentions } from "@/stores/useUsersMentions";
+import { CircleEllipsis, Pin, SquareChevronDown } from "lucide-react";
 
 export const FolderList = ({ topic }) => {
   const {
@@ -21,7 +21,6 @@ export const FolderList = ({ topic }) => {
     setTopicIdTo,
     topicId,
     chatId,
-    users,
     clearMessage,
     clearReply,
     clearEdit,
@@ -43,11 +42,6 @@ export const FolderList = ({ topic }) => {
     if (window.innerWidth <= 640) {
       setFolderSidebar(false);
     }
-  };
-
-  const getDisplayName = () => {
-    const sender = users.find((u) => u.id === user?.uid);
-    return sender?.displayName || "Unknown User";
   };
 
   const handlePinToggle = async (e) => {
@@ -158,7 +152,7 @@ export const FolderList = ({ topic }) => {
             <p className="font-semibold text-sm max-w-16 capitalize truncate">
               {topic.name}
             </p>
-            <div className="flex justify-start text-xs items-center">
+            <div className="flex justify-start text-xs gap-0.5 items-center">
               {topic.lastSenderName && (
                 <>
                   {topic.seenBy?.includes(user?.uid) && (
@@ -198,18 +192,7 @@ export const FolderList = ({ topic }) => {
                     e.stopPropagation();
                   }}
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width={20}
-                    height={20}
-                    viewBox="0 0 21 21"
-                  >
-                    <g fill="currentColor" fillRule="evenodd">
-                      <circle cx={10.5} cy={10.5} r={1}></circle>
-                      <circle cx={10.5} cy={5.5} r={1}></circle>
-                      <circle cx={10.5} cy={15.5} r={1}></circle>
-                    </g>
-                  </svg>
+                  <SquareChevronDown size={14} strokeWidth={1} />
                 </PopoverTrigger>
                 <PopoverContent className="w-40 p-0">
                   <Button
@@ -220,12 +203,12 @@ export const FolderList = ({ topic }) => {
                   >
                     {isPinned ? (
                       <>
-                        <Icon icon="solar:pin-broken" width="20" height="20" />
+                        <Pin size={20} />
                         Unpin
                       </>
                     ) : (
                       <>
-                        <Icon icon="solar:pin-bold" width="20" height="20" />
+                        <Pin size={20} />
                         Pin
                       </>
                     )}
@@ -252,23 +235,8 @@ export const FolderList = ({ topic }) => {
 
               {topic.pin?.includes(user?.uid) && (
                 <div className="text-gray-400">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="10"
-                    height="10"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      fill="currentColor"
-                      d="m19.184 7.805l-2.965-2.967c-2.027-2.03-3.04-3.043-4.129-2.803s-1.581 1.587-2.568 4.28l-.668 1.823c-.263.718-.395 1.077-.632 1.355a2 2 0 0 1-.36.332c-.296.213-.664.314-1.4.517c-1.66.458-2.491.687-2.804 1.23a1.53 1.53 0 0 0-.204.773c.004.627.613 1.236 1.83 2.455L6.7 16.216l-4.476 4.48a.764.764 0 0 0 1.08 1.08l4.475-4.48l1.466 1.468c1.226 1.226 1.839 1.84 2.47 1.84c.265 0 .526-.068.757-.2c.548-.313.778-1.149 1.239-2.822c.202-.735.303-1.102.515-1.399q.14-.194.322-.352c.275-.238.632-.372 1.345-.64l1.844-.693c2.664-1 3.996-1.501 4.23-2.586c.235-1.086-.77-2.093-2.783-4.107"
-                    />
-                  </svg>
+                  <Pin size={12} />
                 </div>
-              )}
-            </div>
-            <div className="text-[9px]">
-              {topic.id === topicId && (
-                <TypingIndicator chatId={chatId} getName={getDisplayName} />
               )}
             </div>
           </div>

@@ -30,6 +30,7 @@ import {
   writeBatch,
 } from "firebase/firestore";
 import { Icon } from "@iconify/react";
+import { ArrowBigLeftDash } from "lucide-react";
 
 export function LeaveGroup({ chatId, currentUserId, onLeaveSuccess }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -160,7 +161,7 @@ export function LeaveGroup({ chatId, currentUserId, onLeaveSuccess }) {
     >
       <DialogTrigger asChild>
         <Button variant="ghost" className="w-full flex justify-start">
-          <Icon icon="solar:arrow-left-broken" width="20" height="20" />
+        <ArrowBigLeftDash size={20} />
           Leave Group
         </Button>
       </DialogTrigger>
