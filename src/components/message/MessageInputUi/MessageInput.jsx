@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/popover";
 import { useTypingForChat } from "../../../hooks/userTypingForChat";
 import { useMentions } from "@/stores/useUsersMentions";
+import { useFolderStore } from "@/stores/chat-folder/useFolderStore";
 
 const MessageInput = memo(
   ({
@@ -55,6 +56,7 @@ const MessageInput = memo(
       setMentionSuggestions,
       clearMentionSuggestions,
     } = useMentions();
+    const { hasFolders } = useFolderStore();
 
     const { setTyping } = useTypingForChat(chatId);
     const user = useUserStore((s) => s.user);
@@ -304,7 +306,11 @@ const MessageInput = memo(
       !chatId || messagesLoading || isMessagesSending;
 
     return (
-      <div className="fixed bottom-0 left-0 right-0 shadow-lg sm:ml-64 z-30">
+      <div
+        className={`fixed bottom-0 left-0 right-0 shadow-lg  z-30 ${
+          hasFolders ? "sm:ml-74" : "sm:ml-64"
+        }`}
+      >
         <div className="px-4 py-2 border-t backdrop-blur-sm border-gray-300 dark:border-gray-700">
           <div className="flex flex-col gap-1">
             {/* Mention Suggestions */}

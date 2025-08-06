@@ -10,6 +10,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import FolderManagementSystem from "@/components/chat-folder/folder/createFolder";
 
 export const Settings = () => {
   return (
@@ -29,6 +30,10 @@ export const Settings = () => {
           <DialogHeader>
             <DialogTitle>Settings</DialogTitle>
           </DialogHeader>
+
+          <div>
+            <FolderManagementSystem />
+          </div>
 
           <DialogFooter>
             <DialogClose asChild>

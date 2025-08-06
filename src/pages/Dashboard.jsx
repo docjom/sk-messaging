@@ -38,6 +38,7 @@ import { getRefs } from "@/utils/firestoreRefs";
 import { NoInternetConnectionAlert } from "@/components/notification/AlertNoInternet";
 import { clearChatId } from "@/hooks/useDashboard";
 import { useMentions } from "@/stores/useUsersMentions";
+import { useFolderStore } from "@/stores/chat-folder/useFolderStore";
 
 function Dashboard() {
   const user = useUserStore((s) => s.userProfile);
@@ -82,6 +83,12 @@ function Dashboard() {
 
   const { messages, messagesLoading, loadOlderMessages } =
     useInfiniteMessages(chatId);
+
+  useEffect(() => {
+    if (user?.uid) {
+      useFolderStore.getState().checkUserHasFolders(user.uid);
+    }
+  }, [user]);
 
   useEffect(() => {
     if (!isOnline && wasOffline) {
@@ -584,7 +591,7 @@ function Dashboard() {
   }, [chatId, user?.uid, clearChat]);
 
   return (
-    <div className="h-screen flex flex-col lg:flex-row">
+    <div className="h-screen  flex flex-col lg:flex-row">
       {!isOnline && wasOffline && (
         <div className="top-0 absolute w-full z-50">
           <div className="flex justify-center items-center m-2">

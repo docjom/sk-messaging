@@ -15,6 +15,7 @@ import { TypingIndicator } from "./TypingIndicator";
 import { useMessageActionStore } from "@/stores/useMessageActionStore";
 import { useChatFolderStore } from "@/stores/chat-folder/useChatFolderStore";
 import { SquareUser, Menu } from "lucide-react";
+import { useFolderStore } from "@/stores/chat-folder/useFolderStore";
 
 const ChatHeader = ({
   currentChat,
@@ -31,13 +32,17 @@ const ChatHeader = ({
 }) => {
   const { setFolderSidebar } = useChatFolderStore();
   const { topicId, currentTopic, clearTopicId } = useMessageActionStore();
-
+  const { hasFolders } = useFolderStore();
   const openFolderSidebar = () => {
     setFolderSidebar(true);
     clearTopicId();
   };
   return (
-    <div className="fixed top-0 left-0 right-0 border-b sm:ml-64 z-30">
+    <div
+      className={`fixed top-0 left-0 right-0 border-b  z-30 ${
+        hasFolders ? "sm:ml-74" : "sm:ml-64"
+      }`}
+    >
       <div className="px-4 py-2 dark:bg-gray-800 bg-white shadow w-full flex items-center">
         <div className="w-full flex justify-start items-center gap-2">
           {/* Back button */}

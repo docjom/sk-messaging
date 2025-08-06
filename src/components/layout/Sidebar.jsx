@@ -5,11 +5,18 @@ import { Input } from "@/components/ui/input";
 import { ChatListLoading } from "../chat/ChatListLoading";
 import { useMessageActionStore } from "@/stores/useMessageActionStore";
 import { db } from "@/firebase";
-import { collection, query, onSnapshot, where } from "firebase/firestore";
+import {
+  collection,
+  query,
+  onSnapshot,
+  where,
+  orderBy,
+} from "firebase/firestore";
 import { useUserStore } from "@/stores/useUserStore";
 import { FolderSidebar } from "../chat-folder/folderSidebar";
 import { useChatFolderStore } from "@/stores/chat-folder/useChatFolderStore";
-
+import { useFolderStore } from "@/stores/chat-folder/useFolderStore";
+import { Badge, Folder, MessageSquare } from "lucide-react";
 function SidebarPanel({
   searchTerm,
   setSearchTerm,
@@ -25,6 +32,8 @@ function SidebarPanel({
   getSenderDisplayName,
   toggleMenu,
   className = "",
+  hasFolders,
+  folders,
 }) {
   return (
     <div className="flex">
@@ -53,25 +62,57 @@ function SidebarPanel({
                     </div>
                   </div>
                 </div>
-                <div className="h-screen pt-13 overflow-auto ">
-                  {chatsLoading ? (
-                    <ChatListLoading />
-                  ) : filteredChats.length > 0 ? (
-                    <ChatList
-                      filteredChats={filteredChats}
-                      handleSelectChat={handleSelectChat}
-                      getOtherUserInDirectChat={getOtherUserInDirectChat}
-                      getChatPhoto={getChatPhoto}
-                      getChatDisplayName={getChatDisplayName}
-                      currentUserId={user?.uid}
-                      onLeaveSuccess={clearChat}
-                      getSenderDisplayName={getSenderDisplayName}
-                    />
-                  ) : (
-                    <div className="mx-1 p-2  rounded-lg text-sm text-gray-500">
-                      No Recent Chats
+                <div className="h-screen ">
+                  <div className="flex ">
+                    {hasFolders && (
+                      <>
+                        <div className="  w-15 pt-13 h-screen overflow-y-auto bg-gray-900 text-white">
+                          <div className="flex justify-center items-center">
+                            <div>
+                              <div className="p-1">
+                                <div className="flex  items-center justify-center text-blue-400 ">
+                                  <MessageSquare size={20} />
+                                </div>
+                                <div className="text-xs text-center text-blue-400">
+                                  All chats
+                                </div>
+                              </div>
+                              {folders.map((folder) => (
+                                <div key={folder.id} className="p-1">
+                                  <div className="flex  items-center justify-center ">
+                                    <Folder className="h-5 w-5 " />
+                                  </div>
+                                  <div className="text-xs text-center">
+                                    {folder.folderName}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </>
+                    )}
+                    <div className="h-screen w-full pt-13 overflow-y-auto">
+                      {chatsLoading ? (
+                        <ChatListLoading />
+                      ) : filteredChats.length > 0 ? (
+                        <ChatList
+                          filteredChats={filteredChats}
+                          handleSelectChat={handleSelectChat}
+                          getOtherUserInDirectChat={getOtherUserInDirectChat}
+                          getChatPhoto={getChatPhoto}
+                          getChatDisplayName={getChatDisplayName}
+                          currentUserId={user?.uid}
+                          onLeaveSuccess={clearChat}
+                          getSenderDisplayName={getSenderDisplayName}
+                        />
+                      ) : (
+                        <div className="mx-1 p-2  rounded-lg text-sm text-gray-500">
+                          No Recent Chats
+                        </div>
+                      )}
                     </div>
-                  )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -88,6 +129,30 @@ const Sidebar = ({ toggleMenu, handleSelectChat, getSenderDisplayName }) => {
   const user = useUserStore((s) => s?.user);
   const [chatsLoading, setChatsLoading] = useState(true);
   const { folderSidebar } = useChatFolderStore();
+  const { hasFolders, folders, setFolders } = useFolderStore();
+
+  useEffect(() => {
+    if (!user?.uid) return;
+
+    // Load folders
+    const foldersQuery = query(
+      collection(db, "folders"),
+      where("userId", "==", user.uid),
+      orderBy("createdAt", "desc")
+    );
+
+    const unsubscribeFolders = onSnapshot(foldersQuery, (snapshot) => {
+      const folderData = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setFolders(folderData);
+    });
+
+    return () => {
+      unsubscribeFolders();
+    };
+  }, [user, setFolders]);
 
   const getUserData = useCallback(
     (userId) => users.find((u) => u.id === userId) || null,
@@ -214,6 +279,8 @@ const Sidebar = ({ toggleMenu, handleSelectChat, getSenderDisplayName }) => {
           setSearchTerm={setSearchTerm}
           chatsLoading={chatsLoading}
           filteredChats={filteredChats}
+          folders={folders}
+          hasFolders={hasFolders}
           handleSelectChat={handleSelectChat}
           getOtherUserInDirectChat={getOtherUserInDirectChat}
           getChatPhoto={getChatPhoto}
@@ -238,6 +305,8 @@ const Sidebar = ({ toggleMenu, handleSelectChat, getSenderDisplayName }) => {
         setSearchTerm={setSearchTerm}
         chatsLoading={chatsLoading}
         filteredChats={filteredChats}
+        folders={folders}
+        hasFolders={hasFolders}
         handleSelectChat={handleSelectChat}
         getOtherUserInDirectChat={getOtherUserInDirectChat}
         getChatPhoto={getChatPhoto}
@@ -247,7 +316,9 @@ const Sidebar = ({ toggleMenu, handleSelectChat, getSenderDisplayName }) => {
         folderSidebar={folderSidebar}
         getSenderDisplayName={getSenderDisplayName}
         toggleMenu={toggleMenu}
-        className="w-64 hidden bg-white dark:bg-gray-800 border-r sm:fixed lg:sticky top-0 left-0 z-10   sm:flex flex-col h-full"
+        className={` hidden bg-white dark:bg-gray-800 border-r sm:fixed lg:sticky top-0 left-0 z-10   sm:flex flex-col h-full ${
+          hasFolders ? "w-74" : "w-64"
+        } `}
       />
     </>
   );
