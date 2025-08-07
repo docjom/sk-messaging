@@ -30,6 +30,7 @@ import {
 import { useTypingForChat } from "../../../hooks/userTypingForChat";
 import { useMentions } from "@/stores/useUsersMentions";
 import { useFolderStore } from "@/stores/chat-folder/useFolderStore";
+import { useChatFolderStore } from "@/stores/chat-folder/useChatFolderStore";
 
 const MessageInput = memo(
   ({
@@ -57,6 +58,7 @@ const MessageInput = memo(
       clearMentionSuggestions,
     } = useMentions();
     const { hasFolders } = useFolderStore();
+    const { folderSidebar } = useChatFolderStore();
 
     const { setTyping } = useTypingForChat(chatId);
     const user = useUserStore((s) => s.user);
@@ -308,7 +310,7 @@ const MessageInput = memo(
     return (
       <div
         className={`fixed bottom-0 left-0 right-0 shadow-lg  z-30 ${
-          hasFolders ? "sm:ml-74" : "sm:ml-64"
+          hasFolders && !folderSidebar ? "sm:ml-74" : "sm:ml-64"
         }`}
       >
         <div className="px-4 py-2 border-t backdrop-blur-sm border-gray-300 dark:border-gray-700">

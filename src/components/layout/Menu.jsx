@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 
 import { useThemeStore } from "@/stores/themeStore";
+import { Moon, Sun } from "lucide-react";
 export const Menu = ({
   users,
   isCreatingGroup,
@@ -58,11 +59,7 @@ export const Menu = ({
               variant="ghost"
               className=" flex gap-3 px-3 items-center justify-between"
             >
-              <Icon
-                icon={isDarkMode ? "solar:moon-bold" : "solar:sun-bold"}
-                width="24"
-                height="24"
-              />
+              {isDarkMode ? <Moon /> : <Sun />}
               Night Mode
             </Button>
             <Switch checked={isDarkMode} onCheckedChange={toggleDarkMode} />

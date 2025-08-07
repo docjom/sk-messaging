@@ -35,6 +35,34 @@ function SidebarPanel({
   hasFolders,
   folders,
 }) {
+  const { chats, setChats } = useMessageActionStore();
+  const [originalChats, setOriginalChats] = useState(chats);
+  const [selectedFolder, setSelectedFolder] = useState(null);
+
+  useEffect(() => {
+    if (!selectedFolder) {
+      setOriginalChats(chats);
+    }
+  }, [chats, selectedFolder]);
+
+  const handleClickFolder = (folder) => {
+    if (selectedFolder?.id === folder.id) {
+      setSelectedFolder(null);
+      setChats(originalChats);
+    } else {
+      setSelectedFolder(folder);
+      const folderChatIds = folder.chatIds || [];
+      const filteredChats = originalChats.filter((chat) =>
+        folderChatIds.includes(chat.id)
+      );
+      setChats(filteredChats);
+    }
+  };
+
+  const clearFolderFilter = () => {
+    setChats(originalChats);
+    setSelectedFolder(null);
+  };
   return (
     <div className="flex">
       {!folderSidebar && (
@@ -66,24 +94,44 @@ function SidebarPanel({
                   <div className="flex ">
                     {hasFolders && (
                       <>
-                        <div className="  w-15 pt-13 h-screen overflow-y-auto bg-gray-900 text-white">
-                          <div className="flex justify-center items-center">
-                            <div>
-                              <div className="p-1">
-                                <div className="flex  items-center justify-center text-blue-400 ">
+                        <div className="  w-15 pt-13 h-screen overflow-y-auto bg-gray-100 dark:bg-gray-800 border-r">
+                          <div className="flex justify-center w-full items-center">
+                            <div className="w-full">
+                              <div
+                                onClick={() => clearFolderFilter()}
+                                className={`p-1 hover:bg-gray-300 hover:dark:bg-gray-700 color-transition duration-200 cursor-pointer ${
+                                  !selectedFolder
+                                    ? "text-blue-500 bg-gray-300 dark:bg-gray-700"
+                                    : ""
+                                }`}
+                              >
+                                <div className="flex  items-center justify-center  ">
                                   <MessageSquare size={20} />
                                 </div>
-                                <div className="text-xs text-center text-blue-400">
+                                <div className="text-[10px] text-center ">
                                   All chats
                                 </div>
                               </div>
                               {folders.map((folder) => (
-                                <div key={folder.id} className="p-1">
+                                <div
+                                  key={folder.id}
+                                  onClick={() => handleClickFolder(folder)}
+                                  className={`py-2 hover:bg-gray-300 hover:dark:bg-gray-700 color-transition duration-200 cursor-pointer ${
+                                    folder.id !== selectedFolder?.id
+                                      ? ""
+                                      : "text-blue-500 shadow bg-gray-300 dark:bg-gray-700"
+                                  }`}
+                                >
                                   <div className="flex  items-center justify-center ">
                                     <Folder className="h-5 w-5 " />
                                   </div>
-                                  <div className="text-xs text-center">
-                                    {folder.folderName}
+                                  <div className="text-[10px] text-center">
+                                    {folder.folderName.length > 10
+                                      ? `${folder.folderName.substring(
+                                          0,
+                                          10
+                                        )}...`
+                                      : folder.folderName}
                                   </div>
                                 </div>
                               ))}

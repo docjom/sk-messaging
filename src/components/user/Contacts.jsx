@@ -10,6 +10,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ContactRound } from "lucide-react";
 
 export function Contacts({ users, currentUserId, handleSelectUser }) {
   return (
@@ -19,7 +20,7 @@ export function Contacts({ users, currentUserId, handleSelectUser }) {
           variant="ghost"
           className=" w-full mb-1 flex justify-start gap-4 items-center"
         >
-          <Icon icon="solar:user-linear" width="24" height="24" />
+          <ContactRound />
           Contacts
         </Button>
       </DialogTrigger>

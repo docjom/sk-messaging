@@ -329,10 +329,10 @@ const FolderManagementSystem = () => {
                                   }`}
                                   onClick={() => toggleChatSelection(chat.id)}
                                 >
-                                  <div className="text-2xl mr-3">
+                                  <div className="mr-3">
                                     <Avatar>
                                       <AvatarImage src={getChatPhoto(chat)} />
-                                      <AvatarFallback></AvatarFallback>
+                                      <AvatarFallback>{chat.name[0]?.toUpperCase()}</AvatarFallback>
                                     </Avatar>
                                   </div>
                                   <div className="flex-1">

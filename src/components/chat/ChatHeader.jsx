@@ -30,7 +30,7 @@ const ChatHeader = ({
   addUsersToGroup,
   isAddingUsers,
 }) => {
-  const { setFolderSidebar } = useChatFolderStore();
+  const { setFolderSidebar, folderSidebar } = useChatFolderStore();
   const { topicId, currentTopic, clearTopicId } = useMessageActionStore();
   const { hasFolders } = useFolderStore();
   const openFolderSidebar = () => {
@@ -40,7 +40,7 @@ const ChatHeader = ({
   return (
     <div
       className={`fixed top-0 left-0 right-0 border-b  z-30 ${
-        hasFolders ? "sm:ml-74" : "sm:ml-64"
+        hasFolders && !folderSidebar ? "sm:ml-74" : "sm:ml-64"
       }`}
     >
       <div className="px-4 py-2 dark:bg-gray-800 bg-white shadow w-full flex items-center">

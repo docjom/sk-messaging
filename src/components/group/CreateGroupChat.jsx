@@ -14,6 +14,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { User, Users } from "lucide-react";
 
 export function CreateGroupChat({
   users,
@@ -69,11 +70,7 @@ export function CreateGroupChat({
           variant="ghost"
           className="w-full mb-1 flex justify-start gap-4 items-center"
         >
-          <Icon
-            icon="solar:users-group-rounded-linear"
-            width="24"
-            height="24"
-          />
+          <Users />
           New Group
         </Button>
       </DialogTrigger>

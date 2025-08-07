@@ -11,6 +11,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import FolderManagementSystem from "@/components/chat-folder/folder/createFolder";
+import { Bolt } from "lucide-react";
 
 export const Settings = () => {
   return (
@@ -21,7 +22,7 @@ export const Settings = () => {
             variant="ghost"
             className=" w-full mb-1 flex justify-start gap-4 items-center"
           >
-            <Icon icon="solar:settings-broken" width="24" height="24" />
+          <Bolt/>
             Settings
           </Button>
         </DialogTrigger>

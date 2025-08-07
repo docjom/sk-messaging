@@ -25,6 +25,7 @@ import {
   deleteObject,
   getMetadata,
 } from "firebase/storage";
+import { UserPen } from "lucide-react";
 
 export function EditProfile({ currentUserId }) {
   const [name, setName] = useState("");
@@ -127,8 +128,7 @@ export function EditProfile({ currentUserId }) {
           variant="ghost"
           className=" w-full mb-1 flex justify-start gap-4 items-center"
         >
-          <Icon icon="iconoir:profile-circle" width="30" height="30" /> Manage
-          Profile
+          <UserPen /> Manage Profile
         </Button>
       </DialogTrigger>
 
