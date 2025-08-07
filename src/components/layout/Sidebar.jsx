@@ -99,7 +99,7 @@ function SidebarPanel({
                             <div className="w-full">
                               <div
                                 onClick={() => clearFolderFilter()}
-                                className={`p-1 hover:bg-gray-300 hover:dark:bg-gray-700 color-transition duration-200 cursor-pointer ${
+                                className={`py-2.5 hover:bg-gray-300 hover:dark:bg-gray-700 color-transition duration-200 cursor-pointer ${
                                   !selectedFolder
                                     ? "text-blue-500 bg-gray-300 dark:bg-gray-700"
                                     : ""
@@ -202,20 +202,20 @@ const Sidebar = ({ toggleMenu, handleSelectChat, getSenderDisplayName }) => {
     };
   }, [user, setFolders]);
 
-  const getUserData = useCallback(
-    (userId) => users.find((u) => u.id === userId) || null,
-    [users]
-  );
+  const usersMap = React.useMemo(() => {
+    const map = new Map();
+    users.forEach((u) => map.set(u.id, u));
+    return map;
+  }, [users]);
 
   const getOtherUserInDirectChat = useCallback(
     (chat) => {
       if (chat.type !== "direct") return null;
       const otherUserId = chat.users.find((uid) => uid !== user?.uid);
-      return getUserData(otherUserId);
+      return usersMap.get(otherUserId) || null;
     },
-    [user?.uid, getUserData]
+    [user?.uid, usersMap]
   );
-
   const getChatDisplayName = useCallback(
     (chat) => {
       if (chat.type === "direct") {
@@ -224,7 +224,7 @@ const Sidebar = ({ toggleMenu, handleSelectChat, getSenderDisplayName }) => {
         }
 
         const otherUserId = chat.users.find((uid) => uid !== user?.uid);
-        const otherUser = users.find((u) => u.id === otherUserId);
+        const otherUser = usersMap.get(otherUserId);
         return otherUser?.displayName || "Unknown User";
       }
 
@@ -234,19 +234,19 @@ const Sidebar = ({ toggleMenu, handleSelectChat, getSenderDisplayName }) => {
 
       return chat.name;
     },
-    [user?.uid, users]
+    [user?.uid, usersMap]
   );
 
   const getChatPhoto = useCallback(
     (chat) => {
       if (chat.type === "direct") {
         const otherUserId = chat.users.find((uid) => uid !== user?.uid);
-        const otherUser = users.find((u) => u.id === otherUserId);
+        const otherUser = usersMap.get(otherUserId);
         return otherUser?.photoURL;
       }
       return chat.photoURL;
     },
-    [user?.uid, users]
+    [user?.uid, usersMap]
   );
 
   useEffect(() => {

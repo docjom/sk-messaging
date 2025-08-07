@@ -315,37 +315,47 @@ const FolderManagementSystem = () => {
                             onChange={(e) => setSearchTerm(e.target.value)}
                           />
                           <div className="max-h-60 overflow-y-auto border rounded-lg p-2 space-y-1">
-                            {getFilteredChats()
-                              .filter(
-                                (chat) => !folder.chatIds.includes(chat.id)
-                              )
-                              .map((chat) => (
-                                <div
-                                  key={chat.id}
-                                  className={`flex items-center p-2 rounded cursor-pointer hover:bg-gray-100 ${
-                                    selectedChats.includes(chat.id)
-                                      ? "bg-blue-50 border border-blue-200"
-                                      : ""
-                                  }`}
-                                  onClick={() => toggleChatSelection(chat.id)}
-                                >
-                                  <div className="mr-3">
-                                    <Avatar>
-                                      <AvatarImage src={getChatPhoto(chat)} />
-                                      <AvatarFallback>{chat.name[0]?.toUpperCase()}</AvatarFallback>
-                                    </Avatar>
-                                  </div>
-                                  <div className="flex-1">
-                                    <div className="font-medium">
-                                      {chat.name}
+                            {getFilteredChats().filter(
+                              (chat) => !folder.chatIds.includes(chat.id)
+                            ).length === 0 ? (
+                              <div className="text-center py-4 text-sm text-gray-500">
+                                No available chats to add
+                              </div>
+                            ) : (
+                              getFilteredChats()
+                                .filter(
+                                  (chat) => !folder.chatIds.includes(chat.id)
+                                )
+                                .map((chat) => (
+                                  <div
+                                    key={chat.id}
+                                    className={`flex items-center p-2 rounded cursor-pointer hover:bg-gray-100 ${
+                                      selectedChats.includes(chat.id)
+                                        ? "bg-blue-50 border border-blue-200"
+                                        : ""
+                                    }`}
+                                    onClick={() => toggleChatSelection(chat.id)}
+                                  >
+                                    <div className="mr-3">
+                                      <Avatar>
+                                        <AvatarImage src={getChatPhoto(chat)} />
+                                        <AvatarFallback>
+                                          {chat.name[0]?.toUpperCase()}
+                                        </AvatarFallback>
+                                      </Avatar>
                                     </div>
-                                    <div className="text-sm text-gray-500">
-                                      {chat.lastMessage}
+                                    <div className="flex-1">
+                                      <div className="font-medium">
+                                        {chat.name}
+                                      </div>
+                                      <div className="text-sm text-gray-500">
+                                        {chat.lastMessage}
+                                      </div>
                                     </div>
+                                    {getChatIcon(chat.type)}
                                   </div>
-                                  {getChatIcon(chat.type)}
-                                </div>
-                              ))}
+                                ))
+                            )}
                           </div>
                         </div>
                         <DialogFooter>
