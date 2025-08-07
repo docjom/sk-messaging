@@ -72,7 +72,7 @@ const ChatList = ({
   }
   ${
     chat.pin?.includes(currentUserId)
-      ? "border bg-blue-500/5 my-0.5 dark:border-gray-700 border-gray-300"
+      ? " bg-blue-500/5 dark:border-gray-700 border-gray-300"
       : ""
   }
 `}
