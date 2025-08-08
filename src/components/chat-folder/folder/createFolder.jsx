@@ -36,9 +36,11 @@ import {
   arrayUnion,
   updateDoc,
   doc,
+  arrayRemove,
   deleteDoc,
 } from "firebase/firestore";
 import { useFolderStore } from "@/stores/chat-folder/useFolderStore";
+import FolderChatsDialog from "./folderChatsDialog";
 
 const FolderManagementSystem = () => {
   const [selectedFolder, setSelectedFolder] = useState(null);
@@ -46,6 +48,7 @@ const FolderManagementSystem = () => {
   const [selectedChats, setSelectedChats] = useState([]);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isAddChatsDialogOpen, setIsAddChatsDialogOpen] = useState(false);
+  const [isViewChatsDialogOpen, setIsViewChatsDialogOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { hasFolders, setHasFolders, checkAndUpdateHasFolders, folders } =
@@ -83,32 +86,11 @@ const FolderManagementSystem = () => {
     }
   };
 
-  //   const handleCreateFolder = async () => {
-  //     if (!folderName.trim()) return;
-
-  //     setIsLoading(true);
-  //     try {
-  //       // Simulate Firebase create operation
-  //       await new Promise((resolve) => setTimeout(resolve, 500));
-
-  //       const newFolder = {
-  //         id: Date.now(),
-  //         name: folderName.trim(),
-  //         chatIds: selectedChats,
-  //         isDefault: false,
-  //         createdAt: new Date().toISOString(),
-  //       };
-
-  //       setFolders((prev) => [...prev, newFolder]);
-  //       setFolderName("");
-  //       setSelectedChats([]);
-  //       setIsCreateDialogOpen(false);
-  //     } catch (error) {
-  //       console.error("Error creating folder:", error);
-  //     } finally {
-  //       setIsLoading(false);
-  //     }
-  //   };
+  const handleViewFolderChats = (folder, e) => {
+    e.stopPropagation();
+    setSelectedFolder(folder);
+    setIsViewChatsDialogOpen(true);
+  };
 
   const handleCreateFolder = async () => {
     if (!folderName.trim() || !user?.uid) return;
@@ -139,7 +121,9 @@ const FolderManagementSystem = () => {
     }
   };
 
-  const handleAddChatsToFolder = async () => {
+  const handleAddChatsToFolder = async (e) => {
+    e.stopPropagation();
+
     if (!selectedFolder || selectedChats.length === 0) return;
 
     setIsLoading(true);
@@ -160,17 +144,17 @@ const FolderManagementSystem = () => {
     }
   };
 
-  //   const handleRemoveChatFromFolder = async (folderId, chatId) => {
-  //     try {
-  //       const folderRef = doc(db, "folders", folderId);
-  //       await updateDoc(folderRef, {
-  //         chatIds: arrayRemove(chatId),
-  //         updatedAt: serverTimestamp(),
-  //       });
-  //     } catch (error) {
-  //       console.error("Error removing chat from folder:", error);
-  //     }
-  //   };
+  const handleRemoveChatFromFolder = async (folderId, chatId) => {
+    try {
+      const folderRef = doc(db, "folders", folderId);
+      await updateDoc(folderRef, {
+        chatIds: arrayRemove(chatId),
+        updatedAt: serverTimestamp(),
+      });
+    } catch (error) {
+      console.error("Error removing chat from folder:", error);
+    }
+  };
 
   const handleDeleteFolder = async (folderId) => {
     try {
@@ -279,7 +263,10 @@ const FolderManagementSystem = () => {
         {folders.map((folder) => (
           <div key={folder.id} className="border rounded-lg p-2">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
+              <div
+                className="flex items-center gap-3 cursor-pointer"
+                onClick={(e) => handleViewFolderChats(folder, e)}
+              >
                 <Folder className="h-5 w-5 text-blue-500" />
                 <h3 className="font-semibold text-base">{folder.folderName}</h3>
                 <Badge variant="secondary">{folder.chatIds.length} chats</Badge>
@@ -306,7 +293,9 @@ const FolderManagementSystem = () => {
                       </DialogTrigger>
                       <DialogContent className="sm:max-w-[500px]">
                         <DialogHeader>
-                          <DialogTitle>Add Chats to {folder.name}</DialogTitle>
+                          <DialogTitle>
+                            Add Chats to {folder.folderName}
+                          </DialogTitle>
                         </DialogHeader>
                         <div className="space-y-4">
                           <Input
@@ -368,7 +357,7 @@ const FolderManagementSystem = () => {
                             </Button>
                           </DialogClose>
                           <Button
-                            onClick={handleAddChatsToFolder}
+                            onClick={(e) => handleAddChatsToFolder(e)}
                             disabled={selectedChats.length === 0 || isLoading}
                           >
                             {isLoading
@@ -448,6 +437,14 @@ const FolderManagementSystem = () => {
           </p>
         </div>
       )}
+
+      {/* View Folder Chats Dialog */}
+      <FolderChatsDialog
+        isOpen={isViewChatsDialogOpen}
+        onOpenChange={setIsViewChatsDialogOpen}
+        folder={selectedFolder}
+        onRemoveChat={handleRemoveChatFromFolder}
+      />
     </div>
   );
 };

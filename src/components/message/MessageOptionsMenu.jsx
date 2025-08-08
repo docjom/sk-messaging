@@ -5,7 +5,21 @@ import {
   PopoverTrigger,
   PopoverContent,
 } from "@/components/ui/popover";
-import { Icon } from "@iconify/react";
+import {
+  Reply,
+  Pin,
+  TrendingUp,
+  Forward,
+  Copy,
+  Download,
+  Save,
+  Edit3,
+  CheckCheck,
+  Image as ImageIcon,
+  Video,
+  FileDown,
+  Ellipsis,
+} from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { EmojiSet } from "../emoji/EmojiSet";
 
@@ -35,7 +49,7 @@ export function MessageOptionsMenu({
     >
       <PopoverTrigger asChild>
         <Button variant={"ghost"} size={"sm"} className="mr-2 rounded-full">
-          <Icon icon="solar:menu-dots-bold-duotone" width="24" height="24" />
+          <Ellipsis className="w-4 h-4" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-52 p-1">
@@ -49,7 +63,7 @@ export function MessageOptionsMenu({
                 className="flex items-center gap-2 w-full justify-between"
               >
                 <div className="flex gap-1 justify-start items-center">
-                  <Icon icon="solar:check-read-broken" width="24" height="24" />
+                  <CheckCheck className="w-4 h-4" />
                   <span>{msg.seenBy?.length} Seen</span>
                 </div>
                 <div className="flex -space-x-2 justify-start items-center ">
@@ -119,7 +133,7 @@ export function MessageOptionsMenu({
           size={"sm"}
           className="flex w-full justify-start gap-2 items-center"
         >
-          <Icon icon="solar:reply-broken" width="24" height="24" />
+          <Reply className="w-4 h-4" />
           Reply
         </Button>
 
@@ -130,7 +144,7 @@ export function MessageOptionsMenu({
             size={"sm"}
             className="flex w-full justify-start gap-2 items-center"
           >
-            <Icon icon="solar:pin-broken" width="20" height="20" />
+            <Pin className="w-4 h-4" />
             Pin
           </Button>
         ) : (
@@ -140,7 +154,7 @@ export function MessageOptionsMenu({
             size={"sm"}
             className="flex w-full justify-start gap-2 items-center"
           >
-            <Icon icon="solar:pin-broken" width="20" height="20" />
+            <Pin className="w-4 h-4" />
             Unpin
           </Button>
         )}
@@ -151,16 +165,17 @@ export function MessageOptionsMenu({
           size={"sm"}
           className="flex w-full justify-start gap-2 items-center"
         >
-          <Icon icon="solar:shield-up-broken" width="20" height="20" />
+          <TrendingUp className="w-4 h-4" />
           Bump
         </Button>
+
         <Button
           onClick={() => handleForwardMessage(msg.id)}
           variant={"ghost"}
           size={"sm"}
           className="flex w-full justify-start gap-2 items-center"
         >
-          <Icon icon="solar:forward-broken" width="20" height="20" />
+          <Forward className="w-4 h-4" />
           Forward
         </Button>
 
@@ -174,7 +189,7 @@ export function MessageOptionsMenu({
             size={"sm"}
             className="flex w-full justify-start gap-2 items-center"
           >
-            <Icon icon="solar:copy-broken" width="24" height="24" />
+            <Copy className="w-4 h-4" />
             Copy text
           </Button>
         )}
@@ -183,35 +198,18 @@ export function MessageOptionsMenu({
         {msg.fileData && (
           <>
             {msg.fileData.type?.startsWith("image/") && (
-              <>
-                <Button
-                  onClick={() => {
-                    copyImageToClipboard(msg.fileData.url);
-                    setOpenPopoverId(null);
-                  }}
-                  variant={"ghost"}
-                  size={"sm"}
-                  className="flex w-full justify-start gap-2 items-center"
-                >
-                  <Icon icon="solar:copy-broken" width="24" height="24" />
-                  Copy image address
-                </Button>
-                {/* <Button
-                  onClick={() => {
-                    downloadFile(
-                      msg.fileData.url,
-                      msg.fileData.name || "image"
-                    );
-                    setOpenPopoverId(null);
-                  }}
-                  variant={"ghost"}
-                  size={"sm"}
-                  className="flex w-full justify-start gap-2 items-center"
-                >
-                  <Icon icon="solar:copy-broken" width="24" height="24" />
-                  Save image
-                </Button> */}
-              </>
+              <Button
+                onClick={() => {
+                  copyImageToClipboard(msg.fileData.url);
+                  setOpenPopoverId(null);
+                }}
+                variant={"ghost"}
+                size={"sm"}
+                className="flex w-full justify-start gap-2 items-center"
+              >
+                <Copy className="w-4 h-4" />
+                Copy image address
+              </Button>
             )}
 
             {msg.fileData.type?.startsWith("video/") && (
@@ -227,11 +225,7 @@ export function MessageOptionsMenu({
                 size={"sm"}
                 className="flex w-full justify-start gap-2 items-center"
               >
-                <Icon
-                  icon="solar:chat-round-video-broken"
-                  width="24"
-                  height="24"
-                />
+                <Video className="w-4 h-4" />
                 Save video
               </Button>
             )}
@@ -247,11 +241,7 @@ export function MessageOptionsMenu({
                   size={"sm"}
                   className="flex w-full justify-start gap-2 items-center"
                 >
-                  <Icon
-                    icon="solar:file-download-broken"
-                    width="20"
-                    height="20"
-                  />
+                  <FileDown className="w-4 h-4" />
                   Download file
                 </Button>
               )}
@@ -275,7 +265,7 @@ export function MessageOptionsMenu({
             size={"sm"}
             className="flex w-full justify-start gap-2 items-center"
           >
-            <Icon icon="solar:gallery-edit-broken" width="24" height="24" />
+            <Edit3 className="w-4 h-4" />
             Edit
           </Button>
         )}

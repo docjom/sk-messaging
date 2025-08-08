@@ -78,8 +78,9 @@ function Dashboard() {
   const { clearMentionSuggestions } = useMentions();
 
   const cleanup = useTypingStatus((state) => state.cleanup);
-  const { setFolderSidebar } = useChatFolderStore();
+  const { setFolderSidebar, folderSidebar } = useChatFolderStore();
   const { isOnline, wasOffline } = useInternetConnection();
+  const { hasFolders } = useFolderStore();
 
   const { messages, messagesLoading, loadOlderMessages } =
     useInfiniteMessages(chatId);
@@ -621,7 +622,10 @@ function Dashboard() {
         getSenderDisplayName={getSenderDisplayName}
       />
       {/* Center Chat Area */}
-      <div className="flex-1 bg-gray-white  sm:ml-64 lg:ml-0 sticky top-0 left-0 z-20 overflow-y-hidden flex flex-col h-full">
+      <div
+        className={`flex-1 bg-gray-white   lg:ml-0 sticky top-0 left-0 z-20 overflow-y-hidden flex flex-col h-full 
+        ${hasFolders && !folderSidebar ? "sm:ml-74" : "sm:ml-64"}`}
+      >
         {/* Header */}
         {chatId && (
           <ChatHeader
