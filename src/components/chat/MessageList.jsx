@@ -39,6 +39,7 @@ export const MessageList = ({
 
   const { setEditMessage, setReplyTo, chatId, users, topicId } =
     useMessageActionStore();
+  const isUserStickyRef = useRef(true);
 
   const userProfile = useUserStore((s) => s.userProfile);
   const user = userProfile;
@@ -49,7 +50,7 @@ export const MessageList = ({
     if (highlightedMessageId) {
       const timer = setTimeout(() => {
         setHighlightedMessageId(null);
-      }, 3000);
+      }, 2500);
       return () => clearTimeout(timer);
     }
   }, [highlightedMessageId]);
@@ -57,7 +58,44 @@ export const MessageList = ({
   const [forwardDialogOpen, setForwardDialogOpen] = useState(false);
   const [selectedMessage, setSelectedMessage] = useState(null);
 
-  // Function to scroll to and highlight a specific message
+  // Helper function to determine if messages should be grouped
+  const shouldGroupMessage = (currentMsg, previousMsg) => {
+    if (!previousMsg) return false;
+    if (currentMsg.senderId !== previousMsg.senderId) return false;
+    if (currentMsg.type === "system" || previousMsg.type === "system")
+      return false;
+
+    // Handle different timestamp formats (Firebase Timestamp, Date, or milliseconds)
+    const getCurrentTime = (timestamp) => {
+      if (!timestamp) return 0;
+      if (timestamp.seconds) return timestamp.seconds * 1000; // Firebase Timestamp
+      if (timestamp instanceof Date) return timestamp.getTime(); // Date object
+      if (typeof timestamp === "number") return timestamp; // Already in milliseconds
+      return Date.parse(timestamp) || 0; // Try to parse string
+    };
+
+    const currentTime = getCurrentTime(currentMsg.timestamp);
+    const previousTime = getCurrentTime(previousMsg.timestamp);
+
+    const timeDiffMs = Math.abs(currentTime - previousTime);
+    const maxGroupingTime = 5 * 60 * 1000; // 5 minutes in milliseconds
+
+    return timeDiffMs < maxGroupingTime;
+  };
+
+  // Helper function to check if this is the last message in a group
+  const isLastInGroup = (currentMsg, nextMsg) => {
+    if (!nextMsg) return true;
+    return !shouldGroupMessage(nextMsg, currentMsg);
+  };
+
+  // Helper function to check if this is the first message in a group
+  const isFirstInGroup = (currentMsg, previousMsg) => {
+    if (!previousMsg) return true;
+    return !shouldGroupMessage(currentMsg, previousMsg);
+  };
+
+  // Function to scroll to and highlight a specific message (keep smooth here)
   const scrollToMessage = useCallback((messageId) => {
     const messageElement = document.getElementById(`message-${messageId}`);
     if (messageElement) {
@@ -140,6 +178,8 @@ export const MessageList = ({
 
       await batch.commit();
       setOpenPopoverId(null);
+      // Keep sticky after action
+      isUserStickyRef.current = true;
     } catch (err) {
       console.error("Failed to pin message:", err);
     }
@@ -178,6 +218,7 @@ export const MessageList = ({
 
       await batch.commit();
       setOpenPopoverId(null);
+      isUserStickyRef.current = true;
     } catch (err) {
       console.error("Error unpinning message:", err);
     }
@@ -214,6 +255,7 @@ export const MessageList = ({
       });
 
       setOpenPopoverId(null);
+      isUserStickyRef.current = true;
     } catch (error) {
       console.error("Error bumping message:", error);
     }
@@ -257,23 +299,6 @@ export const MessageList = ({
   };
 
   const copyImageToClipboard = async (imageUrl) => {
-    // try {
-    //   const response = await fetch(imageUrl, { mode: "cors" });
-    //   if (!response.ok) throw new Error("Failed to fetch image");
-
-    //   const blob = await response.blob();
-    //   console.log("Blob type:", blob.type);
-
-    //   if (navigator.clipboard && window.ClipboardItem) {
-    //     const clipboardItem = new ClipboardItem({ [blob.type]: blob });
-    //     await navigator.clipboard.write([clipboardItem]);
-    //     toast.success("Image copied to clipboard!");
-    //   } else {
-    //     await navigator.clipboard.writeText(imageUrl);
-    //     toast.success("Image URL copied to clipboard!");
-    //   }
-    // } catch (err) {
-    //   console.error("Failed to copy image:", err);
     try {
       await navigator.clipboard.writeText(imageUrl);
       toast.success("Image URL copied to clipboard!");
@@ -281,7 +306,6 @@ export const MessageList = ({
       toast.error("Failed to copy image");
       console.log(e);
     }
-    //}
   };
 
   const handleImageLoad = useCallback((messageId) => {
@@ -289,6 +313,10 @@ export const MessageList = ({
       ...prev,
       [messageId]: { ...prev[messageId], imageLoaded: true },
     }));
+    // Re-stick if user is sticky
+    if (isUserStickyRef.current && messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "auto" });
+    }
   }, []);
 
   const handleVideoLoad = useCallback((messageId) => {
@@ -296,11 +324,14 @@ export const MessageList = ({
       ...prev,
       [messageId]: { ...prev[messageId], videoLoaded: true },
     }));
+    if (isUserStickyRef.current && messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "auto" });
+    }
   }, []);
 
   if (messagesLoading) {
     return (
-      <div className="flex-1 flex items-center justify-center">
+      <div className="flex-1 flex items-center justify-center bg-gradient-to-b ">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
       </div>
     );
@@ -310,266 +341,352 @@ export const MessageList = ({
     <>
       <div
         ref={messagesContainerRef}
-        className="flex-1 overflow-y-auto overflow-x-hidden scroll-smooth"
+        className="flex-1 overflow-y-auto overflow-x-hidden scroll-smooth bg-gradient-to-b  px-2 py-4"
       >
         {messages?.length === 0 && (
           <div className="flex items-center justify-center h-full">
-            <div className="border rounded-full px-4 py-1">
-              <h1 className="text-sm font-semibold">
-                No messages yet! Start the conversation.
-              </h1>
+            <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50 rounded-2xl px-6 py-4 shadow-lg">
+              <div className="text-center">
+                <Icon
+                  icon="solar:chat-dots-outline"
+                  className="mx-auto mb-3 text-blue-400 dark:text-blue-300"
+                  width="48"
+                  height="48"
+                />
+                <h1 className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                  No messages yet
+                </h1>
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                  Start the conversation
+                </p>
+              </div>
             </div>
           </div>
         )}
-        {messages?.map((msg, index) => (
-          <div
-            key={`${msg.id}-${index}`}
-            id={`message-${msg.id}`}
-            className={`flex mb-2 transition-all duration-300 ${
-              highlightedMessageId === msg.id
-                ? "bg-blue-100 dark:bg-blue-500/20 rounded-lg py-2 -mx-0"
-                : ""
-            } ${
-              msg.type === "system"
-                ? "justify-center"
-                : msg.senderId === user?.uid
-                ? "justify-end"
-                : "justify-start items-end"
-            }`}
-          >
-            <div>
-              {msg.senderId !== user?.uid && msg.type !== "system" && (
-                <div className="flex gap-1.5 text-xs ml-7 items-center mb-0.5">
-                  {getSenderDisplayName(msg.senderId) && (
-                    <p className="capitalize font-semibold text-blue-600 dark:text-white">
-                      {getSenderDisplayName(msg.senderId)}
-                    </p>
-                  )}
-                  {getSenderData(msg.senderId)?.department && (
-                    <span className="text-[10px] bg-blue-100 dark:bg-gray-500 dark:text-white text-blue-700 rounded-full px-2 py-0.5 font-medium">
-                      {getSenderData(msg.senderId)?.department}
-                    </span>
-                  )}
-                  {getSenderData(msg.senderId)?.position && (
-                    <span className="text-[10px] dark:bg-gray-100 text-gray-600 rounded-full border px-2 py-0.5 font-medium">
-                      {getSenderData(msg.senderId)?.position}
-                    </span>
-                  )}
-                </div>
-              )}
+
+        {messages?.map((msg, index) => {
+          const previousMsg = index > 0 ? messages[index - 1] : null;
+          const nextMsg =
+            index < messages.length - 1 ? messages[index + 1] : null;
+          const isOwn = msg.senderId === user?.uid;
+          const isSystem = msg.type === "system";
+          const isFirstMsg = isFirstInGroup(msg, previousMsg);
+          const isLastMsg = isLastInGroup(msg, nextMsg);
+          const isGrouped = shouldGroupMessage(msg, previousMsg);
+
+          return (
+            <React.Fragment key={msg.id}>
+              {/* Add subtle separator between message groups */}
+              {!isSystem &&
+                isFirstMsg &&
+                index > 0 &&
+                messages[index - 1]?.type !== "system" && (
+                  <div className="flex justify-center my-2">
+                    <div className="w-12 h-px bg-gray-200/50 dark:bg-gray-600/30"></div>
+                  </div>
+                )}
 
               <div
-                className={`flex gap-1.5 ${
-                  msg.senderId === user?.uid ? "justify-end" : ""
+                id={`message-${msg.id}`}
+                className={`flex transition-all duration-300 ${
+                  highlightedMessageId === msg.id
+                    ? "bg-yellow-200/30 dark:bg-yellow-500/20 rounded-lg py-2 -mx-2 px-2"
+                    : ""
+                } ${
+                  isSystem
+                    ? "justify-center mb-4"
+                    : isOwn
+                    ? "justify-end"
+                    : "justify-start"
+                } ${
+                  // Spacing logic for grouping
+                  isSystem
+                    ? ""
+                    : isGrouped
+                    ? "mb-0.5" // Tight spacing for grouped messages
+                    : isFirstMsg
+                    ? "mt-4 mb-0.5" // Extra space before new group
+                    : "mb-0.5"
                 }`}
               >
-                {msg.senderId !== user?.uid && msg.type !== "system" && (
-                  <Avatar className="h-5 w-5">
-                    <AvatarImage src={getSenderData(msg.senderId)?.photoURL} />
-                    <AvatarFallback></AvatarFallback>
-                  </Avatar>
-                )}
-
-                <div className="flex">
-                  {msg.senderId === user?.uid && msg.type !== "system" && (
-                    <div className="relative">
-                      <MessageOptionsMenu
-                        msg={msg}
-                        users={users}
-                        user={user}
-                        openPopoverId={openPopoverId}
-                        setOpenPopoverId={setOpenPopoverId}
-                        setReplyTo={setReplyTo}
-                        setEditMessage={setEditMessage}
-                        handlePinMessage={handlePinMessage}
-                        handleRemovePinMessage={handleRemovePinMessage}
-                        handleBumpMessage={handleBumpMessage}
-                        handleForwardMessage={handleForwardMessage}
-                        copy={copy}
-                        copyImageToClipboard={copyImageToClipboard}
-                        downloadFile={downloadFile}
-                        getSenderDisplayName={getSenderDisplayName}
-                        chatId={chatId}
-                        isCurrentUser={true}
-                      />
-                    </div>
-                  )}
-
+                {isSystem ? (
+                  // System message styling (like Telegram's service messages)
+                  <div className="bg-white/60 dark:bg-gray-700/60 backdrop-blur-sm text-center px-4 py-2 rounded-full shadow-sm border border-gray-200/30 dark:border-gray-600/30">
+                    <p className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                      {msg.message}
+                    </p>
+                  </div>
+                ) : (
                   <div
-                    className={`relative max-w-52 h-auto ${
-                      msg.type === "system"
-                        ? "bg-white/80 dark:bg-transparent dark:border text-center px-3 py-1.5 rounded-full shadow-sm text-xs"
-                        : msg.senderId === user?.uid && msg.type !== "file"
-                        ? "bg-blue-500 text-white px-3 py-2 shadow-sm rounded-tl-2xl rounded-tr-2xl rounded-bl-2xl rounded-br-lg"
-                        : msg.type === "file" && msg.senderId === user?.uid
-                        ? "bg-blue-500 text-white shadow-sm rounded-tl-2xl rounded-tr-2xl rounded-bl-2xl rounded-br-lg"
-                        : msg.type === "file" && msg.senderId !== user?.uid
-                        ? "shadow-sm rounded-tl-2xl rounded-tr-2xl rounded-bl-2xl rounded-br-lg"
-                        : "px-3 py-2 shadow-sm border border-gray-100/10 rounded-tl-md rounded-tr-2xl rounded-bl-2xl rounded-br-2xl"
+                    className={`flex items-end gap-1 max-w-[75%] ${
+                      isOwn ? "flex-row-reverse" : "flex-row"
                     }`}
                   >
-                    {msg.pinned && (
-                      <div className="absolute z-20 -top-1 right-0 text-red-500">
-                        <Icon icon="solar:pin-bold" width="14" height="14" />
-                      </div>
+                    {/* Avatar (only for others and only on last message in group) */}
+                    {!isOwn && isLastMsg && (
+                      <Avatar className="h-8 w-8 flex-shrink-0 mb-1">
+                        <AvatarImage
+                          src={getSenderData(msg.senderId)?.photoURL}
+                        />
+                        <AvatarFallback className="text-xs bg-blue-500 text-white">
+                          {getSenderDisplayName(msg.senderId)
+                            ?.charAt(0)
+                            ?.toUpperCase() || "?"}
+                        </AvatarFallback>
+                      </Avatar>
                     )}
 
-                    <ReplyMessageDisplay
-                      message={msg}
-                      getSenderDisplayName={getSenderDisplayName}
-                      onReplyClick={handleReplyClick}
-                    />
+                    {/* Spacer for grouped messages */}
+                    {!isOwn && !isLastMsg && (
+                      <div className="w-8 flex-shrink-0" />
+                    )}
 
-                    {msg.type === "file" ? (
-                      <FileMessage
-                        message={msg}
-                        handleImageLoad={handleImageLoad}
-                        handleVideoLoad={handleVideoLoad}
-                        loadingStates={loadingStates}
-                        getSenderData={getSenderData}
-                      />
-                    ) : (
-                      <>
-                        {msg.type === "system" ? (
-                          <p className="text-xs font-medium">{msg.message}</p>
-                        ) : (
-                          <div
-                            dangerouslySetInnerHTML={{
-                              __html: formatMessageWithLinks(
-                                msg.message,
-                                msg.senderId,
-                                user?.uid
-                              ),
-                            }}
-                            className="text-sm max-w-52 whitespace-pre-wrap break-words"
+                    {/* Message content */}
+                    <div
+                      className={`flex flex-col ${
+                        isOwn ? "items-end" : "items-start"
+                      }`}
+                    >
+                      {/* Sender name (only for others and first message in group) */}
+                      {!isOwn && isFirstMsg && (
+                        <div className="flex gap-2 items-center mb-1 ml-3">
+                          <p className="text-xs font-semibold text-blue-600 dark:text-blue-400">
+                            {getSenderDisplayName(msg.senderId)}
+                          </p>
+                          {getSenderData(msg.senderId)?.department && (
+                            <span className="text-[10px] bg-blue-100 dark:bg-blue-800/50 text-blue-700 dark:text-blue-300 rounded-full px-2 py-0.5 font-medium">
+                              {getSenderData(msg.senderId)?.department}
+                            </span>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Message bubble container */}
+                      <div className="relative flex items-center gap-1">
+                        {/* Options menu for own messages */}
+                        {isOwn && (
+                          <MessageOptionsMenu
+                            msg={msg}
+                            users={users}
+                            user={user}
+                            openPopoverId={openPopoverId}
+                            setOpenPopoverId={setOpenPopoverId}
+                            setReplyTo={setReplyTo}
+                            setEditMessage={setEditMessage}
+                            handlePinMessage={handlePinMessage}
+                            handleRemovePinMessage={handleRemovePinMessage}
+                            handleBumpMessage={handleBumpMessage}
+                            handleForwardMessage={handleForwardMessage}
+                            copy={copy}
+                            copyImageToClipboard={copyImageToClipboard}
+                            downloadFile={downloadFile}
+                            getSenderDisplayName={getSenderDisplayName}
+                            chatId={chatId}
+                            isCurrentUser={true}
                           />
                         )}
-                      </>
-                    )}
-                  </div>
-                </div>
 
-                {msg.senderId !== user?.uid && msg.type !== "system" && (
-                  <MessageOptionsMenu
-                    msg={msg}
-                    users={users}
-                    user={user}
-                    openPopoverId={openPopoverId}
-                    setOpenPopoverId={setOpenPopoverId}
-                    setReplyTo={setReplyTo}
-                    setEditMessage={setEditMessage}
-                    handlePinMessage={handlePinMessage}
-                    handleRemovePinMessage={handleRemovePinMessage}
-                    handleBumpMessage={handleBumpMessage}
-                    handleForwardMessage={handleForwardMessage}
-                    copy={copy}
-                    copyImageToClipboard={copyImageToClipboard}
-                    downloadFile={downloadFile}
-                    getSenderDisplayName={getSenderDisplayName}
-                    chatId={chatId}
-                    isCurrentUser={false}
-                  />
+                        {/* Message bubble */}
+                        <div
+                          className={`relative shadow-sm ${
+                            isOwn
+                              ? "bg-blue-500 dark:bg-blue-600 text-white"
+                              : "bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border border-gray-200/50 dark:border-gray-600/50"
+                          } ${
+                            msg.type === "file"
+                              ? "rounded-2xl overflow-hidden"
+                              : "px-3 py-2 rounded-2xl max-w-md"
+                          } ${
+                            // Telegram-style bubble tails
+                            isOwn && isLastMsg
+                              ? "rounded-br-md"
+                              : !isOwn && isLastMsg
+                              ? "rounded-bl-md"
+                              : ""
+                          }`}
+                        >
+                          {/* Pin indicator */}
+                          {msg.pinned && (
+                            <div className="absolute z-10 -top-2 -right-2">
+                              <div className="bg-red-500 rounded-full p-1">
+                                <Icon
+                                  icon="solar:pin-bold"
+                                  width="10"
+                                  height="10"
+                                  className="text-white"
+                                />
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Reply message display */}
+                          <ReplyMessageDisplay
+                            message={msg}
+                            getSenderDisplayName={getSenderDisplayName}
+                            onReplyClick={handleReplyClick}
+                          />
+
+                          {/* Message content */}
+                          {msg.type === "file" ? (
+                            <FileMessage
+                              message={msg}
+                              handleImageLoad={handleImageLoad}
+                              handleVideoLoad={handleVideoLoad}
+                              loadingStates={loadingStates}
+                              getSenderData={getSenderData}
+                            />
+                          ) : (
+                            <div
+                              dangerouslySetInnerHTML={{
+                                __html: formatMessageWithLinks(
+                                  msg.message,
+                                  msg.senderId,
+                                  user?.uid
+                                ),
+                              }}
+                              className="text-sm whitespace-pre-wrap break-words leading-relaxed"
+                            />
+                          )}
+
+                          {/* Message footer for own messages - Only show on last message in group */}
+                          {isOwn && isLastMsg && (
+                            <div className="flex items-center justify-end gap-1 mt-1">
+                              {/* Message status indicators */}
+                              <div className="flex items-center gap-1">
+                                {/* Forward/Edit/Bump indicators */}
+                                {msg.forwarded && (
+                                  <Icon
+                                    icon="material-symbols:forward"
+                                    width="12"
+                                    height="12"
+                                    className="opacity-60"
+                                  />
+                                )}
+                                {msg.edited && (
+                                  <span className="text-xs opacity-60">
+                                    edited
+                                  </span>
+                                )}
+                                {msg.bumpedFrom && (
+                                  <span className="text-xs opacity-60">
+                                    bumped
+                                  </span>
+                                )}
+
+                                {/* Timestamp */}
+                                <span className="text-xs opacity-60">
+                                  {formatTimestamp(msg.timestamp)}
+                                </span>
+
+                                {/* Read status */}
+                                {msg.status === "sending" ? (
+                                  <Icon
+                                    icon="ic:round-access-time"
+                                    width="14"
+                                    height="14"
+                                    className="opacity-60"
+                                  />
+                                ) : msg.seenBy?.length > 0 ? (
+                                  <Icon
+                                    icon="material-symbols:done-all"
+                                    width="16"
+                                    height="16"
+                                    className="text-blue-300"
+                                  />
+                                ) : (
+                                  <Icon
+                                    icon="material-symbols:done"
+                                    width="14"
+                                    height="14"
+                                    className="opacity-60"
+                                  />
+                                )}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Options menu for other messages */}
+                        {!isOwn && (
+                          <MessageOptionsMenu
+                            msg={msg}
+                            users={users}
+                            user={user}
+                            openPopoverId={openPopoverId}
+                            setOpenPopoverId={setOpenPopoverId}
+                            setReplyTo={setReplyTo}
+                            setEditMessage={setEditMessage}
+                            handlePinMessage={handlePinMessage}
+                            handleRemovePinMessage={handleRemovePinMessage}
+                            handleBumpMessage={handleBumpMessage}
+                            handleForwardMessage={handleForwardMessage}
+                            copy={copy}
+                            copyImageToClipboard={copyImageToClipboard}
+                            downloadFile={downloadFile}
+                            getSenderDisplayName={getSenderDisplayName}
+                            chatId={chatId}
+                            isCurrentUser={false}
+                          />
+                        )}
+                      </div>
+
+                      {/* Reactions and timestamp for other messages - Only show timestamp on last message in group */}
+                      {!isOwn && (
+                        <div className="flex flex-col gap-1 ml-3 mt-1">
+                          {/* Reactions */}
+                          {msg.reactions && (
+                            <EmojiReactions
+                              msg={msg}
+                              getSenderData={getSenderData}
+                              user={user}
+                            />
+                          )}
+
+                          {/* Message footer - Only show on last message in group */}
+                          {isLastMsg && (
+                            <div className="flex items-center gap-1">
+                              {msg.forwarded && (
+                                <Icon
+                                  icon="material-symbols:forward"
+                                  width="12"
+                                  height="12"
+                                  className="text-gray-400 dark:text-gray-500"
+                                />
+                              )}
+                              {msg.edited && (
+                                <span className="text-xs text-gray-400 dark:text-gray-500">
+                                  edited
+                                </span>
+                              )}
+                              {msg.bumpedFrom && (
+                                <span className="text-xs text-gray-400 dark:text-gray-500">
+                                  bumped
+                                </span>
+                              )}
+                              <span className="text-xs text-gray-400 dark:text-gray-500">
+                                {formatTimestamp(msg.timestamp)}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      {/* Reactions for own messages */}
+                      {isOwn && msg.reactions && (
+                        <div className="mr-3 mt-1">
+                          <EmojiReactions
+                            msg={msg}
+                            getSenderData={getSenderData}
+                            user={user}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 )}
               </div>
-
-              {msg.senderId !== user?.uid && msg.type !== "system" && (
-                <div className="ml-7">
-                  {msg.reactions && (
-                    <EmojiReactions
-                      msg={msg}
-                      getSenderData={getSenderData}
-                      user={user}
-                    />
-                  )}
-                  <div className="text-[10px] flex">
-                    {msg.type === "forwarded" && (
-                      <span className="px-1 flex justify-start items-center">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="14"
-                          height="14"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            fill="none"
-                            stroke="currentColor"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="1.5"
-                            d="m19.5 12l-5-5m5 5l-5 5m5-5H13m-3.5 0c-1.667 0-5 1-5 5"
-                          />
-                        </svg>
-                        Forwarded
-                      </span>
-                    )}
-                    {msg.edited && <span className="px-1">Edited</span>}
-                    {msg.bumpedFrom && <span className="px-1">Bump</span>}
-                    {formatTimestamp(msg.timestamp)}
-                  </div>
-                </div>
-              )}
-
-              {msg.senderId === user?.uid && msg.type !== "system" && (
-                <div className="">
-                  <div className="text-[10px] flex justify-end items-center">
-                    {msg.reactions && (
-                      <EmojiReactions
-                        msg={msg}
-                        getSenderData={getSenderData}
-                        user={user}
-                      />
-                    )}
-                  </div>
-                  <div className="text-[10px] flex justify-end items-center">
-                    {msg.forwarded && (
-                      <span className="px-1 flex justify-start items-center">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="14"
-                          height="14"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            fill="none"
-                            stroke="currentColor"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="1.5"
-                            d="m19.5 12l-5-5m5 5l-5 5m5-5H13m-3.5 0c-1.667 0-5 1-5 5"
-                          />
-                        </svg>
-                        Forwarded
-                      </span>
-                    )}
-                    {msg.edited && <span className="px-1">Edited</span>}
-                    {msg.bumpedFrom && <span className="px-1">Bump</span>}
-                    {formatTimestamp(msg.timestamp)}
-                    {msg.senderId === user?.uid && (
-                      <div className="flex">
-                        {msg.status === "sending" ? (
-                          <Icon
-                            icon="ic:round-access-time"
-                            width="14"
-                            height="14"
-                            className="animate-pulse"
-                          />
-                        ) : msg.status === "sent" && !msg.seen ? (
-                          <Icon icon="ic:round-check" width="16" height="16" />
-                        ) : msg.seenBy?.length > 0 ? (
-                          <Icon
-                            icon="solar:check-read-linear"
-                            width="16"
-                            height="16"
-                          />
-                        ) : null}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        ))}
+            </React.Fragment>
+          );
+        })}
         <div ref={messagesEndRef} />
       </div>
 

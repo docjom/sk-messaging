@@ -108,64 +108,6 @@ function Dashboard() {
     prevMessageCountRef.current = messages;
   }, [messages]);
 
-  // useEffect(() => {
-  //   if (!chatId) {
-  //     setMessages([]);
-  //     setMessagesLoading(false);
-  //     return;
-  //   }
-
-  //   setMessagesLoading(true);
-  //   const cacheKey = `chat_${chatId}_messages`;
-
-  //   // Load from cache immediately for fast UI
-  //   const cached = localStorage.getItem(cacheKey);
-  //   if (cached) {
-  //     try {
-  //       const { data } = JSON.parse(cached);
-  //       setMessages(data);
-  //       setMessagesLoading(false);
-  //     } catch (err) {
-  //       console.warn("Cache parse failed:", err);
-  //     }
-  //   }
-
-  //   const { messageCollectionRef } = getRefs({ chatId, topicId });
-
-  //   // Always query all recent messages to catch updates
-  //   const q = query(
-  //     messageCollectionRef,
-  //     orderBy("timestamp"),
-  //     limitToLast(50)
-  //   );
-
-  //   const unsubscribe = onSnapshot(q, (querySnapshot) => {
-  //     const messagesArray = [];
-  //     querySnapshot.forEach((doc) => {
-  //       messagesArray.push({
-  //         id: doc.id,
-  //         ...doc.data(),
-  //         // Normalize timestamp for consistency
-  //         timestamp: doc.data().timestamp?.toDate?.() || doc.data().timestamp,
-  //       });
-  //     });
-
-  //     setMessages(messagesArray);
-  //     setMessagesLoading(false);
-
-  //     // Cache the updated messages
-  //     localStorage.setItem(
-  //       cacheKey,
-  //       JSON.stringify({
-  //         data: messagesArray,
-  //         timestamp: Date.now(),
-  //       })
-  //     );
-  //   });
-
-  //   return () => unsubscribe();
-  // }, [chatId, topicId]);
-
   const handleFileUpload = async ({ file, message, chatId }) => {
     setIsUploadingFile(true);
     try {

@@ -33,9 +33,9 @@ export const FileMessage = ({
   };
 
   return (
-    <div className="max-w-sm border rounded-lg">
+    <div className="w-full sm:max-w-[20rem] md:max-w-[28rem] border rounded-lg">
       {isImage && (
-        <div className="relative ">
+        <div className="relative">
           {/* Loading placeholder */}
           {!isImageLoaded && (
             <div
