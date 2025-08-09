@@ -1,73 +1,667 @@
-// message list
+import React, { useRef, useState, useCallback, useEffect } from "react";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Icon } from "@iconify/react";
+import { ReplyMessageDisplay } from "../message/ReplyMessage";
+import { useMessageActionStore } from "../../stores/useMessageActionStore";
+import { useUserStore } from "@/stores/useUserStore";
+import { FileMessage } from "../message/FileMessage";
+import { EmojiReactions } from "../emoji/EmojiReactions";
+import { formatMessageWithLinks } from "../../composables/scripts";
+import { toast } from "sonner";
+import {
+  doc,
+  serverTimestamp,
+  getDoc,
+  addDoc,
+  writeBatch,
+  query,
+  where,
+  getDocs,
+  updateDoc,
+} from "firebase/firestore";
+import { db } from "../../firebase";
+import { formatTimestamp } from "../../composables/scripts";
+import ForwardMessageDialog from "../message/ForwardMessageDialog";
+import { MessageOptionsMenu } from "../message/MessageOptionsMenu";
+import { getRefs, getUserRef } from "@/utils/firestoreRefs";
 
-  // Use the infinite messages hook
-  // const {
-  //   messages,
-  //   messagesLoading,
-  //   loadingOlder,
-  //   hasMoreMessages,
-  //   loadOlderMessages,
-  // } = useInfiniteMessages(chatId);
+// Helper function to convert timestamp to Date object
+const getDateFromTimestamp = (timestamp) => {
+  if (!timestamp) return null;
 
-  // Scroll to bottom when new messages arrive (only if user was at bottom)
-  // useEffect(() => {
-  //   if (shouldScrollToBottom && messagesEndRef.current) {
-  //     messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
-  //   }
-  // }, [messages, shouldScrollToBottom]);
+  // If it's already a Date object
+  if (timestamp instanceof Date) return timestamp;
 
-  // const handleScroll = useCallback(() => {
-  //   console.log("🌀 handleScroll triggered");
+  // If it's a Firestore Timestamp with toDate method
+  if (timestamp && typeof timestamp.toDate === "function") {
+    return timestamp.toDate();
+  }
 
-  //   const container = messagesContainerRef.current;
-  //   if (!container) return;
+  // If it's a timestamp in seconds (Firestore format)
+  if (typeof timestamp === "object" && timestamp.seconds) {
+    return new Date(timestamp.seconds * 1000);
+  }
 
-  //   const { scrollTop, scrollHeight, clientHeight } = container;
-  //   const isNearBottom = scrollHeight - scrollTop - clientHeight < 100;
-  //   setShouldScrollToBottom(isNearBottom);
+  // If it's a number (milliseconds)
+  if (typeof timestamp === "number") {
+    return new Date(timestamp);
+  }
 
-  //   if (scrollTop === 0 && hasMoreMessages && !loadingOlder) {
-  //     console.log("⬆ Reached top — loading older messages...");
-  //     previousScrollHeight.current = scrollHeight;
-  //     loadOlderMessages();
-  //   }
-  // }, [hasMoreMessages, loadingOlder, loadOlderMessages]);
+  // If it's a string
+  if (typeof timestamp === "string") {
+    return new Date(timestamp);
+  }
 
-  // // Maintain scroll position after loading older messages
-  // useEffect(() => {
-  //   if (loadingOlder === false && previousScrollHeight.current > 0) {
-  //     const container = messagesContainerRef.current;
-  //     if (container) {
-  //       // Calculate the difference in scroll height and adjust scroll position
-  //       const newScrollHeight = container.scrollHeight;
-  //       const scrollDifference = newScrollHeight - previousScrollHeight.current;
-  //       container.scrollTop = scrollDifference;
-  //       previousScrollHeight.current = 0;
-  //     }
-  //   }
-  // }, [loadingOlder]);
+  return null;
+};
 
+// Helper function to check if messages should be grouped
+const shouldGroupMessages = (currentMsg, previousMsg) => {
+  if (!previousMsg || !currentMsg) return false;
 
-//-------------done
-fix layout view 
-after creating topic, admin only can create topic 
-close the group folder upon clicking user thats have a direct type 
+  // Don't group system messages
+  if (currentMsg.type === "system" || previousMsg.type === "system")
+    return false;
 
+  // Group if same sender and within 5 minutes
+  const currentDate = getDateFromTimestamp(currentMsg.timestamp);
+  const previousDate = getDateFromTimestamp(previousMsg.timestamp);
 
-//---------------------- currently working
-close group folder when user click a group without a topic 
-remove add user to header when i click the topic 
-adapt sending message including files, videos, links and images 
+  if (!currentDate || !previousDate) return false;
 
-// ----------------------- not started yet
-adapt topic information to header
-create a management of topic
-admin can set another roles to user
-adapt pinning topic
-adapt pinning chat in topic
-adapt emoji reactions per topic
-adapt getting files per topic
-topic info modal
-topic edit modal info
-topic seen functionality
-typing indicator in topic
+  const timeDiff = currentDate.getTime() - previousDate.getTime();
+  const fiveMinutes = 5 * 60 * 1000;
+
+  return (
+    currentMsg.senderId === previousMsg.senderId &&
+    timeDiff >= 0 &&
+    timeDiff < fiveMinutes
+  );
+};
+
+// Helper function to check if current message is the last in its group
+const isLastInGroup = (currentMsg, nextMsg) => {
+  if (!nextMsg || !currentMsg) return true;
+
+  // If next message is system message, current is last in group
+  if (nextMsg.type === "system") return true;
+
+  // Check if next message would be grouped with current
+  return !shouldGroupMessages(nextMsg, currentMsg);
+};
+// Helper function to check if we should show date separator
+const shouldShowDateSeparator = (currentMsg, previousMsg) => {
+  if (!previousMsg) return true;
+
+  const currentDate = getDateFromTimestamp(currentMsg.timestamp);
+  const previousDate = getDateFromTimestamp(previousMsg.timestamp);
+
+  if (!currentDate || !previousDate) return false;
+
+  return currentDate.toDateString() !== previousDate.toDateString();
+};
+
+// Helper function to format date for separator
+const formatDateSeparator = (timestamp) => {
+  if (!timestamp) return "";
+
+  const date = getDateFromTimestamp(timestamp);
+  const today = new Date();
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+
+  if (date.toDateString() === today.toDateString()) {
+    return "Today";
+  } else if (date.toDateString() === yesterday.toDateString()) {
+    return "Yesterday";
+  } else {
+    return date.toLocaleDateString("en-US", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  }
+};
+
+export const MessageList = ({
+  getSenderData,
+  getSenderDisplayName,
+  messages,
+  messagesLoading,
+}) => {
+  const messagesEndRef = useRef(null);
+  const messagesContainerRef = useRef(null);
+  const [loadingStates, setLoadingStates] = useState({});
+  const [openPopoverId, setOpenPopoverId] = useState(null);
+  const [highlightedMessageId, setHighlightedMessageId] = useState(null);
+
+  const { setEditMessage, setReplyTo, chatId, users, topicId } =
+    useMessageActionStore();
+
+  const userProfile = useUserStore((s) => s.userProfile);
+  const user = userProfile;
+  const currentUserId = user?.uid;
+
+  // Clear highlight after 3 seconds
+  useEffect(() => {
+    if (highlightedMessageId) {
+      const timer = setTimeout(() => {
+        setHighlightedMessageId(null);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [highlightedMessageId]);
+
+  const [forwardDialogOpen, setForwardDialogOpen] = useState(false);
+  const [selectedMessage, setSelectedMessage] = useState(null);
+
+  // Function to scroll to and highlight a specific message
+  const scrollToMessage = useCallback((messageId) => {
+    const messageElement = document.getElementById(`message-${messageId}`);
+    if (messageElement) {
+      messageElement.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+      setHighlightedMessageId(messageId);
+    } else {
+      toast.error("Message not found in current view");
+    }
+  }, []);
+
+  // Handle clicking on a reply message
+  const handleReplyClick = useCallback(
+    (replyToMessageId) => {
+      if (replyToMessageId) {
+        scrollToMessage(replyToMessageId);
+      }
+    },
+    [scrollToMessage]
+  );
+
+  const handleForwardMessage = (messageId) => {
+    const message = messages.find((msg) => msg.id === messageId);
+    setSelectedMessage(message);
+    setForwardDialogOpen(true);
+    setOpenPopoverId(null);
+  };
+
+  const handlePinMessage = async (messageId) => {
+    try {
+      const { messageRef, chatRef, pinnedMessagesRef, messageCollectionRef } =
+        getRefs({
+          chatId,
+          topicId,
+          messageId,
+        });
+
+      const messageSnap = await getDoc(messageRef);
+      if (!messageSnap.exists()) return console.error("Message not found");
+
+      const messageData = messageSnap.data();
+
+      await updateDoc(messageRef, {
+        pinned: true,
+        pinnedAt: serverTimestamp(),
+      });
+
+      const userRef = getUserRef(currentUserId);
+      const userSnap = await getDoc(userRef);
+      const name = userSnap.data()?.displayName || "Someone";
+
+      const batch = writeBatch(db);
+      batch.update(chatRef, {
+        lastMessage: `${name} pinned a message`,
+        lastMessageTime: serverTimestamp(),
+        lastSenderName: name,
+      });
+
+      batch.set(doc(messageCollectionRef), {
+        senderId: currentUserId,
+        message: `${name} pinned a message`,
+        timestamp: serverTimestamp(),
+        type: "system",
+      });
+
+      await addDoc(pinnedMessagesRef, {
+        originalMessageId: messageId,
+        senderId: messageData.senderId,
+        message: messageData.message,
+        timestamp: messageData.timestamp,
+        type: messageData.type || null,
+        fileData: messageData.fileData || null,
+        forwarded: messageData.forwarded || false,
+        forwardedAt: messageData.forwardedAt || null,
+        pinnedBy: currentUserId,
+        pinnedAt: serverTimestamp(),
+      });
+
+      await batch.commit();
+      setOpenPopoverId(null);
+    } catch (err) {
+      console.error("Failed to pin message:", err);
+    }
+  };
+
+  const handleRemovePinMessage = async (messageId) => {
+    try {
+      const { messageRef, pinnedMessagesRef, pinnedMessageDoc, chatRef } =
+        getRefs({ chatId, topicId, messageId });
+
+      const q = query(
+        pinnedMessagesRef,
+        where("originalMessageId", "==", messageId)
+      );
+      const pinnedMessageSnap = await getDocs(q);
+
+      if (pinnedMessageSnap.empty)
+        return console.error("Pinned message not found");
+
+      const pinnedMessageId = pinnedMessageSnap.docs[0].id;
+
+      const batch = writeBatch(db);
+      batch.update(messageRef, {
+        pinned: false,
+        pinnedAt: null,
+      });
+      batch.delete(pinnedMessageDoc(pinnedMessageId));
+
+      const userSnap = await getDoc(getUserRef(currentUserId));
+      const name = userSnap.data()?.displayName || "Someone";
+
+      batch.update(chatRef, {
+        lastMessage: `${name} unpinned a message`,
+        lastMessageTime: serverTimestamp(),
+      });
+
+      await batch.commit();
+      setOpenPopoverId(null);
+    } catch (err) {
+      console.error("Error unpinning message:", err);
+    }
+  };
+
+  const handleBumpMessage = async (messageId) => {
+    try {
+      const userRef = getUserRef(currentUserId);
+      const userSnap = await getDoc(userRef);
+      const name = userSnap.data()?.displayName || "Someone";
+
+      const { messageRef, messageCollectionRef, chatRef } = getRefs({
+        chatId,
+        topicId,
+        messageId,
+      });
+
+      const originalMsgSnap = await getDoc(messageRef);
+      const originalMsg = originalMsgSnap.data();
+
+      if (!originalMsg) throw new Error("Message not found.");
+
+      await addDoc(messageCollectionRef, {
+        ...Object.fromEntries(
+          Object.entries(originalMsg).filter(([key]) => key !== "reactions")
+        ),
+        bumpedFrom: messageId,
+        timestamp: serverTimestamp(),
+      });
+
+      await updateDoc(chatRef, {
+        lastMessage: `${name} bumped a message`,
+        lastMessageTime: serverTimestamp(),
+      });
+
+      setOpenPopoverId(null);
+    } catch (error) {
+      console.error("Error bumping message:", error);
+    }
+  };
+
+  const copy = (text) => {
+    navigator.clipboard
+      .writeText(text)
+      .then(() => {
+        toast("Text copied!");
+      })
+      .catch(() => {
+        toast.error("Failed to copy");
+      });
+  };
+
+  const downloadFile = async (imageUrl) => {
+    try {
+      const response = await fetch(imageUrl, {
+        method: "GET",
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+        },
+        mode: "cors",
+      });
+
+      if (!response.ok) throw new Error("Network response was not ok");
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = imageUrl.name;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Download failed:", error);
+    }
+  };
+
+  const copyImageToClipboard = async (imageUrl) => {
+    try {
+      await navigator.clipboard.writeText(imageUrl);
+      toast.success("Image URL copied to clipboard!");
+    } catch (e) {
+      toast.error("Failed to copy image");
+      console.log(e);
+    }
+  };
+
+  const handleImageLoad = useCallback((messageId) => {
+    setLoadingStates((prev) => ({
+      ...prev,
+      [messageId]: { ...prev[messageId], imageLoaded: true },
+    }));
+  }, []);
+
+  const handleVideoLoad = useCallback((messageId) => {
+    setLoadingStates((prev) => ({
+      ...prev,
+      [messageId]: { ...prev[messageId], videoLoaded: true },
+    }));
+  }, []);
+
+  if (messagesLoading) {
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <div
+        ref={messagesContainerRef}
+        className="flex-1 overflow-y-auto overflow-x-hidden scroll-smooth px-4"
+      >
+        {messages?.length === 0 && (
+          <div className="flex items-center justify-center h-full">
+            <div className="border rounded-full px-4 py-1">
+              <h1 className="text-sm font-semibold">
+                No messages yet! Start the conversation.
+              </h1>
+            </div>
+          </div>
+        )}
+
+        {messages?.map((msg, index) => {
+          const previousMsg = index > 0 ? messages[index - 1] : null;
+          const nextMsg =
+            index < messages.length - 1 ? messages[index + 1] : null;
+          const isGrouped = shouldGroupMessages(msg, previousMsg);
+          const isLastMessageInGroup = isLastInGroup(msg, nextMsg);
+          const showDateSeparator = shouldShowDateSeparator(msg, previousMsg);
+          const isCurrentUser = msg.senderId === user?.uid;
+          const isSystemMessage = msg.type === "system";
+
+          return (
+            <div key={`${msg.id}-${index}`}>
+              {/* Date Separator */}
+              {showDateSeparator && (
+                <div className="flex justify-center my-4">
+                  <div className="bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-full text-xs text-gray-600 dark:text-gray-300 font-medium">
+                    {formatDateSeparator(msg.timestamp)}
+                  </div>
+                </div>
+              )}
+
+              {/* Message Container */}
+              <div
+                id={`message-${msg.id}`}
+                className={`group relative transition-all duration-300 ${
+                  highlightedMessageId === msg.id
+                    ? "bg-blue-100 dark:bg-blue-500/20 rounded-lg py-2 -mx-2"
+                    : ""
+                } ${
+                  isSystemMessage
+                    ? "flex justify-center my-2"
+                    : isGrouped
+                    ? "mb-1"
+                    : "mb-4"
+                }`}
+              >
+                {isSystemMessage ? (
+                  // System Message
+                  <div className="bg-gray-100 dark:bg-gray-700 text-center px-3 py-1.5 rounded-full shadow-sm text-xs font-medium text-gray-600 dark:text-gray-300">
+                    {msg.message}
+                  </div>
+                ) : (
+                  // Regular Message
+                  <div
+                    className={`flex ${
+                      isCurrentUser ? "justify-end" : "justify-start"
+                    }`}
+                  >
+                    {/* Avatar for other users (only show if not grouped) */}
+                    {!isCurrentUser && !isGrouped && (
+                      <div className="flex-shrink-0 mr-2">
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage
+                            src={getSenderData(msg.senderId)?.photoURL}
+                          />
+                          <AvatarFallback className="text-xs">
+                            {getSenderDisplayName(msg.senderId)
+                              ?.charAt(0)
+                              ?.toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                      </div>
+                    )}
+
+                    {/* Spacer for grouped messages from others */}
+                    {!isCurrentUser && isGrouped && (
+                      <div className="w-10 flex-shrink-0" />
+                    )}
+
+                    {/* Message Content */}
+                    <div
+                      className={`flex flex-col ${
+                        isCurrentUser ? "items-end" : "items-start"
+                      } max-w-[70%]`}
+                    >
+                      {/* Sender name and info (only for non-grouped messages from others) */}
+                      {!isCurrentUser && !isGrouped && (
+                        <div className="flex items-center gap-2 mb-1 ml-1">
+                          <span className="text-sm font-semibold text-blue-600 dark:text-blue-400">
+                            {getSenderDisplayName(msg.senderId)}
+                          </span>
+                          {getSenderData(msg.senderId)?.department && (
+                            <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded-full px-2 py-0.5 font-medium">
+                              {getSenderData(msg.senderId)?.department}
+                            </span>
+                          )}
+                          {getSenderData(msg.senderId)?.position && (
+                            <span className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-full px-2 py-0.5 font-medium">
+                              {getSenderData(msg.senderId)?.position}
+                            </span>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Message Bubble */}
+                      <div className="flex items-end gap-1 group/message">
+                        {/* Options Menu for current user (left side) */}
+                        {isCurrentUser && (
+                          <div className="opacity-0 group-hover/message:opacity-100 transition-opacity">
+                            <MessageOptionsMenu
+                              msg={msg}
+                              users={users}
+                              user={user}
+                              openPopoverId={openPopoverId}
+                              setOpenPopoverId={setOpenPopoverId}
+                              setReplyTo={setReplyTo}
+                              setEditMessage={setEditMessage}
+                              handlePinMessage={handlePinMessage}
+                              handleRemovePinMessage={handleRemovePinMessage}
+                              handleBumpMessage={handleBumpMessage}
+                              handleForwardMessage={handleForwardMessage}
+                              copy={copy}
+                              copyImageToClipboard={copyImageToClipboard}
+                              downloadFile={downloadFile}
+                              getSenderDisplayName={getSenderDisplayName}
+                              chatId={chatId}
+                              isCurrentUser={true}
+                            />
+                          </div>
+                        )}
+
+                        {/* Message Bubble */}
+                        <div
+                          className={`relative ${
+                            msg.type === "file"
+                              ? isCurrentUser
+                                ? "bg-blue-500 text-white rounded-2xl rounded-br-md overflow-hidden"
+                                : "bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-2xl rounded-bl-md overflow-hidden"
+                              : isCurrentUser
+                              ? "bg-blue-500 text-white px-3 py-2 rounded-2xl rounded-br-md shadow-sm"
+                              : "bg-white dark:bg-gray-800 border dark:border-gray-700 px-3 py-2 rounded-2xl rounded-bl-md shadow-sm"
+                          }`}
+                        >
+                          {/* Pin indicator */}
+                          {msg.pinned && (
+                            <div className="absolute -top-1 -right-1 text-red-500 bg-white dark:bg-gray-800 rounded-full p-0.5">
+                              <Icon
+                                icon="solar:pin-bold"
+                                width="12"
+                                height="12"
+                              />
+                            </div>
+                          )}
+
+                          {/* Reply Display */}
+                          <ReplyMessageDisplay
+                            message={msg}
+                            getSenderDisplayName={getSenderDisplayName}
+                            onReplyClick={handleReplyClick}
+                          />
+
+                          {/* Message Content */}
+                          {msg.type === "file" ? (
+                            <FileMessage
+                              message={msg}
+                              handleImageLoad={handleImageLoad}
+                              handleVideoLoad={handleVideoLoad}
+                              loadingStates={loadingStates}
+                              getSenderData={getSenderData}
+                            />
+                          ) : (
+                            <div
+                              dangerouslySetInnerHTML={{
+                                __html: formatMessageWithLinks(
+                                  msg.message,
+                                  msg.senderId,
+                                  user?.uid
+                                ),
+                              }}
+                              className="text-sm whitespace-pre-wrap break-words"
+                            />
+                          )}
+                        </div>
+
+                        {/* Options Menu for other users (right side) */}
+                        {!isCurrentUser && (
+                          <div className="opacity-0 group-hover/message:opacity-100 transition-opacity">
+                            <MessageOptionsMenu
+                              msg={msg}
+                              users={users}
+                              user={user}
+                              openPopoverId={openPopoverId}
+                              setOpenPopoverId={setOpenPopoverId}
+                              setReplyTo={setReplyTo}
+                              setEditMessage={setEditMessage}
+                              handlePinMessage={handlePinMessage}
+                              handleRemovePinMessage={handleRemovePinMessage}
+                              handleBumpMessage={handleBumpMessage}
+                              handleForwardMessage={handleForwardMessage}
+                              copy={copy}
+                              copyImageToClipboard={copyImageToClipboard}
+                              downloadFile={downloadFile}
+                              getSenderDisplayName={getSenderDisplayName}
+                              chatId={chatId}
+                              isCurrentUser={false}
+                            />
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Message Footer - Only show for last message in group */}
+                      {(!isGrouped || isLastMessageInGroup) && (
+                        <div
+                          className={`flex items-center gap-1 mt-1 text-xs text-gray-500 dark:text-gray-400 ${
+                            isCurrentUser ? "flex-row-reverse" : ""
+                          }`}
+                        >
+                          {/* Show only time for the last message in the group (Telegram style) */}
+                          <span>{formatTimestamp(msg.timestamp)}</span>
+
+                          {/* Read status for current user messages */}
+                          {isCurrentUser && (
+                            <div className="flex items-center">
+                              {msg.status === "sending" ? (
+                                <Icon
+                                  icon="ic:round-access-time"
+                                  width="12"
+                                  height="12"
+                                  className="animate-pulse"
+                                />
+                              ) : msg.status === "sent" && !msg.seen ? (
+                                <Icon
+                                  icon="ic:round-check"
+                                  width="14"
+                                  height="14"
+                                />
+                              ) : msg.seenBy?.length > 0 ? (
+                                <Icon
+                                  icon="solar:check-read-linear"
+                                  width="14"
+                                  height="14"
+                                  className="text-blue-500"
+                                />
+                              ) : null}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+        <div ref={messagesEndRef} />
+      </div>
+
+      <ForwardMessageDialog
+        messageId={selectedMessage?.id}
+        messageContent={selectedMessage?.message}
+        originalFileData={selectedMessage?.fileData}
+        currentUserId={currentUserId}
+        isOpen={forwardDialogOpen}
+        onClose={() => {
+          setForwardDialogOpen(false);
+          setSelectedMessage(null);
+        }}
+      />
+    </>
+  );
+};

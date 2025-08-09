@@ -192,7 +192,7 @@ export function Contacts({ users, currentUserId, handleSelectUser }) {
                 </div>
               </div>
 
-              <div className="flex-1 overflow-y-auto max-h-64 pr-2 -mr-2">
+              <div className="flex-1 overflow-y-auto max-h-74 pr-2 -mr-2">
                 {filteredContacts.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-8 text-center">
                     <ContactRound className="h-12 w-12 text-gray-300 mb-4" />
