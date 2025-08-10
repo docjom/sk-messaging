@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import {
   Sidebar,
   SidebarContent,
@@ -12,22 +13,9 @@ import { Home, Inbox, Settings } from "lucide-react";
 
 export function DashboardSidebar() {
   const items = [
-    {
-      title: "Home",
-      url: "/adminDashboard/home",
-      icon: Home,
-    },
-    {
-      title: "User Management",
-      url: "/adminDashboard/management",
-      icon: Inbox,
-    },
-
-    {
-      title: "Settings",
-      url: "#",
-      icon: Settings,
-    },
+    { title: "Home", url: "/admin/home", icon: Home },
+    { title: "User Management", url: "/admin/management", icon: Inbox },
+    { title: "Settings", url: "/admin/settings", icon: Settings },
   ];
 
   return (
@@ -40,10 +28,10 @@ export function DashboardSidebar() {
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
-                    <a href={item.url}>
+                    <Link to={item.url}>
                       <item.icon />
                       <span>{item.title}</span>
-                    </a>
+                    </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}

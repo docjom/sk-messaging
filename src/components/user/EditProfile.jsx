@@ -25,7 +25,13 @@ import {
   deleteObject,
   getMetadata,
 } from "firebase/storage";
-import { UserPen } from "lucide-react";
+import { UserPen, Key } from "lucide-react";
+import {
+  getAuth,
+  reauthenticateWithCredential,
+  EmailAuthProvider,
+  updatePassword,
+} from "firebase/auth";
 
 export function EditProfile({ currentUserId }) {
   const [name, setName] = useState("");
@@ -37,6 +43,17 @@ export function EditProfile({ currentUserId }) {
   const [newProfilePhoto, setNewProfilePhoto] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+
+  // Inline error states for profile update
+  const [profileErrors, setProfileErrors] = useState({});
+
+  // Change password dialog state
+  const [isPwOpen, setIsPwOpen] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [isPwLoading, setIsPwLoading] = useState(false);
+  const [pwErrors, setPwErrors] = useState({});
 
   useEffect(() => {
     async function loadUserProfile() {
@@ -63,8 +80,20 @@ export function EditProfile({ currentUserId }) {
     }
   };
 
+  const validateProfileForm = () => {
+    const errors = {};
+    if (!name.trim()) errors.name = "Name is required.";
+    if (!department.trim()) errors.department = "Department is required.";
+    if (!phone.match(/^\+?[0-9]{10,15}$/))
+      errors.phone = "Enter a valid phone number.";
+    if (!position.trim()) errors.position = "Position is required.";
+    setProfileErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!validateProfileForm()) return;
     setIsLoading(true);
 
     let photoURL = profilePhotoURL;
@@ -78,23 +107,18 @@ export function EditProfile({ currentUserId }) {
           await getMetadata(oldImageRef);
           await deleteObject(oldImageRef);
         } catch (error) {
-          if (error.code === "storage/object-not-found") {
-            console.log("Old profile photo does not exist. Skipping delete.");
-          } else {
+          if (error.code !== "storage/object-not-found") {
             throw error;
           }
         }
 
         const storageRef = ref(storage, `profilePhotos/${currentUserId}`);
         const uploadTask = uploadBytesResumable(storageRef, newProfilePhoto);
-
         await uploadTask;
-
         photoURL = await getDownloadURL(storageRef);
-        toast("Profile photo uploaded successfully!");
-      } catch (error) {
-        console.error("Error uploading profile photo:", error);
-        toast("Failed to upload profile photo.");
+      } catch (e) {
+        console.log(e);
+        setProfileErrors({ general: "Failed to upload profile photo." });
         setIsLoading(false);
         return;
       }
@@ -110,133 +134,265 @@ export function EditProfile({ currentUserId }) {
         photoURL,
         updatedAt: new Date(),
       });
-
-      toast("Profile updated successfully!");
+      toast.success("Profile updated successfully!");
       setIsOpen(false);
-    } catch (error) {
-      console.error("Error updating profile:", error);
-      toast.error("Failed to update profile. Please try again.");
+    } catch {
+      setProfileErrors({
+        general: "Failed to update profile. Please try again.",
+      });
     } finally {
       setIsLoading(false);
     }
   };
 
+  const getFriendlyPwError = (code) => {
+    switch (code) {
+      case "auth/wrong-password":
+        return "The current password you entered is incorrect.";
+      case "auth/weak-password":
+        return "Your new password must be at least 6 characters long.";
+      case "auth/too-many-requests":
+        return "Too many failed attempts. Please try again later.";
+      default:
+        return "Failed to change password. Please try again.";
+    }
+  };
+
+  const validatePasswordForm = () => {
+    const errors = {};
+    if (!currentPassword)
+      errors.currentPassword = "Current password is required.";
+    if (newPassword.length < 6)
+      errors.newPassword = "New password must be at least 6 characters.";
+    if (newPassword !== confirmPassword)
+      errors.confirmPassword = "New password and confirmation do not match.";
+    setPwErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleChangePassword = async (e) => {
+    e.preventDefault();
+    if (!validatePasswordForm()) return;
+    setIsPwLoading(true);
+
+    const auth = getAuth();
+    const user = auth.currentUser;
+
+    try {
+      const credential = EmailAuthProvider.credential(
+        user.email,
+        currentPassword
+      );
+      await reauthenticateWithCredential(user, credential);
+      await updatePassword(user, newPassword);
+
+      toast.success("Password updated successfully!");
+      setIsPwOpen(false);
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      setPwErrors({});
+    } catch (error) {
+      setPwErrors({ general: getFriendlyPwError(error.code) });
+    } finally {
+      setIsPwLoading(false);
+    }
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        <Button
-          variant="ghost"
-          className=" w-full mb-1 flex justify-start gap-4 items-center"
-        >
-          <UserPen /> Manage Profile
-        </Button>
-      </DialogTrigger>
+    <>
+      {/* Edit Profile */}
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <DialogTrigger asChild>
+          <Button
+            variant="ghost"
+            className="w-full mb-1 flex justify-start gap-4 items-center"
+          >
+            <UserPen /> Manage Profile
+          </Button>
+        </DialogTrigger>
 
-      <DialogContent className="sm:max-w-[425px]">
-        <form onSubmit={handleSubmit}>
-          <DialogHeader>
-            <DialogTitle>Edit Profile</DialogTitle>
-            <DialogDescription>
-              To make changes, click save when you're done.
-            </DialogDescription>
-          </DialogHeader>
+        <DialogContent className="sm:max-w-[425px]">
+          <form onSubmit={handleSubmit}>
+            <DialogHeader>
+              <DialogTitle>Edit Profile</DialogTitle>
+              <DialogDescription>
+                Make changes and click save when done.
+              </DialogDescription>
+            </DialogHeader>
 
-          <div className="flex items-center gap-4 mb-4">
-            {/* Display current or selected profile image */}
-            <Avatar className="w-20 h-20 border">
-              <AvatarImage src={imagePreview || profilePhotoURL} />
-              <AvatarFallback> {name[0]?.toUpperCase() || "P"}</AvatarFallback>
-            </Avatar>
-            <Button variant="ghost" type="button" className="border">
-              <label htmlFor="profile-photo" className="cursor-pointer">
-                Change
-              </label>
-            </Button>
-            <input
-              type="file"
-              id="profile-photo"
-              accept="image/*"
-              className="hidden"
-              onChange={handleImageChange}
-            />
-          </div>
+            {profileErrors.general && (
+              <p className="text-red-500 text-sm mb-2">
+                {profileErrors.general}
+              </p>
+            )}
 
-          <div className="mb-4">
-            <Label htmlFor="name" className="mb-1">
-              Name
-            </Label>
-            <Input
-              id="name"
-              required
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
-          </div>
-
-          <div className="mb-4">
-            <Label htmlFor="department" className="mb-1">
-              Department
-            </Label>
-            <Input
-              id="department"
-              type="text"
-              placeholder="e.g. Marketing"
-              required
-              value={department}
-              onChange={(e) => setDepartment(e.target.value)}
-            />
-          </div>
-
-          <div className="mb-4">
-            <Label htmlFor="phone" className="mb-1">
-              Phone
-            </Label>
-            <Input
-              id="phone"
-              required
-              type="tel"
-              placeholder="e.g. +63 123 456 7890"
-              pattern="^\+?[0-9]{10,15}$"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-            />
-          </div>
-
-          <div className="mb-4">
-            <Label htmlFor="position" className="mb-1">
-              Position
-            </Label>
-            <Input
-              id="position"
-              type="text"
-              placeholder="e.g. Software Engineer"
-              required
-              value={position}
-              onChange={(e) => setPosition(e.target.value)}
-            />
-          </div>
-
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button variant="outline" type="button" disabled={isLoading}>
-                Cancel
+            <div className="flex items-center gap-4 mb-4">
+              <Avatar className="w-20 h-20 border">
+                <AvatarImage src={imagePreview || profilePhotoURL} />
+                <AvatarFallback>{name[0]?.toUpperCase() || "P"}</AvatarFallback>
+              </Avatar>
+              <Button variant="ghost" type="button" className="border">
+                <label htmlFor="profile-photo" className="cursor-pointer">
+                  Change
+                </label>
               </Button>
-            </DialogClose>
-            <Button type="submit" disabled={isLoading}>
-              {isLoading && (
-                <Icon
-                  icon="line-md:loading-alt-loop"
-                  width="16"
-                  height="16"
-                  className="mr-2"
-                />
+              <input
+                type="file"
+                id="profile-photo"
+                accept="image/*"
+                className="hidden"
+                onChange={handleImageChange}
+              />
+            </div>
+
+            <div className="mb-3">
+              <Label>Name</Label>
+              <Input value={name} onChange={(e) => setName(e.target.value)} />
+              {profileErrors.name && (
+                <p className="text-red-500 text-sm">{profileErrors.name}</p>
               )}
-              {isLoading ? "Updating..." : "Save changes"}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+            </div>
+
+            <div className="mb-3">
+              <Label>Department</Label>
+              <Input
+                value={department}
+                onChange={(e) => setDepartment(e.target.value)}
+              />
+              {profileErrors.department && (
+                <p className="text-red-500 text-sm">
+                  {profileErrors.department}
+                </p>
+              )}
+            </div>
+
+            <div className="mb-3">
+              <Label>Phone</Label>
+              <Input value={phone} onChange={(e) => setPhone(e.target.value)} />
+              {profileErrors.phone && (
+                <p className="text-red-500 text-sm">{profileErrors.phone}</p>
+              )}
+            </div>
+
+            <div className="mb-3">
+              <Label>Position</Label>
+              <Input
+                value={position}
+                onChange={(e) => setPosition(e.target.value)}
+              />
+              {profileErrors.position && (
+                <p className="text-red-500 text-sm">{profileErrors.position}</p>
+              )}
+            </div>
+
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button variant="outline" type="button" disabled={isLoading}>
+                  Cancel
+                </Button>
+              </DialogClose>
+              <Button type="submit" disabled={isLoading}>
+                {isLoading && (
+                  <Icon
+                    icon="line-md:loading-alt-loop"
+                    width="16"
+                    height="16"
+                    className="mr-2"
+                  />
+                )}
+                {isLoading ? "Updating..." : "Save changes"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Change Password */}
+      <Dialog open={isPwOpen} onOpenChange={setIsPwOpen}>
+        <DialogTrigger asChild>
+          <Button
+            variant="ghost"
+            className="w-full flex justify-start gap-4 items-center"
+          >
+            <Key /> Change Password
+          </Button>
+        </DialogTrigger>
+
+        <DialogContent className="sm:max-w-[425px]">
+          <form onSubmit={handleChangePassword}>
+            <DialogHeader>
+              <DialogTitle>Change Password</DialogTitle>
+              <DialogDescription>
+                Enter your current and new password.
+              </DialogDescription>
+            </DialogHeader>
+
+            {pwErrors.general && (
+              <p className="text-red-500 text-sm mb-2">{pwErrors.general}</p>
+            )}
+
+            <div className="mb-3">
+              <Label>Current Password</Label>
+              <Input
+                type="password"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+              />
+              {pwErrors.currentPassword && (
+                <p className="text-red-500 text-sm">
+                  {pwErrors.currentPassword}
+                </p>
+              )}
+            </div>
+
+            <div className="mb-3">
+              <Label>New Password</Label>
+              <Input
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+              />
+              {pwErrors.newPassword && (
+                <p className="text-red-500 text-sm">{pwErrors.newPassword}</p>
+              )}
+            </div>
+
+            <div className="mb-3">
+              <Label>Confirm New Password</Label>
+              <Input
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+              />
+              {pwErrors.confirmPassword && (
+                <p className="text-red-500 text-sm">
+                  {pwErrors.confirmPassword}
+                </p>
+              )}
+            </div>
+
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button variant="outline" type="button" disabled={isPwLoading}>
+                  Cancel
+                </Button>
+              </DialogClose>
+              <Button type="submit" disabled={isPwLoading}>
+                {isPwLoading && (
+                  <Icon
+                    icon="line-md:loading-alt-loop"
+                    width="16"
+                    height="16"
+                    className="mr-2"
+                  />
+                )}
+                {isPwLoading ? "Updating..." : "Update Password"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

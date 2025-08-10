@@ -43,4 +43,4 @@ const storage = getStorage(app);
 //     console.error("Error getting FCM token", err);
 //   });
 
-export { auth, provider, db, storage };
+export { auth, provider, db, storage, app };

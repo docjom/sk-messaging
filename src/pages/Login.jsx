@@ -10,7 +10,6 @@ import { doc, setDoc, getDoc, updateDoc } from "firebase/firestore";
 import { Button } from "@/components/ui/button";
 import {
   Card,
-  CardAction,
   CardContent,
   CardDescription,
   CardFooter,
@@ -26,48 +25,50 @@ import { useUserStore } from "@/stores/useUserStore";
 
 function Login() {
   const navigate = useNavigate();
+
   const [email, setEmail] = useState("");
-  const { user } = useUserStore();
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isResetLoading, setIsResetLoading] = useState(false);
-  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  const { userProfile, initialized } = useUserStore();
 
   useEffect(() => {
-    if (user) {
-      navigate("/dashboard", { replace: true });
-    } else {
-      setIsCheckingAuth(false);
+    if (initialized && userProfile) {
+      navigate(userProfile.role === "admin" ? "/admin" : "/dashboard");
     }
-  }, [user, navigate]);
+  }, [initialized, userProfile, navigate]);
 
   const handleGoogleLogin = async () => {
     try {
       setIsLoading(true);
       const result = await signInWithPopup(auth, provider);
-      const user = result.user;
+      const loggedInUser = result.user;
 
-      const userDocRef = doc(db, "users", user.uid);
+      const userDocRef = doc(db, "users", loggedInUser.uid);
       const docSnap = await getDoc(userDocRef);
 
+      let userData = {};
       if (!docSnap.exists()) {
-        await setDoc(userDocRef, {
-          uid: user.uid,
-          displayName: user.displayName,
-          email: user.email,
-          photoURL: user.photoURL,
+        userData = {
+          uid: loggedInUser.uid,
+          displayName: loggedInUser.displayName,
+          email: loggedInUser.email,
+          photoURL: loggedInUser.photoURL,
+          role: "admin",
           active: true,
           createdAt: new Date(),
-        });
+        };
+        await setDoc(userDocRef, userData);
       } else {
+        userData = docSnap.data();
         await updateDoc(userDocRef, { active: true });
       }
 
       toast.success("Successfully logged in with Google!");
-      navigate("/dashboard");
+      navigate(userData.role === "admin" ? "/admin" : "/dashboard");
     } catch (error) {
       console.error("Google login error:", error);
-      toast.error("Failed to login with Google. Please try again.");
+      toast.error("Google login failed. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -75,53 +76,52 @@ function Login() {
 
   const handleEmailLogin = async (e) => {
     e.preventDefault();
-
     if (!email || !password) {
-      toast.error("Please fill in all fields");
+      toast.error("Please enter both email and password.");
       return;
     }
 
     try {
       setIsLoading(true);
       const result = await signInWithEmailAndPassword(auth, email, password);
-      const user = result.user;
+      const loggedInUser = result.user;
 
-      const userDocRef = doc(db, "users", user.uid);
+      const userDocRef = doc(db, "users", loggedInUser.uid);
       const docSnap = await getDoc(userDocRef);
 
+      let userData = {};
       if (docSnap.exists()) {
+        userData = docSnap.data();
         await updateDoc(userDocRef, { active: true });
       } else {
-        await setDoc(userDocRef, {
-          uid: user.uid,
-          displayName: user.displayName || "",
-          email: user.email,
-          photoURL: user.photoURL || "",
+        userData = {
+          uid: loggedInUser.uid,
+          displayName: loggedInUser.displayName || "",
+          email: loggedInUser.email,
+          photoURL: loggedInUser.photoURL || "",
+          // role: "user",
           active: true,
           createdAt: new Date(),
-        });
+        };
+        await setDoc(userDocRef, userData);
       }
 
-      toast.success("Successfully logged in!");
-      navigate("/dashboard");
+      toast.success("Login successful!");
+      navigate(userData.role === "admin" ? "/admin" : "/dashboard");
     } catch (error) {
       console.error("Email login error:", error);
-
       switch (error.code) {
+        case "auth/invalid-email":
+          toast.error("Invalid email address.");
+          break;
         case "auth/user-not-found":
-          toast.error("No account found with this email address");
+          toast.error("No account found with this email.");
           break;
         case "auth/wrong-password":
-          toast.error("Incorrect password");
-          break;
-        case "auth/invalid-email":
-          toast.error("Invalid email address");
-          break;
-        case "auth/too-many-requests":
-          toast.error("Too many failed attempts. Please try again later");
+          toast.error("Incorrect password.");
           break;
         default:
-          toast.error("Failed to login. Please check your credentials");
+          toast.error("Login failed. Please try again.");
       }
     } finally {
       setIsLoading(false);
@@ -130,129 +130,106 @@ function Login() {
 
   const handleForgotPassword = async () => {
     if (!email) {
-      toast.error("Please enter your email address first");
+      toast.error("Enter your email to reset password.");
       return;
     }
-
     try {
       setIsResetLoading(true);
       await sendPasswordResetEmail(auth, email);
-      toast.success("Password reset email sent! Check your inbox");
+      toast.success("Password reset email sent!");
     } catch (error) {
-      console.error("Password reset error:", error);
-
       switch (error.code) {
         case "auth/user-not-found":
-          toast.error("No account found with this email address");
+          toast.error("No account found with this email.");
           break;
         case "auth/invalid-email":
-          toast.error("Invalid email address");
+          toast.error("Invalid email address.");
           break;
         default:
-          toast.error("Failed to send reset email. Please try again");
+          toast.error("Could not send reset email.");
       }
     } finally {
       setIsResetLoading(false);
     }
   };
 
-  if (isCheckingAuth) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
-          <p className="mt-2 text-sm text-gray-600">
-            Checking authentication...
-          </p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <>
       <Toaster />
-      <div className="flex items-center justify-center min-h-screen">
-        <Card className="w-full max-w-sm">
-          <CardHeader>
-            <CardTitle>Login to your account</CardTitle>
-            <CardDescription>
-              Enter your email below to login to your account
-            </CardDescription>
-            <CardAction>
-              <Button variant="link" onClick={() => navigate("/Register")}>
-                {" "}
-                Sign Up
-              </Button>
-            </CardAction>
+      <div className="flex items-center justify-center min-h-screen  px-4">
+        <Card className="w-full max-w-md shadow-lg border">
+          <CardHeader className="space-y-2 text-center">
+            <CardTitle className="text-2xl font-bold">Welcome Back</CardTitle>
+            <CardDescription>Login to your account to continue</CardDescription>
           </CardHeader>
+
           <CardContent>
-            <form onSubmit={handleEmailLogin}>
-              <div className="flex flex-col gap-6">
-                <div className="grid gap-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="abc@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    disabled={isLoading}
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <div className="flex items-center">
-                    <Label htmlFor="password">Password</Label>
-                    <button
-                      type="button"
-                      onClick={handleForgotPassword}
-                      disabled={isResetLoading}
-                      className="ml-auto inline-block text-sm underline-offset-4 hover:underline disabled:opacity-50"
-                    >
-                      {isResetLoading ? "Sending..." : "Forgot your password?"}
-                    </button>
-                  </div>
-                  <Input
-                    id="password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    disabled={isLoading}
-                  />
-                </div>
+            <form onSubmit={handleEmailLogin} className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="email">Email Address</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="you@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  disabled={isLoading}
+                />
               </div>
+
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="password">Password</Label>
+                  <button
+                    type="button"
+                    onClick={handleForgotPassword}
+                    disabled={isResetLoading}
+                    className="text-sm text-blue-600 hover:underline disabled:opacity-50"
+                  >
+                    {isResetLoading ? "Sending..." : "Forgot password?"}
+                  </button>
+                </div>
+                <Input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  disabled={isLoading}
+                />
+              </div>
+
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? "Logging in..." : "Login"}
+              </Button>
             </form>
           </CardContent>
-          <CardFooter className="flex-col gap-2">
-            <Button
-              type="submit"
-              className="w-full"
-              onClick={handleEmailLogin}
-              disabled={isLoading}
-            >
-              {isLoading ? "Logging in..." : "Login"}
-            </Button>
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t" />
-              </div>
-              <div className="relative flex justify-center text-xs">
-                <span className="bg-background px-2 text-muted-foreground">
-                  or
-                </span>
-              </div>
+
+          <CardFooter className="flex flex-col gap-4">
+            <div className="flex items-center gap-2 w-full">
+              <span className="flex-1 border-t" />
+              <span className="text-xs text-gray-400">OR</span>
+              <span className="flex-1 border-t" />
             </div>
+
             <Button
               variant="outline"
-              className="w-full"
+              className="w-full flex items-center gap-2"
               onClick={handleGoogleLogin}
               disabled={isLoading}
             >
-              <Icon icon="flat-color-icons:google" width="48" height="48" />
-              Login with Google
+              <Icon icon="flat-color-icons:google" width="20" height="20" />
+              Continue with Google
             </Button>
+
+            <p className="text-sm text-center text-gray-500">
+              Don’t have an account?{" "}
+              <button
+                className="text-blue-600 hover:underline"
+                onClick={() => navigate("/register")}
+              >
+                Sign Up
+              </button>
+            </p>
           </CardFooter>
         </Card>
       </div>
