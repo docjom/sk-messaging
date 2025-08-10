@@ -28,7 +28,7 @@ export const createUserAccount = onCall(async (request) => {
         displayName: name,
         email,
         photoURL: "",
-        active: true,
+        active: false,
         role: role ?? "user",
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
         provider: "email",
