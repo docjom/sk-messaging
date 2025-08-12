@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { db } from "../firebase";
+import { db, auth } from "../firebase";
 import { toast } from "sonner";
 import ChatHeader from "@/components/chat/ChatHeader";
 import { Toaster } from "@/components/ui/sonner";
@@ -10,6 +10,7 @@ import { Menu } from "@/components/layout/Menu";
 import Sidebar from "@/components/layout/Sidebar";
 import MessageInputContainer from "@/components/message/MessageInputUi/MessageInputContainer";
 import ChatContent from "@/components/chat/ChatContent";
+import { useNavigate } from "react-router-dom";
 import {
   addDoc,
   collection,
@@ -42,7 +43,7 @@ import { useFolderStore } from "@/stores/chat-folder/useFolderStore";
 
 function Dashboard() {
   const user = useUserStore((s) => s.userProfile);
-
+  const navigate = useNavigate();
   const { menu, setMenu } = useMenu();
   const endOfMessagesRef = useRef(null);
 
@@ -84,6 +85,25 @@ function Dashboard() {
 
   const { messages, messagesLoading, loadOlderMessages } =
     useInfiniteMessages(chatId);
+
+  useEffect(() => {
+    if (user.blocked || user.deleted === "deleted" || user.deleted === true) {
+      toast.error(
+        user.blocked
+          ? "This account has been blocked by the admin."
+          : "This account has been deleted by the admin."
+      );
+      (async () => {
+        try {
+          await auth.signOut();
+        } catch (e) {
+          console.log(e);
+        }
+      })();
+      navigate("/login", { replace: true });
+      return;
+    }
+  }, [user, navigate]);
 
   useEffect(() => {
     if (user?.uid) {

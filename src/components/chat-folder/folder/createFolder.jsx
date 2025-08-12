@@ -318,7 +318,7 @@ const FolderManagementSystem = () => {
                                 .map((chat) => (
                                   <div
                                     key={chat.id}
-                                    className={`flex items-center p-2 rounded cursor-pointer hover:bg-gray-100 ${
+                                    className={`flex items-center p-2 rounded cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 ${
                                       selectedChats.includes(chat.id)
                                         ? "bg-blue-50 border border-blue-200"
                                         : ""

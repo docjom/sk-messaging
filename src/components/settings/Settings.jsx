@@ -11,9 +11,12 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import FolderManagementSystem from "@/components/chat-folder/folder/createFolder";
-import { Bolt } from "lucide-react";
+import { ArrowRight, Bolt } from "lucide-react";
+import { Link } from "react-router-dom";
+import { useUserStore } from "@/stores/useUserStore";
 
 export const Settings = () => {
+  const { userProfile } = useUserStore();
   return (
     <>
       <Dialog>
@@ -22,7 +25,7 @@ export const Settings = () => {
             variant="ghost"
             className=" w-full mb-1 flex justify-start gap-4 items-center"
           >
-          <Bolt/>
+            <Bolt />
             Settings
           </Button>
         </DialogTrigger>
@@ -33,6 +36,19 @@ export const Settings = () => {
           </DialogHeader>
 
           <div>
+            {userProfile.role === "admin" && (
+              <div className="mb-2">
+                {" "}
+                <Link to="/admin">
+                  <Button>
+                    {" "}
+                    <ArrowRight />
+                    Go to admin dashboard
+                  </Button>
+                </Link>
+              </div>
+            )}
+
             <FolderManagementSystem />
           </div>
 

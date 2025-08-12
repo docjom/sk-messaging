@@ -33,9 +33,50 @@ function Login() {
   const { userProfile, initialized } = useUserStore();
 
   useEffect(() => {
-    if (initialized && userProfile) {
-      navigate(userProfile.role === "admin" ? "/admin" : "/dashboard");
+    if (!initialized) return;
+    if (!userProfile) return;
+
+    if (
+      userProfile.blocked ||
+      userProfile.deleted === "deleted" ||
+      userProfile.deleted === true
+    ) {
+      toast.error(
+        userProfile.blocked
+          ? "This account has been blocked by the admin."
+          : "This account has been deleted by the admin."
+      );
+      (async () => {
+        try {
+          await auth.signOut();
+        } catch (e) {
+          console.log(e);
+        }
+      })();
+      navigate("/login", { replace: true });
+      return;
     }
+
+    // If authenticated via Google and not admin, immediately sign out and return to login to prevent any route flicker.
+    const isGoogleAuth = auth?.currentUser?.providerData?.some(
+      (p) => p.providerId === "google.com"
+    );
+
+    if (isGoogleAuth && userProfile.role !== "admin") {
+      toast.error("Only admin can login using Google!");
+      (async () => {
+        try {
+          await auth.signOut();
+        } catch (e) {
+          console.log(e);
+        } finally {
+          navigate("/login", { replace: true });
+        }
+      })();
+      return;
+    }
+
+    navigate(userProfile.role === "admin" ? "/admin" : "/dashboard");
   }, [initialized, userProfile, navigate]);
 
   const handleGoogleLogin = async () => {
@@ -49,23 +90,34 @@ function Login() {
 
       let userData = {};
       if (!docSnap.exists()) {
+        // Create only if new AND is admin (or your logic)
         userData = {
           uid: loggedInUser.uid,
           displayName: loggedInUser.displayName,
           email: loggedInUser.email,
           photoURL: loggedInUser.photoURL,
-          role: "admin",
+          role: "admin", // default role
           active: true,
           createdAt: new Date(),
         };
         await setDoc(userDocRef, userData);
       } else {
         userData = docSnap.data();
+
+        // 🔹 Immediately block non-admins BEFORE success toast/navigation
+        if (userData.role !== "admin") {
+          toast.error("Only admin can login using Google!");
+          await auth.signOut();
+          setIsLoading(false);
+          return;
+        }
+
         await updateDoc(userDocRef, { active: true });
       }
 
+      // 🔹 If code reaches here, the user is admin
       toast.success("Successfully logged in with Google!");
-      navigate(userData.role === "admin" ? "/admin" : "/dashboard");
+      navigate("/admin");
     } catch (error) {
       console.error("Google login error:", error);
       toast.error("Google login failed. Please try again.");
@@ -92,6 +144,22 @@ function Login() {
       let userData = {};
       if (docSnap.exists()) {
         userData = docSnap.data();
+
+        if (
+          userData.blocked ||
+          userData.deleted === "deleted" ||
+          userData.deleted === true
+        ) {
+          toast.error(
+            userData.blocked
+              ? "Your account has been blocked by the admin."
+              : "Your account has been deleted by the admin."
+          );
+          await auth.signOut();
+          navigate("/login", { replace: true });
+          return;
+        }
+
         await updateDoc(userDocRef, { active: true });
       } else {
         userData = {
@@ -99,7 +167,6 @@ function Login() {
           displayName: loggedInUser.displayName || "",
           email: loggedInUser.email,
           photoURL: loggedInUser.photoURL || "",
-          // role: "user",
           active: true,
           createdAt: new Date(),
         };
@@ -221,7 +288,7 @@ function Login() {
               Continue with Google
             </Button>
 
-            <p className="text-sm text-center text-gray-500">
+            {/* <p className="text-sm text-center text-gray-500">
               Don’t have an account?{" "}
               <button
                 className="text-blue-600 hover:underline"
@@ -229,7 +296,7 @@ function Login() {
               >
                 Sign Up
               </button>
-            </p>
+            </p> */}
           </CardFooter>
         </Card>
       </div>
