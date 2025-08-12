@@ -57,8 +57,17 @@ const ChatContent = ({
       isLoadingOlderRef.current &&
       currentMessagesLength > prevMessagesLength
     ) {
-      const newScrollTop = container.scrollHeight - scrollPositionRef.current;
-      container.scrollTop = newScrollTop;
+      const prevScrollHeight = scrollPositionRef.current;
+      const target = container.scrollHeight - prevScrollHeight;
+      // Set immediately
+      container.scrollTop = target;
+      // Re-apply after layout to counter async renders (images, media) and any accidental bottom-stick
+      requestAnimationFrame(() => {
+        container.scrollTop = target;
+      });
+      setTimeout(() => {
+        container.scrollTop = container.scrollHeight - prevScrollHeight;
+      }, 80);
       isLoadingOlderRef.current = false;
     }
     // New message arrived - scroll to bottom only if user was at bottom
@@ -70,8 +79,8 @@ const ChatContent = ({
         container.scrollHeight - container.scrollTop - container.clientHeight <
         100;
 
-      if (isAtBottom || !isUserScrollingRef.current) {
-        // Use smooth scrolling for new messages
+      if (isAtBottom) {
+        // Use smooth scrolling for new messages only when already near bottom
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
       }
     }
@@ -148,6 +157,8 @@ const ChatContent = ({
           getSenderData={getSenderData}
           getSenderDisplayName={getSenderDisplayName}
           currentUserId={user?.uid}
+          containerRef={messagesContainerRef}
+          endRef={messagesEndRef}
         />
         <div ref={messagesEndRef} />
       </div>

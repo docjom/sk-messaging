@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { db, auth } from "../firebase";
 import { toast } from "sonner";
 import ChatHeader from "@/components/chat/ChatHeader";
@@ -45,8 +45,6 @@ function Dashboard() {
   const user = useUserStore((s) => s.userProfile);
   const navigate = useNavigate();
   const { menu, setMenu } = useMenu();
-  const endOfMessagesRef = useRef(null);
-
   const [isAddingUsers, setIsAddingUsers] = useState(false);
   const [isCreatingGroup, setIsCreatingGroup] = useState(false);
   const [isMessagesSending, setIsMessagesSending] = useState(false);
@@ -55,9 +53,6 @@ function Dashboard() {
   const [ifUserInfoOpen, setIfUserInfoOpen] = useState(false);
   const [isUploadingFile, setIsUploadingFile] = useState(false);
 
-  const messagesEndRef = useRef(null);
-  const textareaRef = useRef(null);
-  const prevMessageCountRef = useRef(0);
 
   const {
     chatId,
@@ -121,12 +116,7 @@ function Dashboard() {
       cleanup();
     };
   }, [cleanup]);
-  useEffect(() => {
-    if (messages > prevMessageCountRef.current) {
-      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    }
-    prevMessageCountRef.current = messages;
-  }, [messages]);
+
 
   const handleFileUpload = async ({ file, message, chatId }) => {
     setIsUploadingFile(true);
@@ -205,12 +195,7 @@ function Dashboard() {
       setIsUploadingFile(false);
     }
   };
-  useEffect(() => {
-    textareaRef.current?.focus();
-    if (endOfMessagesRef.current) {
-      endOfMessagesRef.current.scrollIntoView({ behavior: "smooth" });
-    }
-  }, [messages]);
+
 
   const toggleMenu = useCallback(() => {
     setMenu((prev) => !prev);
