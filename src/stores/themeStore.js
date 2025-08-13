@@ -1,7 +1,5 @@
-// stores/themeStore.js
 import { create } from "zustand";
 
-// Decide the initial theme
 const getInitialTheme = () => {
   const stored = localStorage.getItem("darkMode");
   if (stored === "true") return true;
@@ -19,11 +17,17 @@ if (initialTheme) {
 
 export const useThemeStore = create((set) => ({
   isDarkMode: initialTheme,
-  toggleDarkMode: () =>
-    set((state) => {
-      const newTheme = !state.isDarkMode;
-      localStorage.setItem("darkMode", newTheme);
-      document.documentElement.classList.toggle("dark", newTheme);
-      return { isDarkMode: newTheme };
-    }),
+  toggleDarkMode: () => {
+    // Immediately toggle class and localStorage outside set
+    const newTheme = !document.documentElement.classList.contains("dark");
+    if (newTheme) {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+    localStorage.setItem("darkMode", newTheme);
+
+    // Then update Zustand state
+    set({ isDarkMode: newTheme });
+  },
 }));

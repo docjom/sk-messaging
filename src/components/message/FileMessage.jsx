@@ -1,6 +1,12 @@
-import React from "react";
+import React, { useState } from "react";
 import { Icon } from "@iconify/react";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { formatMessageWithLinks, formatFileSize } from "@/composables/scripts";
 import { useUserStore } from "@/stores/useUserStore";
 
@@ -12,6 +18,10 @@ export const FileMessage = ({
 }) => {
   const user = useUserStore((s) => s.user);
   const { fileData } = message;
+
+  // State for dialog
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
   if (!fileData) return null;
 
   const isImage = fileData.type.startsWith("image/");
@@ -32,75 +42,104 @@ export const FileMessage = ({
     document.body.removeChild(link);
   };
 
+  const openMediaDialog = () => {
+    setIsDialogOpen(true);
+  };
+
+  // const closeMediaDialog = () => {
+  //   setIsDialogOpen(false);
+  // };
+
   return (
-    <div className="w-full sm:max-w-[20rem] md:max-w-[28rem] border rounded-lg">
-      {isImage && (
-        <div className="relative">
-          {/* Loading placeholder */}
-          {!isImageLoaded && (
-            <div
-              className={`w-52 h-52  border border-gray-200 flex items-center justify-center ${
-                message.message !== "" ? "rounded-t-lg" : "rounded-lg"
-              }`}
-            >
-              <div className="flex flex-col items-center gap-2">
-                <Icon
-                  icon="ic:round-image"
-                  width="24"
-                  height="24"
-                  className="text-gray-400 animate-pulse"
-                />
-                <span className="text-xs text-gray-400">Loading...</span>
+    <>
+      <div className="w-full sm:max-w-[20rem] md:max-w-[28rem] border rounded-lg">
+        {isImage && (
+          <div className="relative">
+            {/* Loading placeholder */}
+            {!isImageLoaded && (
+              <div
+                className={`w-52 h-52 border border-gray-200 flex items-center justify-center ${
+                  message.message !== "" ? "rounded-t-lg" : "rounded-lg"
+                }`}
+              >
+                <div className="flex flex-col items-center gap-2">
+                  <Icon
+                    icon="ic:round-image"
+                    width="24"
+                    height="24"
+                    className="text-gray-400 animate-pulse"
+                  />
+                  <span className="text-xs text-gray-400">Loading...</span>
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          <img
-            src={fileData.url}
-            alt={fileData.name}
-            className={`max-w-52 h-auto object-cover border cursor-pointer ${
-              message.message !== "" ? "rounded-t-lg" : "rounded-lg"
-            } ${!isImageLoaded ? "hidden" : ""}`}
-            onClick={() => window.open(fileData.url, "_blank")}
-            onLoad={() => handleImageLoad(messageId)}
-          />
-        </div>
-      )}
-
-      {isVideo && (
-        <div className=" relative">
-          {/* Loading placeholder */}
-          {!isVideoLoaded && (
-            <div
-              className={`w-52 h-52  border border-gray-200 flex items-center justify-center ${
+            <img
+              src={fileData.url}
+              alt={fileData.name}
+              className={`max-w-52 h-auto object-cover border cursor-pointer hover:opacity-90 transition-opacity ${
                 message.message !== "" ? "rounded-t-lg" : "rounded-lg"
-              }`}
-            >
-              <div className="flex flex-col items-center gap-2">
-                <Icon
-                  icon="ic:round-play-circle-filled"
-                  width="32"
-                  height="32"
-                  className="text-gray-400 animate-pulse"
-                />
-                <span className="text-xs text-gray-400">Loading video...</span>
+              } ${!isImageLoaded ? "hidden" : ""}`}
+              onClick={openMediaDialog}
+              onLoad={() => handleImageLoad(messageId)}
+            />
+          </div>
+        )}
+
+        {isVideo && (
+          <div className="relative">
+            {/* Loading placeholder */}
+            {!isVideoLoaded && (
+              <div
+                className={`w-52 h-52 border border-gray-200 flex items-center justify-center ${
+                  message.message !== "" ? "rounded-t-lg" : "rounded-lg"
+                }`}
+              >
+                <div className="flex flex-col items-center gap-2">
+                  <Icon
+                    icon="ic:round-play-circle-filled"
+                    width="32"
+                    height="32"
+                    className="text-gray-400 animate-pulse"
+                  />
+                  <span className="text-xs text-gray-400">
+                    Loading video...
+                  </span>
+                </div>
               </div>
+            )}
+
+            <div className="relative">
+              <video
+                src={fileData.url}
+                className={`max-w-52 h-auto object-cover border cursor-pointer hover:opacity-90 transition-opacity ${
+                  message.message !== "" ? "rounded-t-lg" : "rounded-lg"
+                } ${!isVideoLoaded ? "hidden" : ""}`}
+                onLoadedData={() => handleVideoLoad(messageId)}
+                onClick={openMediaDialog}
+                muted
+              />
+              {/* Play button overlay */}
+              {isVideoLoaded && (
+                <div
+                  className="absolute inset-0 flex items-center justify-center cursor-pointer"
+                  onClick={openMediaDialog}
+                >
+                  <div className="bg-black bg-opacity-50 rounded-full p-2">
+                    <Icon
+                      icon="ic:round-play-arrow"
+                      width="32"
+                      height="32"
+                      className="text-white"
+                    />
+                  </div>
+                </div>
+              )}
             </div>
-          )}
+          </div>
+        )}
 
-          <video
-            src={fileData.url}
-            controls
-            className={`max-w-52 h-auto object-cover border cursor-pointer ${
-              message.message !== "" ? "rounded-t-lg" : "rounded-lg"
-            } ${!isVideoLoaded ? "hidden" : ""}`}
-            onLoadedData={() => handleVideoLoad(messageId)}
-          />
-        </div>
-      )}
-
-      {!isImage && !isVideo && (
-        <>
+        {!isImage && !isVideo && (
           <div
             className={`border max-w-52 relative px-3 py-2 bg-gray-50 ${
               message.message !== "" ? "rounded-t-lg pb-3" : "rounded-lg"
@@ -132,11 +171,9 @@ export const FileMessage = ({
               </Button>
             </div>
           </div>
-        </>
-      )}
+        )}
 
-      {message.message && (
-        <>
+        {message.message && (
           <div
             dangerouslySetInnerHTML={{
               __html: formatMessageWithLinks(
@@ -145,12 +182,72 @@ export const FileMessage = ({
                 user?.uid
               ),
             }}
-            className={`text-sm max-w-52 sm:max-w-80 px-2 py-2 whitespace-pre-wrap break-words  ${
+            className={`text-sm max-w-52 sm:max-w-80 px-2 py-2 whitespace-pre-wrap break-words ${
               message.senderId === user?.uid ? "text-white" : ""
             }`}
           />
-        </>
-      )}
-    </div>
+        )}
+      </div>
+
+      {/* Media Dialog/Modal */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] p-0 overflow-hidden">
+          <DialogHeader className="absolute top-0 left-0 right-0 z-10 max-w-80 bg-opacity-50  p-1">
+            <div className="flex items-center justify-between">
+              <DialogTitle className="text-base font-medium max-w-80 truncate">
+                {fileData.name}
+              </DialogTitle>
+              {/* <div className="flex items-center gap-2">
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => downloadFile(fileData.url, fileData.name)}
+                  className=" hover:bg-opacity-20"
+                >
+                  <Icon icon="solar:download-bold" width="16" height="16" />
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={closeMediaDialog}
+                  className=" hover:bg-opacity-20"
+                >
+                  <Icon icon="ic:round-close" width="20" height="20" />
+                </Button>
+              </div> */}
+            </div>
+          </DialogHeader>
+
+          <div className="flex items-center justify-center min-h-[60vh] ">
+            {isImage && (
+              <img
+                src={fileData.url}
+                alt={fileData.name}
+                className="max-w-full max-h-[80vh] object-contain"
+                onClick={(e) => e.stopPropagation()}
+              />
+            )}
+
+            {isVideo && (
+              <video
+                src={fileData.url}
+                controls
+                autoPlay
+                className="max-w-full max-h-[80vh] object-contain"
+                onClick={(e) => e.stopPropagation()}
+              />
+            )}
+          </div>
+
+          {/* Media info footer */}
+          <div className="absolute bottom-0 left-0 right-0 bg-opacity-50  p-1">
+            <div className="flex items-center justify-between text-sm">
+              <span>{formatFileSize(fileData.size)}</span>
+              <span className="text-xs opacity-75">Click outside to close</span>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
