@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback, useMemo } from "react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Icon } from "@iconify/react";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,258 @@ import { doc, updateDoc, arrayUnion, arrayRemove } from "firebase/firestore";
 import { db } from "../../firebase";
 import { useMessageActionStore } from "../../stores/useMessageActionStore";
 import { formatTimestamp } from "../../composables/scripts";
-import { Check, CheckCheck, ChevronDown, Pin } from "lucide-react";
+import { Check, CheckCheck, ChevronDown, Pin, Users, Hash } from "lucide-react";
+
+// Memoized Chat Card Component for better performance
+const ChatCard = React.memo(
+  ({
+    chat,
+    isSelected,
+    isPinned,
+    isRead,
+    onSelectChat,
+    onPin,
+    onUnpin,
+    onMarkRead,
+    onMarkUnread,
+    getChatPhoto,
+    getChatDisplayName,
+    getOtherUserInDirectChat,
+    currentUserId,
+    clearCurrentChat,
+  }) => {
+    const handleChatClick = useCallback(() => {
+      onSelectChat(chat);
+    }, [chat, onSelectChat]);
+
+    const handlePinClick = useCallback(
+      (e) => {
+        e.stopPropagation();
+        if (isPinned) {
+          onUnpin(chat.id);
+        } else {
+          onPin(chat.id);
+        }
+      },
+      [chat.id, isPinned, onPin, onUnpin]
+    );
+
+    const handleReadClick = useCallback(
+      (e) => {
+        e.stopPropagation();
+        if (isRead) {
+          onMarkUnread(chat.id);
+        } else {
+          onMarkRead(chat.id);
+        }
+      },
+      [chat.id, isRead, onMarkRead, onMarkUnread]
+    );
+
+    const stopPropagation = useCallback((e) => {
+      e.stopPropagation();
+    }, []);
+
+    const otherUser =
+      chat.type === "direct" ? getOtherUserInDirectChat(chat) : null;
+
+    return (
+      <div
+        onClick={handleChatClick}
+        className={`
+        group relative cursor-pointer transition-all duration-200 ease-in-out
+        border-b border-gray-100 dark:border-gray-800 last:border-b-0
+        hover:bg-gray-50 dark:hover:bg-gray-800/50
+        ${
+          isSelected
+            ? "bg-blue-50 dark:bg-blue-900/20 border-l-4 border-l-blue-500"
+            : ""
+        }
+        ${isPinned ? "bg-blue-50/30 dark:bg-blue-900/10" : ""}
+      `}
+      >
+        {/* Menu Button - Telegram style */}
+        <div className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+          <Popover>
+            <PopoverTrigger
+              onClick={stopPropagation}
+              className="p-1.5 rounded-full bg-white dark:bg-gray-700 shadow-sm border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+            >
+              <ChevronDown
+                size={12}
+                className="text-gray-600 dark:text-gray-300"
+              />
+            </PopoverTrigger>
+            <PopoverContent className="w-44 p-1" align="end">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-full justify-start gap-2 h-8"
+                onClick={handlePinClick}
+              >
+                <Pin size={16} />
+                {isPinned ? "Unpin chat" : "Pin chat"}
+              </Button>
+
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-full justify-start gap-2 h-8"
+                onClick={handleReadClick}
+              >
+                {isRead ? <Check size={16} /> : <CheckCheck size={16} />}
+                {isRead ? "Mark as unread" : "Mark as read"}
+              </Button>
+
+              {chat.type === "group" && (
+                <div onClick={stopPropagation}>
+                  <LeaveGroup
+                    chatId={chat.id}
+                    currentUserId={currentUserId}
+                    onLeaveSuccess={clearCurrentChat}
+                  />
+                </div>
+              )}
+            </PopoverContent>
+          </Popover>
+        </div>
+
+        <div className="flex items-center p-3 gap-3">
+          {/* Avatar Section */}
+          <div className="relative flex-shrink-0">
+            {/* Online status for direct chats */}
+            {chat.type === "direct" && otherUser?.active && (
+              <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-white dark:border-gray-900 rounded-full z-10" />
+            )}
+
+            <Avatar
+              className={`w-12 h-12 transition-all duration-200 ${
+                chat.hasChatTopic ? "rounded-xl" : "rounded-full"
+              }`}
+            >
+              <AvatarImage src={getChatPhoto(chat)} className="object-cover" />
+              <AvatarFallback
+                className={`
+                bg-gradient-to-br from-blue-400 to-blue-600 text-white font-medium
+                ${chat.hasChatTopic ? "rounded-xl" : "rounded-full"}
+              `}
+              >
+                {getChatDisplayName(chat)?.[0]?.toUpperCase() || "U"}
+              </AvatarFallback>
+            </Avatar>
+          </div>
+
+          {/* Content Section */}
+          <div className="flex-1 min-w-0 overflow-hidden">
+            {/* Header Row */}
+            <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center gap-2 min-w-0 flex-1">
+                {/* Chat Type Icon */}
+                {chat.type === "group" && (
+                  <div className="flex-shrink-0 text-gray-500 dark:text-gray-400">
+                    {chat.hasChatTopic ? (
+                      <Hash size={16} />
+                    ) : (
+                      <Users size={16} />
+                    )}
+                  </div>
+                )}
+
+                {/* Chat Name */}
+                <h3
+                  className={`
+                text-sm font-medium truncate
+                ${
+                  !isRead
+                    ? "text-gray-900 dark:text-white font-semibold"
+                    : "text-gray-700 dark:text-gray-300"
+                }
+              `}
+                >
+                  {getChatDisplayName(chat)}
+                </h3>
+
+                {/* Pin indicator */}
+                {isPinned && (
+                  <div className="flex-shrink-0 text-blue-500">
+                    <Pin size={12} />
+                  </div>
+                )}
+              </div>
+
+              {/* Time and Status */}
+              <div className="flex items-center gap-1 flex-shrink-0 ml-2">
+                {/* Read status */}
+                {isRead && <CheckCheck size={12} className="text-green-500" />}
+
+                {/* Timestamp */}
+                {chat.lastMessageTime && (
+                  <span
+                    className={`
+                  text-xs
+                  ${
+                    !isRead
+                      ? "text-blue-600 dark:text-blue-400 font-medium"
+                      : "text-gray-500 dark:text-gray-400"
+                  }
+                `}
+                  >
+                    {formatTimestamp(chat.lastMessageTime)}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Topics Row (if applicable) */}
+            {chat.hasChatTopic && chat.topicNameList && (
+              <div className="flex flex-wrap gap-1 mb-1">
+                {chat.topicNameList.slice(0, 3).map((topic, index) => (
+                  <span
+                    key={`${chat.id}-topic-${index}`}
+                    className="inline-flex items-center px-1.5 py-0.5 rounded text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300"
+                  >
+                    {topic}
+                  </span>
+                ))}
+                {chat.topicNameList.length > 3 && (
+                  <span className="text-xs text-gray-500 dark:text-gray-400">
+                    +{chat.topicNameList.length - 3}
+                  </span>
+                )}
+              </div>
+            )}
+
+            {/* Last Message Row */}
+            {chat.lastMessage && (
+              <div className="flex items-center justify-between">
+                <p
+                  className={`
+                text-sm truncate flex-1
+                ${
+                  !isRead
+                    ? "text-gray-900 dark:text-gray-200 font-medium"
+                    : "text-gray-500 dark:text-gray-400"
+                }
+              `}
+                >
+                  {chat.lastMessage}
+                </p>
+
+                {/* Unread indicator */}
+                {!isRead && (
+                  <div className="ml-2 w-2 h-2 bg-blue-500 rounded-full flex-shrink-0" />
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+);
+
+ChatCard.displayName = "ChatCard";
+
 const ChatList = ({
   filteredChats,
   handleSelectChat,
@@ -24,299 +275,170 @@ const ChatList = ({
 }) => {
   const { chatId } = useMessageActionStore();
 
-  const markAsRead = async (chatId) => {
-    const chatRef = doc(db, "chats", chatId);
-    await updateDoc(chatRef, {
-      seenBy: arrayUnion(currentUserId),
-    });
-  };
-
-  const markAsUnread = async (chatId) => {
-    const chatRef = doc(db, "chats", chatId);
-    await updateDoc(chatRef, {
-      seenBy: arrayRemove(currentUserId),
-    });
-  };
-
-  const pinChat = async (chatId) => {
-    const chatRef = doc(db, "chats", chatId);
-    await updateDoc(chatRef, {
-      pin: arrayUnion(currentUserId),
-    });
-  };
-
-  const unpinChat = async (chatId) => {
-    const chatRef = doc(db, "chats", chatId);
-    await updateDoc(chatRef, {
-      pin: arrayRemove(currentUserId),
-    });
-  };
-
-  const pinnedChats = filteredChats.filter((chat) =>
-    chat.pin?.includes(currentUserId)
-  );
-  const unpinnedChats = filteredChats.filter(
-    (chat) => !chat.pin?.includes(currentUserId)
+  // Memoized action handlers
+  const markAsRead = useCallback(
+    async (chatId) => {
+      try {
+        const chatRef = doc(db, "chats", chatId);
+        await updateDoc(chatRef, {
+          seenBy: arrayUnion(currentUserId),
+        });
+      } catch (error) {
+        console.error("Error marking as read:", error);
+      }
+    },
+    [currentUserId]
   );
 
-  const ChatCard = ({ chat }) => {
-    return (
-      <div
-        key={chat.id}
-        onClick={() => handleSelectChat(chat)}
-        className={`group cursor-pointer p-2 relative   transition-colors
-  ${
-    chatId === chat.id
-      ? "bg-blue-500/30 hover:bg-blue-500/40"
-      : "hover:dark:bg-gray-700 hover:bg-gray-200"
-  }
-  ${
-    chat.pin?.includes(currentUserId)
-      ? " bg-blue-500/5 dark:border-gray-700 border-gray-300"
-      : ""
-  }
-`}
-      >
-        <div className="absolute top-0 right-0 z-10 sm:not-visited:opacity-0 sm:group-hover:opacity-100  transition-opacity duration-150 backdrop-blur-sm">
-          <Popover>
-            <PopoverTrigger
-              onClick={(e) => {
-                e.stopPropagation();
-              }}
-              className="p-1 border border-gray-500 m-0.5 rounded-full"
-            >
-              {" "}
-              <ChevronDown size={14} />
-            </PopoverTrigger>
-            <PopoverContent className="w-40 p-1">
-              {!chat.pin?.includes(currentUserId) ? (
-                <Button
-                  variant="ghost"
-                  className="w-full flex justify-start"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    pinChat(chat.id);
-                  }}
-                >
-                  <Pin size={20} />
-                  Pin chat {chat.pin?.includes(currentUserId)}
-                </Button>
-              ) : (
-                <Button
-                  variant="ghost"
-                  className="w-full flex justify-start"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    unpinChat(chat.id);
-                  }}
-                >
-                  <Pin size={20} />
-                  Unpin chat
-                </Button>
-              )}
-              {chat.seenBy?.includes(currentUserId) ? (
-                <Button
-                  variant="ghost"
-                  className="w-full flex justify-start"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    markAsUnread(chat.id);
-                  }}
-                >
-                  <Check size={20} />
-                  Mark as unread
-                </Button>
-              ) : (
-                <Button
-                  variant="ghost"
-                  className="w-full flex justify-start"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    markAsRead(chat.id);
-                  }}
-                >
-                  <CheckCheck size={20} />
-                  Mark as read
-                </Button>
-              )}
+  const markAsUnread = useCallback(
+    async (chatId) => {
+      try {
+        const chatRef = doc(db, "chats", chatId);
+        await updateDoc(chatRef, {
+          seenBy: arrayRemove(currentUserId),
+        });
+      } catch (error) {
+        console.error("Error marking as unread:", error);
+      }
+    },
+    [currentUserId]
+  );
 
-              {chat.type === "group" && (
-                <div
-                  onClick={(e) => {
-                    e.stopPropagation();
-                  }}
-                >
-                  <LeaveGroup
-                    chatId={chatId}
-                    currentUserId={currentUserId}
-                    onLeaveSuccess={clearCurrentChat}
-                  />
-                </div>
-              )}
-            </PopoverContent>
-          </Popover>
-        </div>
+  const pinChat = useCallback(
+    async (chatId) => {
+      try {
+        const chatRef = doc(db, "chats", chatId);
+        await updateDoc(chatRef, {
+          pin: arrayUnion(currentUserId),
+        });
+      } catch (error) {
+        console.error("Error pinning chat:", error);
+      }
+    },
+    [currentUserId]
+  );
 
-        <div className="flex items-center gap-2">
-          <div className="relative">
-            {chat.type === "direct" && (
-              <div
-                className={`absolute top-0 right-0 z-40 border-2 rounded-full dark:border-gray-800 ${
-                  getOtherUserInDirectChat(chat)?.active
-                    ? "text-green-500"
-                    : " text-gray-500"
-                }`}
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="8"
-                  height="8"
-                  viewBox="0 0 12 12"
-                >
-                  <circle cx="6" cy="6" r="6" fill="currentColor" />
-                </svg>
-              </div>
-            )}
+  const unpinChat = useCallback(
+    async (chatId) => {
+      try {
+        const chatRef = doc(db, "chats", chatId);
+        await updateDoc(chatRef, {
+          pin: arrayRemove(currentUserId),
+        });
+      } catch (error) {
+        console.error("Error unpinning chat:", error);
+      }
+    },
+    [currentUserId]
+  );
 
-            <Avatar
-              className={`w-10 h-10 border ${
-                chat.hasChatTopic ? "rounded-sm" : ""
-              }`}
-            >
-              <AvatarImage src={getChatPhoto(chat)} />
-              <AvatarFallback
-                className={` ${chat.hasChatTopic ? "rounded-sm" : ""}`}
-              >
-                {" "}
-                {getChatDisplayName(chat)[0]?.toUpperCase() || "U"}
-              </AvatarFallback>
-            </Avatar>
-          </div>
+  // Memoized chat categorization and sorting
+  const { pinnedChats, unpinnedChats } = useMemo(() => {
+    const pinned = [];
+    const unpinned = [];
 
-          <div className="w-full">
-            <div className="text-sm capitalize flex justify-start items-center gap-1.5 font-semibold">
-              {chat.type === "group" && chat.hasChatTopic && (
-                <span>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      fill="currentColor"
-                      d="M15.5 7.5a3.5 3.5 0 1 1-7 0a3.5 3.5 0 0 1 7 0m2.5 9c0 1.933-2.686 3.5-6 3.5s-6-1.567-6-3.5S8.686 13 12 13s6 1.567 6 3.5M7.122 5q.267 0 .518.05A5 5 0 0 0 7 7.5c0 .868.221 1.685.61 2.396q-.237.045-.488.045c-1.414 0-2.561-1.106-2.561-2.47S5.708 5 7.122 5M5.447 18.986C4.88 18.307 4.5 17.474 4.5 16.5c0-.944.357-1.756.896-2.423C3.49 14.225 2 15.267 2 16.529c0 1.275 1.517 2.325 3.447 2.457M17 7.5c0 .868-.221 1.685-.61 2.396q.236.045.488.045c1.414 0 2.56-1.106 2.56-2.47S18.293 5 16.879 5q-.267 0-.518.05c.407.724.64 1.56.64 2.45m1.552 11.486c1.93-.132 3.447-1.182 3.447-2.457c0-1.263-1.491-2.304-3.396-2.452c.54.667.896 1.479.896 2.423c0 .974-.38 1.807-.947 2.486"
-                    />
-                  </svg>
+    filteredChats.forEach((chat) => {
+      if (chat.pin?.includes(currentUserId)) {
+        pinned.push(chat);
+      } else {
+        unpinned.push(chat);
+      }
+    });
+
+    // Sort by last message time (most recent first)
+    const sortByTime = (a, b) => {
+      const timeA = a.lastMessageTime?.toDate?.() || new Date(0);
+      const timeB = b.lastMessageTime?.toDate?.() || new Date(0);
+      return timeB - timeA;
+    };
+
+    pinned.sort(sortByTime);
+    unpinned.sort(sortByTime);
+
+    return { pinnedChats: pinned, unpinnedChats: unpinned };
+  }, [filteredChats, currentUserId]);
+
+  const renderChats = useCallback(
+    (chats, showPinnedHeader = false) => {
+      if (chats.length === 0) return null;
+
+      return (
+        <div className="w-full">
+          {showPinnedHeader && (
+            <div className="px-4 py-2 bg-gray-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-700">
+              <div className="flex items-center gap-2">
+                <Pin size={14} className="text-blue-500" />
+                <span className="text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wide">
+                  Pinned Chats
                 </span>
-              )}
-              {chat.type === "group" && !chat.hasChatTopic && (
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width={16}
-                  height={16}
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    fill="currentColor"
-                    d="M2.596 16.97q0-.697.36-1.198q.361-.5.97-.8q1.301-.62 2.584-.988q1.282-.369 3.086-.369t3.087.369t2.584.987q.608.3.969.801q.36.501.36 1.197v.608q0 .382-.299.71t-.74.328H3.636q-.44 0-.74-.299q-.299-.299-.299-.739zm15.777 1.646q.102-.239.163-.504q.06-.264.06-.535v-.654q0-.87-.352-1.641q-.351-.772-.998-1.324q.737.15 1.42.416t1.35.599q.65.327 1.019.837t.369 1.113v.654q0 .44-.3.74q-.298.298-.738.298zm-8.777-7.231q-1.237 0-2.118-.882t-.882-2.118t.882-2.12t2.118-.88t2.119.88t.881 2.12t-.881 2.118t-2.119.882m7.27-3q0 1.237-.882 2.118t-2.118.882q-.064 0-.162-.015t-.162-.031q.509-.623.781-1.382q.273-.758.273-1.575t-.285-1.56q-.286-.745-.769-1.391q.081-.029.162-.038t.162-.009q1.237 0 2.118.882t.882 2.118"
-                  ></path>
-                </svg>
-              )}
-              <h1 className="max-w-52 sm:max-w-32 truncate">
-                {getChatDisplayName(chat)}
-              </h1>
-            </div>
-            {chat.hasChatTopic && (
-              <div className="flex gap-0.5 truncate max-w-52 sm:max-w-32">
-                {chat.topicNameList &&
-                  chat.topicNameList.map((topic, index) => (
-                    <span
-                      key={index++}
-                      className="text-[10px] border px-0.5 rounded-sm  text-gray-400 "
-                    >
-                      {topic}
-                    </span>
-                  ))}
-              </div>
-            )}
-            <div
-              className={`text-xs w-full relative capitalize flex items-center gap-1 ${
-                !chat.seenBy?.includes(currentUserId)
-                  ? "font-bold text-blue-500 dark:text-white"
-                  : "dark:text-gray-400 "
-              }`}
-            >
-              <div className="flex justify-between w-full items-center">
-                {chat.lastMessage && (
-                  <p className="text-[10px] max-w-52 sm:max-w-28 truncate">
-                    {chat.lastMessage}
-                  </p>
-                )}
-                {/* Show timestamp */}
-                {chat.lastMessageTime && (
-                  <div className="flex justify-start text-[10px] gap-0.5 items-center">
-                    {chat.seenBy?.includes(currentUserId) && (
-                      <p>
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="14"
-                          height="14"
-                          viewBox="0 0 24 24"
-                          className="text-green-500"
-                        >
-                          <g fill="none">
-                            <path
-                              fill="currentColor"
-                              d="M4.565 12.407a.75.75 0 1 0-1.13.986zM7.143 16.5l-.565.493a.75.75 0 0 0 1.13 0zm8.422-8.507a.75.75 0 1 0-1.13-.986zm-5.059 3.514a.75.75 0 0 0 1.13.986zm-.834 3.236a.75.75 0 1 0-1.13-.986zm-6.237-1.35l3.143 3.6l1.13-.986l-3.143-3.6zm4.273 3.6l1.964-2.25l-1.13-.986l-1.964 2.25zm3.928-4.5l1.965-2.25l-1.13-.986l-1.965 2.25zm1.965-2.25l1.964-2.25l-1.13-.986l-1.964 2.25z"
-                            />
-                            <path
-                              stroke="currentColor"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth="1.5"
-                              d="m20 7.563l-4.286 4.5M11 16l.429.563l2.143-2.25"
-                            />
-                          </g>
-                        </svg>
-                      </p>
-                    )}
-
-                    <p className="flex">
-                      {formatTimestamp(chat.lastMessageTime)}
-                    </p>
-                    {chat.pin?.includes(currentUserId) && (
-                      <div className=" text-gray-500">
-                        <Pin size={12} />
-                      </div>
-                    )}
-                  </div>
-                )}
               </div>
             </div>
+          )}
 
-            {!chat.pin?.includes(currentUserId) && chat.lastMessage && (
-              <hr className="mt-2" />
-            )}
+          <div className="divide-y divide-gray-100 dark:divide-gray-800">
+            {chats.map((chat) => (
+              <ChatCard
+                key={chat.id}
+                chat={chat}
+                isSelected={chatId === chat.id}
+                isPinned={chat.pin?.includes(currentUserId)}
+                isRead={chat.seenBy?.includes(currentUserId)}
+                onSelectChat={handleSelectChat}
+                onPin={pinChat}
+                onUnpin={unpinChat}
+                onMarkRead={markAsRead}
+                onMarkUnread={markAsUnread}
+                getChatPhoto={getChatPhoto}
+                getChatDisplayName={getChatDisplayName}
+                getOtherUserInDirectChat={getOtherUserInDirectChat}
+                currentUserId={currentUserId}
+                clearCurrentChat={clearCurrentChat}
+              />
+            ))}
           </div>
         </div>
-      </div>
-    );
-  };
+      );
+    },
+    [
+      chatId,
+      currentUserId,
+      handleSelectChat,
+      pinChat,
+      unpinChat,
+      markAsRead,
+      markAsUnread,
+      getChatPhoto,
+      getChatDisplayName,
+      getOtherUserInDirectChat,
+      clearCurrentChat,
+    ]
+  );
 
   return (
-    <>
-      <>
-        {pinnedChats.map((chat) => (
-          <ChatCard key={chat.id} chat={chat} />
-        ))}
-      </>
-      <>
-        {unpinnedChats.map((chat) => (
-          <ChatCard key={chat.id} chat={chat} />
-        ))}
-      </>
-    </>
+    <div className="w-full h-full overflow-hidden">
+      <div className="h-full overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent">
+        {/* Pinned Chats */}
+        {pinnedChats.length > 0 && renderChats(pinnedChats, true)}
+
+        {/* Regular Chats */}
+        {unpinnedChats.length > 0 && renderChats(unpinnedChats, false)}
+
+        {/* Empty State */}
+        {pinnedChats.length === 0 && unpinnedChats.length === 0 && (
+          <div className="flex flex-col items-center justify-center h-64 text-center px-4">
+            <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4">
+              <Icon icon="mdi:chat-outline" className="w-8 h-8 text-gray-400" />
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+              No chats found
+            </h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Start a conversation to see your chats here
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
   );
 };
 

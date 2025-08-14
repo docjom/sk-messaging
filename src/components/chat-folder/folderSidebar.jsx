@@ -21,7 +21,8 @@ import { PinnedMessages } from "../chat/PinnedMessages";
 import { ChatFiles } from "../chat/ChatFiles";
 import { CreateNewTopic } from "./folderCreateNewTopic";
 import { useMentions } from "@/stores/useUsersMentions";
-import { ChevronLeft, EllipsisVertical } from "lucide-react";
+import { ChevronLeft, EllipsisVertical, Menu } from "lucide-react";
+
 export const FolderSidebar = ({
   filteredChats,
   getChatPhoto,
@@ -35,7 +36,6 @@ export const FolderSidebar = ({
     setCurrentChat,
     setChatIdTo,
     users,
-    // topicId,
     setSelectedUser,
     clearCurrentChat,
     clearChat,
@@ -70,6 +70,7 @@ export const FolderSidebar = ({
     clearEdit();
     clearPastedImage();
     clearMessage();
+
     if (!chat.hasChatTopic) {
       setFolderSidebar(false);
       clearTopic();
@@ -79,7 +80,6 @@ export const FolderSidebar = ({
       const otherUser = users.find((u) => u.id === otherUserId);
       setSelectedUser(otherUser);
     }
-    // console.log(chat.id, chat.type);
   };
 
   const viewAsMessages = () => {
@@ -139,37 +139,41 @@ export const FolderSidebar = ({
   }, [chatId, user.uid, currentChat]);
 
   return (
-    <>
-      <div className="sm:w-64 w-full  dark:bg-gray-800 border-r fixed lg:sticky top-0 left-0 z-30 overflow-y-auto bg-white flex h-full ">
-        <div className="border-r w-20 p-2 relative scrollbar-hide h-full overflow-y-auto bg-gray-50 dark:bg-gray-700">
-          <div className="absolute top-0 w-full z-10  left-0">
-            <div className="flex items-center justify-center border-b  bg-white dark:bg-gray-800 pt-2 pb-1.5">
-              <div
-                onClick={() => toggleMenu()}
-                className="rounded-full flex justify-center items-center dark:bg-gray-700/20 p-2 border"
-              >
-                <Icon icon="duo-icons:menu" width="24" height="24" />
-              </div>
-            </div>
-          </div>
+    <div className=" fixed lg:sticky top-0 left-0 z-30 overflow-y-auto bg-white flex sm:w-auto w-full h-full dark:bg-gray-800">
+      {/* Chat List Sidebar - Left Panel */}
+      <div className="w-16 flex-shrink-0 bg-gray-50 dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 flex flex-col">
+        {/* Menu Button */}
+        <div className="px-3 py-2 flex  justify-center items-center border-b border-gray-200 dark:border-gray-700">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={toggleMenu}
+            className="w-10 h-10 rounded-full p-0 border-gray-300 dark:border-gray-600"
+          >
+            <Menu size={18} />
+          </Button>
+        </div>
 
-          <div className="overflow-y-auto scrollbar-hide pt-14 h-full w-full">
+        {/* Chat Avatars List */}
+        <div className="flex-1 overflow-y-auto scrollbar-hide py-2">
+          <div className="flex flex-col items-center gap-2">
             {filteredChats.map((chat) => (
               <div
                 key={chat.id}
                 onClick={() => handleSelectChat(chat)}
-                className="py-1 flex justify-center items-center cursor-pointer"
+                className={`cursor-pointer transition-all py-0.5 duration-200 ${
+                  chatId === chat.id ? "scale-110" : "hover:scale-105"
+                }`}
               >
                 <Avatar
-                  className={`w-10 h-10 border  ${
+                  className={`w-12 h-12 border-2 transition-all duration-200 ${
                     chatId === chat.id
-                      ? "border-2 border-blue-500 shadow-lg"
-                      : ""
+                      ? "border-blue-500 shadow-lg ring-2 ring-blue-200 dark:ring-blue-800"
+                      : "border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500"
                   }`}
                 >
                   <AvatarImage src={getChatPhoto(chat)} />
-                  <AvatarFallback>
-                    {" "}
+                  <AvatarFallback className="text-sm font-medium">
                     {getChatDisplayName(chat)[0]?.toUpperCase() || "U"}
                   </AvatarFallback>
                 </Avatar>
@@ -177,86 +181,124 @@ export const FolderSidebar = ({
             ))}
           </div>
         </div>
-        <div className=" relative scrollbar-hide w-full">
-          <div className="absolute top-0 left-0 w-full">
-            <div className="flex justify-between items-center m-0 bg-white dark:bg-gray-800 border-b p-2">
-              <div className="flex justify-start items-center gap-2">
-                <div
-                  onClick={() => closeFolderSidebar()}
-                  className="text-gray-700 dark:text-gray-300"
-                >
-                  <div className="rounded-full p-0.5 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer">
-                    <ChevronLeft size={20} />
-                  </div>
-                </div>
-                <div>
-                  <p className="font-semibold capitalize text-base max-w-32 truncate">
-                    {currentChat.name}
-                  </p>
-                  <p className="text-xs">{currentChat.users.length} members</p>
-                </div>
-              </div>
-              <div>
-                <Popover>
-                  <PopoverTrigger
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      clearTopic();
-                    }}
-                  >
-                    <div className="rounded-full p-0.5 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer">
-                      <EllipsisVertical size={16} strokeWidth={1} />
-                    </div>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-40 p-0">
-                    <Button
-                      variant="ghost"
-                      className=" flex justify-start w-full"
-                      onClick={() => viewAsMessages()}
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width={20}
-                        height={20}
-                        viewBox="0 0 24 24"
-                      >
-                        <g fill="none">
-                          <path
-                            stroke="currentColor"
-                            strokeLinecap="round"
-                            strokeWidth={1.5}
-                            d="M8 9h8m-8 3.5h5.5"
-                          ></path>
-                          <path
-                            fill="currentColor"
-                            d="m13.087 21.388l.645.382zm.542-.916l-.646-.382zm-3.258 0l-.645.382zm.542.916l.646-.382zM1.25 10.5a.75.75 0 0 0 1.5 0zm1.824 5.126a.75.75 0 0 0-1.386.574zm4.716 3.365l-.013.75zm-2.703-.372l-.287.693zm16.532-2.706l.693.287zm-5.409 3.078l-.012-.75zm2.703-.372l.287.693zm.7-15.882l-.392.64zm1.65 1.65l.64-.391zM4.388 2.738l-.392-.64zm-1.651 1.65l-.64-.391zM9.403 19.21l.377-.649zm4.33 2.56l.541-.916l-1.29-.764l-.543.916zm-4.007-.916l.542.916l1.29-.764l-.541-.916zm2.715.152a.52.52 0 0 1-.882 0l-1.291.764c.773 1.307 2.69 1.307 3.464 0zM10.5 2.75h3v-1.5h-3zm10.75 7.75v1h1.5v-1zM7.803 18.242c-1.256-.022-1.914-.102-2.43-.316L4.8 19.313c.805.334 1.721.408 2.977.43zM1.688 16.2A5.75 5.75 0 0 0 4.8 19.312l.574-1.386a4.25 4.25 0 0 1-2.3-2.3zm19.562-4.7c0 1.175 0 2.019-.046 2.685c-.045.659-.131 1.089-.277 1.441l1.385.574c.235-.566.338-1.178.389-1.913c.05-.729.049-1.632.049-2.787zm-5.027 8.241c1.256-.021 2.172-.095 2.977-.429l-.574-1.386c-.515.214-1.173.294-2.428.316zm4.704-4.115a4.25 4.25 0 0 1-2.3 2.3l.573 1.386a5.75 5.75 0 0 0 3.112-3.112zM13.5 2.75c1.651 0 2.837 0 3.762.089c.914.087 1.495.253 1.959.537l.783-1.279c-.739-.452-1.577-.654-2.6-.752c-1.012-.096-2.282-.095-3.904-.095zm9.25 7.75c0-1.622 0-2.891-.096-3.904c-.097-1.023-.299-1.862-.751-2.6l-1.28.783c.285.464.451 1.045.538 1.96c.088.924.089 2.11.089 3.761zm-3.53-7.124a4.25 4.25 0 0 1 1.404 1.403l1.279-.783a5.75 5.75 0 0 0-1.899-1.899zM10.5 1.25c-1.622 0-2.891 0-3.904.095c-1.023.098-1.862.3-2.6.752l.783 1.28c.464-.285 1.045-.451 1.96-.538c.924-.088 2.11-.089 3.761-.089zM2.75 10.5c0-1.651 0-2.837.089-3.762c.087-.914.253-1.495.537-1.959l-1.279-.783c-.452.738-.654 1.577-.752 2.6C1.25 7.61 1.25 8.878 1.25 10.5zm1.246-8.403a5.75 5.75 0 0 0-1.899 1.899l1.28.783a4.25 4.25 0 0 1 1.402-1.403zm7.02 17.993c-.202-.343-.38-.646-.554-.884a2.2 2.2 0 0 0-.682-.645l-.754 1.297c.047.028.112.078.224.232c.121.166.258.396.476.764zm-3.24-.349c.44.008.718.014.93.037c.198.022.275.054.32.08l.754-1.297a2.2 2.2 0 0 0-.909-.274c-.298-.033-.657-.038-1.069-.045zm6.498 1.113c.218-.367.355-.598.476-.764c.112-.154.177-.204.224-.232l-.754-1.297c-.29.17-.5.395-.682.645c-.173.238-.352.54-.555.884zm1.924-2.612c-.412.007-.771.012-1.069.045c-.311.035-.616.104-.909.274l.754 1.297c.045-.026.122-.058.32-.08c.212-.023.49-.03.93-.037z"
-                          ></path>
-                        </g>
-                      </svg>
-                      View as messages
-                    </Button>
+      </div>
 
-                    <EditGroup chatId={chatId} currentUserId={user?.uid} />
-                    {userRole === "admin" && <CreateNewTopic />}
-                    <PinnedMessages chatId={chatId} />
-                    <ChatFiles chatId={chatId} />
-                    <LeaveGroup
-                      chatId={chatId}
-                      currentUserId={user?.uid}
-                      onLeaveSuccess={clearCurrentChat}
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
+      {/* Topics Panel - Right Panel */}
+      <div className="flex-1 flex flex-col min-w-0 bg-white dark:bg-gray-800">
+        {/* Header */}
+        <div className="flex sm:w-64 items-center justify-between p-2  border-b border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+          <div className="flex items-center gap-3 min-w-0 flex-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={closeFolderSidebar}
+              className="p-2 h-8 w-8 hover:bg-gray-100 dark:hover:bg-gray-700"
+            >
+              <ChevronLeft size={20} />
+            </Button>
+
+            <div className="min-w-0 flex-1">
+              <h2 className="font-semibold text-base capitalize truncate text-gray-900 dark:text-white">
+                {currentChat?.name}
+              </h2>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                {currentChat?.users?.length} members
+              </p>
             </div>
           </div>
-          <div className=" overflow-y-auto scrollbar-hide pt-14 h-full w-full">
-            {topics.map((topic) => (
-              <FolderList key={topic.id} topic={topic} />
-            ))}
-          </div>
+
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="p-2 h-8 w-8 hover:bg-gray-100 dark:hover:bg-gray-700"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  clearTopic();
+                }}
+              >
+                <EllipsisVertical size={18} />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-56 p-1" align="end">
+              <Button
+                variant="ghost"
+                className="w-full justify-start gap-3 px-3 py-2 h-auto text-sm font-semibold"
+                onClick={viewAsMessages}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width={18}
+                  height={18}
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M8 9h8" />
+                  <path d="M8 13h6" />
+                  <path d="M18 4a3 3 0 0 1 3 3v8a3 3 0 0 1-3 3h-5l-5 3v-3H6a3 3 0 0 1-3-3V7a3 3 0 0 1 3-3h12z" />
+                </svg>
+                View as Messages
+              </Button>
+
+              <EditGroup chatId={chatId} currentUserId={user?.uid} />
+
+              {userRole === "admin" && <CreateNewTopic />}
+
+              <PinnedMessages chatId={chatId} />
+              <ChatFiles chatId={chatId} />
+
+              <div className="h-px bg-gray-200 dark:bg-gray-700 my-1" />
+
+              <LeaveGroup
+                chatId={chatId}
+                currentUserId={user?.uid}
+                onLeaveSuccess={clearCurrentChat}
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
+
+        {/* Topics List */}
+        <div className="flex-1 sm:w-64 border-r overflow-y-auto scrollbar-hide bg-white dark:bg-gray-800">
+          {topics.length > 0 ? (
+            <div className="divide-y divide-gray-100  dark:divide-gray-700">
+              {topics.map((topic) => (
+                <FolderList key={topic.id} topic={topic} />
+              ))}
+            </div>
+          ) : (
+            <div className="flex items-center justify-center h-32 text-gray-500 dark:text-gray-400">
+              <div className="text-center">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width={48}
+                  height={48}
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="mx-auto mb-3 text-gray-400 dark:text-gray-600"
+                >
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                  <path d="M8 9h8" />
+                  <path d="M8 13h6" />
+                </svg>
+                <p className="text-sm">No topics yet</p>
+                <p className="text-xs mt-1">
+                  Create a topic to organize your conversations
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       </div>
-    </>
+    </div>
   );
 };

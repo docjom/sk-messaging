@@ -26,6 +26,13 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export const Management = () => {
   const [users, setUsers] = useState([]);
@@ -36,6 +43,14 @@ export const Management = () => {
   const [editEmail, setEditEmail] = useState("");
   const [editRole, setEditRole] = useState("");
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isSaveConfirmOpen, setIsSaveConfirmOpen] = useState(false);
+
+  // Role options
+  const roleOptions = [
+    { value: "user", label: "User" },
+    { value: "hr", label: "HR" },
+    { value: "admin", label: "Admin" },
+  ];
 
   // Pagination states per section
   const perPage = 5;
@@ -116,13 +131,18 @@ export const Management = () => {
         email: editEmail,
         role: editRole,
       });
-      toast.success("User updated");
+      toast.success("User updated successfully");
       setEditUser(null);
       setIsEditOpen(false);
+      setIsSaveConfirmOpen(false);
     } catch (error) {
       toast.error("Failed to update user");
       console.error(error);
     }
+  };
+
+  const handleSaveClick = () => {
+    setIsSaveConfirmOpen(true);
   };
 
   const handleEditOpenChange = (open) => {
@@ -131,6 +151,7 @@ export const Management = () => {
       setEditUser(null);
       setEditEmail("");
       setEditRole("");
+      setIsSaveConfirmOpen(false);
     }
   };
 
@@ -180,13 +201,52 @@ export const Management = () => {
                   </Button>
 
                   {statusLabel !== "Deleted" && (
-                    <Button
-                      size="sm"
-                      onClick={() => handleBlock(user.id, user.blocked)}
-                    >
-                      <ShieldBan size={16} />
-                      {user.blocked ? "Unblock" : "Block"}
-                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          size="sm"
+                          variant={user.blocked ? "outline" : "destructive"}
+                        >
+                          <ShieldBan size={16} />
+                          {user.blocked ? "Unblock" : "Block"}
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>
+                            {user.blocked ? "Unblock" : "Block"} this user?
+                          </AlertDialogTitle>
+                          <AlertDialogDescription>
+                            {user.blocked ? (
+                              <>
+                                This will allow{" "}
+                                <strong>{user.displayName}</strong> to access
+                                the application again. They will be able to sign
+                                in and use all features normally.
+                              </>
+                            ) : (
+                              <>
+                                This will prevent{" "}
+                                <strong>{user.displayName}</strong> from
+                                accessing the application. They will not be able
+                                to sign in or use any features until unblocked.
+                              </>
+                            )}
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => handleBlock(user.id, user.blocked)}
+                            className={
+                              user.blocked ? "" : "bg-red-600 hover:bg-red-700"
+                            }
+                          >
+                            {user.blocked ? "Unblock User" : "Block User"}
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   )}
 
                   {statusLabel !== "Deleted" && (
@@ -201,16 +261,19 @@ export const Management = () => {
                         <AlertDialogHeader>
                           <AlertDialogTitle>Delete this user?</AlertDialogTitle>
                           <AlertDialogDescription>
-                            This action will mark the user as deleted. You can
-                            view deleted users in the "Deleted Users" section.
+                            This action will mark{" "}
+                            <strong>{user.displayName}</strong> as deleted. You
+                            can view deleted users in the "Deleted Users"
+                            section.
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
                           <AlertDialogCancel>Cancel</AlertDialogCancel>
                           <AlertDialogAction
                             onClick={() => handleDelete(user.id)}
+                            className="bg-red-600 hover:bg-red-700"
                           >
-                            Delete
+                            Delete User
                           </AlertDialogAction>
                         </AlertDialogFooter>
                       </AlertDialogContent>
@@ -309,25 +372,71 @@ export const Management = () => {
             <DialogTitle>Edit User</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <Input
-              value={editEmail}
-              onChange={(e) => setEditEmail(e.target.value)}
-              placeholder="Email"
-            />
-            <Input
-              value={editRole}
-              onChange={(e) => setEditRole(e.target.value)}
-              placeholder="Role"
-            />
+            <div>
+              <label className="text-sm font-medium mb-2 block">Email</label>
+              <Input
+                value={editEmail}
+                onChange={(e) => setEditEmail(e.target.value)}
+                placeholder="Email"
+                type="email"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-2 block">Role</label>
+              <Select value={editRole} onValueChange={setEditRole}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a role" />
+                </SelectTrigger>
+                <SelectContent>
+                  {roleOptions.map((role) => (
+                    <SelectItem key={role.value} value={role.value}>
+                      {role.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsEditOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handleEditSave}>Save</Button>
+            <Button onClick={handleSaveClick}>Save Changes</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Save Confirmation Dialog */}
+      <AlertDialog open={isSaveConfirmOpen} onOpenChange={setIsSaveConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Save Changes?</AlertDialogTitle>
+            <AlertDialogDescription>
+              You are about to update <strong>{editUser?.displayName}</strong>'s
+              information:
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className=" p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+            <div className="space-y-1 text-sm">
+              <div>
+                <span className="font-medium">Email:</span> {editEmail}
+              </div>
+              <div>
+                <span className="font-medium">Role:</span>{" "}
+                {roleOptions.find((r) => r.value === editRole)?.label ||
+                  editRole}
+              </div>
+            </div>
+          </div>
+          Are you sure you want to save these changes?
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleEditSave}>
+              Save Changes
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 };

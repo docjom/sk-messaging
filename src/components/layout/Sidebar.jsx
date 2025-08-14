@@ -16,7 +16,8 @@ import { useUserStore } from "@/stores/useUserStore";
 import { FolderSidebar } from "../chat-folder/folderSidebar";
 import { useChatFolderStore } from "@/stores/chat-folder/useChatFolderStore";
 import { useFolderStore } from "@/stores/chat-folder/useFolderStore";
-import { Badge, Folder, MessageSquare } from "lucide-react";
+import { Badge, Folder, Menu, MessageSquare } from "lucide-react";
+import { Button } from "../ui/button";
 function SidebarPanel({
   searchTerm,
   setSearchTerm,
@@ -73,12 +74,17 @@ function SidebarPanel({
               <div className="relative">
                 <div className="absolute top-0 left-0 z-50 bg-white dark:bg-gray-800 w-full border-b ">
                   <div className="flex items-center justify-start gap-2 px-2 pt-1.5 pb-1.5">
-                    <div
-                      onClick={() => toggleMenu()}
-                      className="rounded-full dark:bg-gray-700/20 p-2"
-                    >
-                      <Icon icon="duo-icons:menu" width="24" height="24" />
+                    <div className="flex  justify-center items-center border-gray-200 dark:border-gray-700">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={toggleMenu}
+                        className="w-10 h-10 rounded-full p-0 border-gray-300 dark:border-gray-600"
+                      >
+                        <Menu size={18} />
+                      </Button>
                     </div>
+
                     <div className="w-full">
                       <Input
                         type="search"

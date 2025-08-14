@@ -6,6 +6,8 @@ import React, {
   useCallback,
   useEffect,
   memo,
+  useRef,
+  useMemo,
 } from "react";
 import { useMessageActionStore } from "@/stores/useMessageActionStore";
 import { SendButton } from "./SendButton";
@@ -32,6 +34,42 @@ import { useMentions } from "@/stores/useUsersMentions";
 import { useFolderStore } from "@/stores/chat-folder/useFolderStore";
 import { useChatFolderStore } from "@/stores/chat-folder/useChatFolderStore";
 
+const MentionSuggestionItem = memo(({ user, onSelect }) => {
+  const handleClick = useCallback(() => {
+    onSelect(user);
+  }, [user, onSelect]);
+
+  return (
+    <div
+      className="flex items-center gap-3 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors dark:border-gray-700"
+      onClick={handleClick}
+    >
+      <Avatar className="border w-8 h-8 object-cover">
+        <AvatarImage src={user.photoURL} alt={user.displayName} />
+        <AvatarFallback>
+          {user.displayName.charAt(0).toUpperCase()}
+        </AvatarFallback>
+      </Avatar>
+
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+          {user.displayName}
+          {user.role === "admin" && (
+            <span className="ml-2 px-1.5 py-0.5 text-xs bg-blue-100 text-blue-600 rounded-full">
+              Admin
+            </span>
+          )}
+        </p>
+        <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+          {user.email}
+        </p>
+      </div>
+    </div>
+  );
+});
+
+MentionSuggestionItem.displayName = "MentionSuggestionItem";
+
 const MessageInput = memo(
   ({
     chatId,
@@ -52,23 +90,49 @@ const MessageInput = memo(
     const [cursorPosition, setCursorPosition] = useState(null);
     const [showMentions, setShowMentions] = useState(false);
 
+    // Use refs for values that don't need to trigger re-renders
+    const typingTimeoutRef = useRef(null);
+    const lastTypingTimeRef = useRef(0);
+
     const {
       mentionSuggestions,
       setMentionSuggestions,
       clearMentionSuggestions,
     } = useMentions();
+
+    // Memoize folder state to prevent unnecessary re-renders
     const { hasFolders } = useFolderStore();
     const { folderSidebar } = useChatFolderStore();
 
     const { setTyping } = useTypingForChat(chatId);
     const user = useUserStore((s) => s.user);
 
+    // Memoize pastedImage selectors to prevent re-renders
     const pastedImage = useMessageActionStore((state) => state.pastedImage);
     const setPastedImage = useMessageActionStore(
       (state) => state.setPastedImage
     );
     const clearPastedImage = useMessageActionStore(
       (state) => state.clearPastedImage
+    );
+
+    // Memoize computed values
+    const isInputDisabled = useMemo(
+      () => messagesLoading || isMessagesSending,
+      [messagesLoading, isMessagesSending]
+    );
+
+    const isFileButtonDisabled = useMemo(
+      () => !chatId || messagesLoading || isMessagesSending,
+      [chatId, messagesLoading, isMessagesSending]
+    );
+
+    const containerClassName = useMemo(
+      () =>
+        `fixed bottom-0 left-0 right-0 shadow-lg z-30 ${
+          hasFolders && !folderSidebar ? "sm:ml-74" : "sm:ml-64"
+        }`,
+      [hasFolders, folderSidebar]
     );
 
     useEffect(() => {
@@ -140,25 +204,47 @@ const MessageInput = memo(
       [groupUsers, clearMentionSuggestions, setMentionSuggestions]
     );
 
+    // Optimized typing indicator with debouncing
+    const handleTypingIndicator = useCallback(
+      (newMessage) => {
+        if (newMessage.trim() && user?.uid && user?.displayName && chatId) {
+          const now = Date.now();
+          // Only send typing indicator if enough time has passed
+          if (now - lastTypingTimeRef.current > 2000) {
+            setTyping(user.uid, user.displayName);
+            lastTypingTimeRef.current = now;
+          }
+
+          // Clear any existing timeout
+          if (typingTimeoutRef.current) {
+            clearTimeout(typingTimeoutRef.current);
+          }
+
+          // Set a timeout to stop typing indicator
+          typingTimeoutRef.current = setTimeout(() => {
+            lastTypingTimeRef.current = 0;
+          }, 3000);
+        }
+      },
+      [setTyping, user?.uid, user?.displayName, chatId]
+    );
+
     const handleTextareaChange = useCallback(
       (e) => {
         const newMessage = e.target.value;
         const cursorPos = e.target.selectionStart;
+
+        // Update message state
         setMessage(newMessage);
         setCursorPosition(cursorPos);
+
+        // Handle mention detection
         handleMentionDetection(newMessage, cursorPos);
-        if (newMessage.trim() && user?.uid && user?.displayName && chatId) {
-          setTyping(user.uid, user.displayName);
-        }
+
+        // Handle typing indicator (optimized)
+        handleTypingIndicator(newMessage);
       },
-      [
-        setMessage,
-        setTyping,
-        user?.uid,
-        user?.displayName,
-        chatId,
-        handleMentionDetection,
-      ]
+      [setMessage, handleMentionDetection, handleTypingIndicator]
     );
 
     const handleMentionInsert = useCallback(
@@ -187,7 +273,13 @@ const MessageInput = memo(
           }
         }, 0);
       },
-      [message, cursorPosition, setMessage, textareaRef]
+      [
+        message,
+        cursorPosition,
+        setMessage,
+        textareaRef,
+        clearMentionSuggestions,
+      ]
     );
 
     // Handle keyboard navigation for mentions
@@ -303,52 +395,28 @@ const MessageInput = memo(
       }
     }, []);
 
-    const isInputDisabled = messagesLoading || isMessagesSending;
-    const isFileButtonDisabled =
-      !chatId || messagesLoading || isMessagesSending;
+    // Cleanup timeout on unmount
+    useEffect(() => {
+      return () => {
+        if (typingTimeoutRef.current) {
+          clearTimeout(typingTimeoutRef.current);
+        }
+      };
+    }, []);
 
     return (
-      <div
-        className={`fixed bottom-0 left-0 right-0 shadow-lg  z-30 ${
-          hasFolders && !folderSidebar ? "sm:ml-74" : "sm:ml-64"
-        }`}
-      >
+      <div className={containerClassName}>
         <div className="px-4 py-2 border-t backdrop-blur-sm border-gray-300 dark:border-gray-700">
           <div className="flex flex-col gap-1">
             {/* Mention Suggestions */}
             {showMentions && mentionSuggestions.length > 0 && (
               <div className="absolute bottom-full mb-0 left-0 right-0 z-50 bg-white dark:bg-gray-800 border-y dark:border-gray-700 max-h-48 overflow-y-auto">
                 {mentionSuggestions.map((suggestedUser) => (
-                  <div
+                  <MentionSuggestionItem
                     key={suggestedUser.id}
-                    className="flex items-center gap-3 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors  dark:border-gray-700 "
-                    onClick={() => handleMentionInsert(suggestedUser)}
-                  >
-                    <Avatar className="border w-8 h-8 object-cover">
-                      <AvatarImage
-                        src={suggestedUser.photoURL}
-                        alt={suggestedUser.displayName}
-                      />
-                      <AvatarFallback>
-                        {" "}
-                        {suggestedUser.displayName.charAt(0).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                        {suggestedUser.displayName}
-                        {suggestedUser.role === "admin" && (
-                          <span className="ml-2 px-1.5 py-0.5 text-xs bg-blue-100 text-blue-600 rounded-full">
-                            Admin
-                          </span>
-                        )}
-                      </p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                        {suggestedUser.email}
-                      </p>
-                    </div>
-                  </div>
+                    user={suggestedUser}
+                    onSelect={handleMentionInsert}
+                  />
                 ))}
               </div>
             )}
@@ -382,8 +450,8 @@ const MessageInput = memo(
 
             {/* Reply/Edit indicator */}
             {(replyTo || editMessage) && (
-              <div className="flex items-start justify-between  border-l-4 border-blue-500 px-2 w-full mb-1">
-                <div className="text-sm  max-w-[80%]">
+              <div className="flex items-start justify-between border-l-4 border-blue-500 px-2 w-full mb-1">
+                <div className="text-sm max-w-[80%]">
                   <span className="font-medium text-blue-600">
                     {editMessage ? (
                       <>

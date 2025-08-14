@@ -40,10 +40,11 @@ const ChatHeader = ({
   return (
     <div
       className={`fixed top-0 left-0 right-0 border-b  z-30 ${
-        hasFolders && !folderSidebar ? "sm:ml-74" : "sm:ml-64"
+        (hasFolders && !folderSidebar ? "sm:ml-74" : "",
+        folderSidebar && hasFolders ? "sm:ml-80" : "sm:ml-74")
       }`}
     >
-      <div className="px-4 py-2 dark:bg-gray-800 bg-white shadow w-full flex items-center">
+      <div className="px-4 py-2 dark:bg-gray-800 bg-white  w-full flex items-center">
         <div className="w-full flex justify-start items-center gap-2">
           {/* Back button */}
           {topicId ? (
