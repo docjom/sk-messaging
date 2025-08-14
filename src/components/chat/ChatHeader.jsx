@@ -14,7 +14,7 @@ import { ChatFiles } from "@/components/chat/ChatFiles";
 import { TypingIndicator } from "./TypingIndicator";
 import { useMessageActionStore } from "@/stores/useMessageActionStore";
 import { useChatFolderStore } from "@/stores/chat-folder/useChatFolderStore";
-import { SquareUser, Menu } from "lucide-react";
+import { SquareUser, Menu, ArrowLeft } from "lucide-react";
 import { useFolderStore } from "@/stores/chat-folder/useFolderStore";
 import { useUserStore } from "@/stores/useUserStore";
 
@@ -54,34 +54,28 @@ const ChatHeader = ({
           {/* Back button */}
           {topicId ? (
             <>
-              <div
-                onClick={() => openFolderSidebar()}
-                className="rounded-full text-gray-700 dark:text-gray-300 sm:hidden bg-gray-200/50 dark:bg-gray-700 p-2 shadow"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  viewBox="0 0 512 512"
+              <div className="flex sm:hidden  justify-center items-center border-gray-200 dark:border-gray-700">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => openFolderSidebar()}
+                  className="w-10 h-10 rounded-full p-0 border-gray-300 dark:border-gray-600"
                 >
-                  <path
-                    fill="none"
-                    stroke="currentColor"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="48"
-                    d="M244 400L100 256l144-144M120 256h292"
-                  />
-                </svg>
+                  <ArrowLeft size={18} />
+                </Button>
               </div>
             </>
           ) : (
             <>
-              <div
-                onClick={clearChatId}
-                className="rounded-full sm:hidden bg-gray-200/50 dark:bg-gray-700 p-2 shadow"
-              >
-                <Icon icon="solar:rewind-back-broken" width="20" height="20" />
+              <div className="flex sm:hidden  justify-center items-center border-gray-200 dark:border-gray-700">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={clearChatId}
+                  className="w-10 h-10 rounded-full p-0 border-gray-300 dark:border-gray-600"
+                >
+                  <ArrowLeft size={18} />
+                </Button>
               </div>
             </>
           )}
@@ -295,9 +289,15 @@ const DirectChatHeader = ({
     <div>
       <Popover>
         <PopoverTrigger asChild>
-          <button className="p-2 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 transition">
-            <Menu size={20} />
-          </button>
+          <div className="flex  justify-center items-center border-gray-200 dark:border-gray-700">
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-10 h-10 rounded-full p-0 border-gray-300 dark:border-gray-600"
+            >
+              <Menu size={18} />
+            </Button>
+          </div>
         </PopoverTrigger>
         <PopoverContent className="w-full p-0">
           <div className="grid grid-cols-1">

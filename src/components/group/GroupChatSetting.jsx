@@ -11,7 +11,8 @@ import { PinnedMessages } from "../chat/PinnedMessages";
 import { ChatFiles } from "../chat/ChatFiles";
 import { useMessageActionStore } from "@/stores/useMessageActionStore";
 import { AddAdmin } from "../chat-folder/addAdmin";
-import { Settings } from "lucide-react";
+import { Menu, Settings } from "lucide-react";
+import { Button } from "../ui/button";
 
 export default function ManageGroupChat({
   chatId,
@@ -22,9 +23,12 @@ export default function ManageGroupChat({
   return (
     <>
       <DropdownMenu>
-        <DropdownMenuTrigger className="bg-gray-500/20  rounded-full p-1">
-        <Settings size={20} />
+        <DropdownMenuTrigger>
+          <span className="flex justify-center items-center w-10 h-10 border rounded-full border-gray-300 dark:border-gray-600">
+            <Settings size={18} />
+          </span>
         </DropdownMenuTrigger>
+
         <DropdownMenuContent>
           <DropdownMenuLabel>
             {topicId ? <>Topic Settings</> : <>Group Settings</>}
