@@ -33,10 +33,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useUserStore } from "@/stores/useUserStore";
 
 export const Management = () => {
   const [users, setUsers] = useState([]);
   const [search, setSearch] = useState("");
+  const { userProfile } = useUserStore();
 
   // Edit Dialog state
   const [editUser, setEditUser] = useState(null);
@@ -51,6 +53,10 @@ export const Management = () => {
     { value: "hr", label: "HR" },
     { value: "admin", label: "Admin" },
   ];
+  const availableRoleOptions =
+    userProfile.role === "hr"
+      ? roleOptions.filter((role) => ["user", "hr"].includes(role.value))
+      : roleOptions;
 
   // Pagination states per section
   const perPage = 5;
@@ -388,7 +394,7 @@ export const Management = () => {
                   <SelectValue placeholder="Select a role" />
                 </SelectTrigger>
                 <SelectContent>
-                  {roleOptions.map((role) => (
+                  {availableRoleOptions.map((role) => (
                     <SelectItem key={role.value} value={role.value}>
                       {role.label}
                     </SelectItem>
@@ -423,8 +429,8 @@ export const Management = () => {
               </div>
               <div>
                 <span className="font-medium">Role:</span>{" "}
-                {roleOptions.find((r) => r.value === editRole)?.label ||
-                  editRole}
+                {availableRoleOptions.find((r) => r.value === editRole)
+                  ?.label || editRole}
               </div>
             </div>
           </div>

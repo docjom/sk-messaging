@@ -7,7 +7,8 @@ admin.initializeApp();
 
 export const createUserAccount = onCall(async (request) => {
   const data = request.data;
-  const { email, password, name, role } = data || {};
+  const { email, password, name, position, department, phone, role } =
+    data || {};
 
   if (!email || !password || !name) {
     throw new HttpsError("invalid-argument", "Missing required fields");
@@ -29,6 +30,9 @@ export const createUserAccount = onCall(async (request) => {
         email,
         photoURL: "",
         active: false,
+        position: position,
+        department: department,
+        phone: phone,
         role: role ?? "user",
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
         provider: "email",

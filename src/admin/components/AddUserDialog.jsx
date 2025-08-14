@@ -25,20 +25,25 @@ import { collection, getDocs, query, where } from "firebase/firestore";
 import { getFunctions, httpsCallable } from "firebase/functions";
 import { Pin, Plus } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { useUserStore } from "@/stores/useUserStore";
 
 export const AddUserDialog = () => {
   const [form, setForm] = useState({
     name: "",
     email: "",
     password: "",
+    position: "",
+    department: "",
+    phone: "",
     role: "user",
   });
   const [loading, setLoading] = useState(false);
   const functions = getFunctions(app, "us-central1");
   const createUserAccount = httpsCallable(functions, "createUserAccount");
+  const { userProfile } = useUserStore();
 
   const handleAddUser = async () => {
-    const { name, email, password, role } = form;
+    const { name, email, password, role, position, phone, department } = form;
 
     // Simple regex for email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -51,6 +56,17 @@ export const AddUserDialog = () => {
       toast.error("Name is required");
       return;
     }
+    if (userProfile.role === "hr") {
+      if (!position.trim()) {
+        toast.error("Position is required");
+        return;
+      }
+      if (!department.trim()) {
+        toast.error("Department is required");
+        return;
+      }
+    }
+
     if (!email.trim()) {
       toast.error("Email is required");
       return;
@@ -87,9 +103,20 @@ export const AddUserDialog = () => {
         password,
         name,
         role,
+        phone,
+        department,
+        position,
       });
       toast.success("User added successfully!");
-      setForm({ name: "", email: "", password: "", role: "user" });
+      setForm({
+        name: "",
+        email: "",
+        password: "",
+        position: "",
+        department: "",
+        phone: "",
+        role: "user",
+      });
     } catch (err) {
       toast.error(err.message || "Something went wrong");
     } finally {
@@ -145,21 +172,54 @@ export const AddUserDialog = () => {
                 onChange={(e) => setForm({ ...form, password: e.target.value })}
               />
             </div>
-            <div>
-              <Label>Role</Label>
-              <Select
-                value={form.role}
-                onValueChange={(value) => setForm({ ...form, role: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select role" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="user">User</SelectItem>
-                  <SelectItem value="hr">HR</SelectItem>
-                  <SelectItem value="admin">Admin</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="flex gap-4 flex-wrap flex-1">
+              <div>
+                <Label>Role</Label>
+                <Select
+                  value={form.role}
+                  onValueChange={(value) => setForm({ ...form, role: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="user">User</SelectItem>
+                    <SelectItem value="hr">HR</SelectItem>
+                    {userProfile.role === "admin" && (
+                      <SelectItem value="admin">Admin</SelectItem>
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="w-1/3">
+                <Label>Department</Label>
+                <Input
+                  type="text"
+                  value={form.department}
+                  onChange={(e) =>
+                    setForm({ ...form, department: e.target.value })
+                  }
+                />
+              </div>
+              <div>
+                <Label>Position</Label>
+                <Input
+                  type="text"
+                  value={form.position}
+                  onChange={(e) =>
+                    setForm({ ...form, position: e.target.value })
+                  }
+                />
+              </div>
+              <div>
+                <Label>Phone Number</Label>
+                <Input
+                  type="text"
+                  value={form.phone}
+                  onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                />
+              </div>
             </div>
           </div>
 

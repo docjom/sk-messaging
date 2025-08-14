@@ -32,8 +32,10 @@ import {
   EmailAuthProvider,
   updatePassword,
 } from "firebase/auth";
+import { useUserStore } from "@/stores/useUserStore";
 
 export function EditProfile({ currentUserId }) {
+  const { userProfile } = useUserStore();
   const [name, setName] = useState("");
   const [department, setDepartment] = useState("");
   const [phone, setPhone] = useState("");
@@ -258,6 +260,9 @@ export function EditProfile({ currentUserId }) {
               <Label>Department</Label>
               <Input
                 value={department}
+                disabled={
+                  !(userProfile?.role === "admin" || userProfile?.role === "hr")
+                }
                 onChange={(e) => setDepartment(e.target.value)}
               />
               {profileErrors.department && (
@@ -279,6 +284,9 @@ export function EditProfile({ currentUserId }) {
               <Label>Position</Label>
               <Input
                 value={position}
+                disabled={
+                  !(userProfile?.role === "admin" || userProfile?.role === "hr")
+                }
                 onChange={(e) => setPosition(e.target.value)}
               />
               {profileErrors.position && (

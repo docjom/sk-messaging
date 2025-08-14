@@ -9,7 +9,8 @@ export function AdminRoute() {
     return <Navigate to="/login" replace />;
   }
 
-  if (userProfile.role !== "admin") {
+  if (userProfile.role !== "admin" && userProfile.role !== "hr") {
+    // console.log("your not hr or admin");
     return <Navigate to="/dashboard" replace />;
   }
 

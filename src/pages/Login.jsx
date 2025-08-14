@@ -76,7 +76,11 @@ function Login() {
       return;
     }
 
-    navigate(userProfile.role === "admin" ? "/admin" : "/dashboard");
+    navigate(
+      userProfile.role === "admin" || userProfile.role === "hr"
+        ? "/admin"
+        : "/dashboard"
+    );
   }, [initialized, userProfile, navigate]);
 
   const handleGoogleLogin = async () => {
@@ -96,7 +100,7 @@ function Login() {
           displayName: loggedInUser.displayName,
           email: loggedInUser.email,
           photoURL: loggedInUser.photoURL,
-          role: "admin", // default role
+          role: loggedInUser.role,
           active: true,
           createdAt: new Date(),
         };

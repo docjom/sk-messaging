@@ -36,14 +36,16 @@ export const Settings = () => {
           </DialogHeader>
 
           <div>
-            {userProfile.role === "admin" && (
+            {(userProfile.role === "admin" || userProfile.role === "hr") && (
               <div className="mb-2">
                 {" "}
                 <Link to="/admin">
                   <Button>
                     {" "}
                     <ArrowRight />
-                    Go to admin dashboard
+                    {userProfile.role === "hr"
+                      ? " Go to hr dashboard"
+                      : " Go to admin dashboard"}
                   </Button>
                 </Link>
               </div>
