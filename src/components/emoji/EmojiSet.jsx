@@ -6,27 +6,27 @@ import { useMessageActionStore } from "@/stores/useMessageActionStore";
 const emojis = [
   {
     alt: "❤",
-    srcSet: "2764_fe0f",
+    srcSet: "red-heart_2764-fe0f",
     label: "heart",
   },
   {
     alt: "😀",
-    srcSet: "1f600",
+    srcSet: "face-with-tears-of-joy_1f602",
     label: "grinning",
   },
   {
-    alt: "🙏",
-    srcSet: "1f64f",
-    label: "pray",
+    alt: "",
+    srcSet: "smiling-face-with-hearts_1f970",
+    label: "face-with-hearts",
   },
   {
     alt: "😭",
-    srcSet: "1f62d",
+    srcSet: "loudly-crying-face_1f62d",
     label: "crying",
   },
   {
     alt: "😠",
-    srcSet: "1f620",
+    srcSet: "pouting-face_1f621",
     label: "angry",
   },
 ];
@@ -148,11 +148,11 @@ export const EmojiSet = ({ messageId, userId, chatId, onSelect }) => {
             >
               <picture>
                 <source
-                  srcSet={`https://fonts.gstatic.com/s/e/notoemoji/latest/${emoji.srcSet}/512.webp`}
+                  srcSet={`https://em-content.zobj.net/source/telegram/386/${emoji.srcSet}.webp`}
                   type="image/webp"
                 />
                 <img
-                  src={`https://fonts.gstatic.com/s/e/notoemoji/latest/${emoji.srcSet}/512.gif`}
+                  src={`https://em-content.zobj.net/source/telegram/386/${emoji.srcSet}.webp`}
                   alt={emoji.alt}
                   width="32"
                   height="32"

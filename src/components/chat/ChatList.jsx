@@ -217,7 +217,7 @@ const ChatCard = React.memo(
             {/* Topics Row (if applicable) */}
             {chat.hasChatTopic && chat.topicNameList && (
               <div className="flex flex-wrap gap-1 mb-1">
-                {chat.topicNameList.slice(0, 3).map((topic, index) => (
+                {chat.topicNameList.slice(0, 2).map((topic, index) => (
                   <span
                     key={`${chat.id}-topic-${index}`}
                     className="inline-flex items-center px-1.5 py-0.5 rounded text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300"
@@ -225,9 +225,9 @@ const ChatCard = React.memo(
                     {topic}
                   </span>
                 ))}
-                {chat.topicNameList.length > 3 && (
+                {chat.topicNameList.length > 2 && (
                   <span className="text-xs text-gray-500 dark:text-gray-400">
-                    +{chat.topicNameList.length - 3}
+                    +{chat.topicNameList.length - 2}
                   </span>
                 )}
               </div>

@@ -16,11 +16,11 @@ export const EmojiReactions = ({ msg, getSenderData }) => {
                   <span className="rounded-full  size-5">
                     <picture className="cursor-pointer">
                       <source
-                        srcSet={`https://fonts.gstatic.com/s/e/notoemoji/latest/${emojiSrcSet}/512.webp`}
+                        srcSet={`https://em-content.zobj.net/source/telegram/386/${emojiSrcSet}.webp`}
                         type="image/webp"
                       />
                       <img
-                        src={`https://fonts.gstatic.com/s/e/notoemoji/latest/${emojiSrcSet}/512.gif`}
+                        src={`https://em-content.zobj.net/source/telegram/386/${emojiSrcSet}.webp`}
                         alt=""
                         width="32"
                         height="32"

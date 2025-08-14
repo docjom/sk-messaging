@@ -89,7 +89,7 @@ function SidebarPanel({
                       <Input
                         type="search"
                         placeholder="Search..."
-                        className="w-full rounded-full border border-gray-600"
+                        className="w-full rounded-full border border-gray-600/50"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                       />
@@ -112,7 +112,17 @@ function SidebarPanel({
                                 }`}
                               >
                                 <div className="flex  items-center justify-center  ">
-                                  <MessageSquare size={20} />
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width={20}
+                                    height={20}
+                                    viewBox="-2 -2.5 24 24"
+                                  >
+                                    <path
+                                      fill="currentColor"
+                                      d="M3.656 17.979A1 1 0 0 1 2 17.243V15a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H8.003zM16 10.017a7 7 0 0 0 0 .369zq.007-.16.004-4.019a3 3 0 0 0-3-2.997H5V2a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2v2.243a1 1 0 0 1-1.656.736L16 13.743z"
+                                    ></path>
+                                  </svg>
                                 </div>
                                 <div className="text-[10px] text-center ">
                                   All chats
@@ -129,7 +139,21 @@ function SidebarPanel({
                                   }`}
                                 >
                                   <div className="flex  items-center justify-center ">
-                                    <Folder className="h-5 w-5 " />
+                                    <svg
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      width={20}
+                                      height={20}
+                                      viewBox="0 0 24 24"
+                                    >
+                                      <path
+                                        fill="currentColor"
+                                        stroke="currentColor"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M3 6a2 2 0 0 1 2-2h3.93a2 2 0 0 1 1.664.89l.812 1.22A2 2 0 0 0 13.07 7H19a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"
+                                      ></path>
+                                    </svg>
                                   </div>
                                   <div className="text-[10px] text-center">
                                     {folder.folderName.length > 10
