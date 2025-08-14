@@ -4,22 +4,22 @@ import { CreateGroupChat } from "@/components/group/CreateGroupChat";
 import { EditProfile } from "@/components/user/EditProfile";
 import { Logout } from "@/components/auth/Logout";
 import { Settings } from "../settings/Settings";
-import { Icon } from "@iconify/react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 
 import { useThemeStore } from "@/stores/themeStore";
 import { Moon, Sun } from "lucide-react";
+import { useUserStore } from "@/stores/useUserStore";
+import { useMessageActionStore } from "@/stores/useMessageActionStore";
 export const Menu = ({
-  users,
   isCreatingGroup,
   createGroupChat,
-  user,
-  displayUser,
   handleSelectUser,
   closeMenu,
 }) => {
   const { isDarkMode, toggleDarkMode } = useThemeStore();
+  const { userProfile } = useUserStore();
+  const { users } = useMessageActionStore();
 
   return (
     <>
@@ -28,25 +28,25 @@ export const Menu = ({
         <div className="w-64 bg-white dark:bg-gray-800 fixed top-0 left-0 z-50 overflow-y-auto p-4 flex flex-col h-full">
           <div className=" rounded mb-4 flex items-center gap-2 justify-start">
             <Avatar className="w-12 h-12 border">
-              <AvatarImage src={displayUser?.photoURL} />
+              <AvatarImage src={userProfile?.photoURL} />
               <AvatarFallback></AvatarFallback>
             </Avatar>
             <h1 className="text-lg font-semibold max-w-32 truncate capitalize">
-              {displayUser?.displayName}
+              {userProfile?.displayName}
             </h1>
           </div>
           <hr className="border border-gray-500/50 m-1" />
-          <EditProfile currentUserId={displayUser?.uid} />
+          <EditProfile currentUserId={userProfile?.uid} />
           <CreateGroupChat
             users={users}
-            currentUserId={user?.uid}
+            currentUserId={userProfile?.uid}
             submitText="Create Group"
             isLoading={isCreatingGroup}
             onSubmit={createGroupChat}
           />
           <Contacts
             users={users}
-            currentUserId={user?.uid}
+            currentUserId={userProfile?.uid}
             handleSelectUser={handleSelectUser}
           />
           <Settings />

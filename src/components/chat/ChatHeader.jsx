@@ -16,13 +16,9 @@ import { useMessageActionStore } from "@/stores/useMessageActionStore";
 import { useChatFolderStore } from "@/stores/chat-folder/useChatFolderStore";
 import { SquareUser, Menu } from "lucide-react";
 import { useFolderStore } from "@/stores/chat-folder/useFolderStore";
+import { useUserStore } from "@/stores/useUserStore";
 
 const ChatHeader = ({
-  currentChat,
-  selectedUser,
-  user,
-  users,
-  chatId,
   getChatDisplayName,
   getSenderDisplayName,
   clearChatId,
@@ -31,8 +27,17 @@ const ChatHeader = ({
   isAddingUsers,
 }) => {
   const { setFolderSidebar, folderSidebar } = useChatFolderStore();
-  const { topicId, currentTopic, clearTopicId } = useMessageActionStore();
+  const {
+    topicId,
+    currentTopic,
+    clearTopicId,
+    users,
+    chatId,
+    currentChat,
+    selectedUser,
+  } = useMessageActionStore();
   const { hasFolders } = useFolderStore();
+  const { userProfile } = useUserStore();
   const openFolderSidebar = () => {
     setFolderSidebar(true);
     clearTopicId();
@@ -85,7 +90,7 @@ const ChatHeader = ({
           {(currentChat?.type === "group" || currentChat?.type === "saved") && (
             <GroupChatHeader
               currentChat={currentChat}
-              user={user}
+              user={userProfile}
               users={users}
               chatId={chatId}
               topicId={topicId}

@@ -53,7 +53,6 @@ function Dashboard() {
   const [ifUserInfoOpen, setIfUserInfoOpen] = useState(false);
   const [isUploadingFile, setIsUploadingFile] = useState(false);
 
-
   const {
     chatId,
     setChatIdTo,
@@ -116,7 +115,6 @@ function Dashboard() {
       cleanup();
     };
   }, [cleanup]);
-
 
   const handleFileUpload = async ({ file, message, chatId }) => {
     setIsUploadingFile(true);
@@ -195,7 +193,6 @@ function Dashboard() {
       setIsUploadingFile(false);
     }
   };
-
 
   const toggleMenu = useCallback(() => {
     setMenu((prev) => !prev);
@@ -553,11 +550,8 @@ function Dashboard() {
       {/* Menu */}
       {menu && (
         <Menu
-          users={users}
           isCreatingGroup={isCreatingGroup}
           createGroupChat={createGroupChat}
-          user={user}
-          displayUser={user}
           handleSelectUser={handleSelectUser}
           closeMenu={closeMenu}
         />
@@ -576,11 +570,6 @@ function Dashboard() {
         {/* Header */}
         {chatId && (
           <ChatHeader
-            currentChat={currentChat}
-            selectedUser={selectedUser}
-            user={user}
-            users={users}
-            chatId={chatId}
             getChatDisplayName={getChatDisplayName}
             getSenderDisplayName={getSenderDisplayName}
             clearChatId={clearChatId}
