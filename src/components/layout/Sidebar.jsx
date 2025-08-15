@@ -108,7 +108,7 @@ function SidebarPanel({
                                 className={`py-2.5 hover:bg-gray-300 hover:dark:bg-gray-700 color-transition duration-200 cursor-pointer ${
                                   !selectedFolder
                                     ? "text-blue-500 bg-gray-300 dark:bg-gray-700"
-                                    : ""
+                                    : "text-gray-500"
                                 }`}
                               >
                                 <div className="flex  items-center justify-center  ">
@@ -134,7 +134,7 @@ function SidebarPanel({
                                   onClick={() => handleClickFolder(folder)}
                                   className={`py-2 hover:bg-gray-300 hover:dark:bg-gray-700 color-transition duration-200 cursor-pointer ${
                                     folder.id !== selectedFolder?.id
-                                      ? ""
+                                      ? "text-gray-500"
                                       : "text-blue-500 shadow bg-gray-300 dark:bg-gray-700"
                                   }`}
                                 >

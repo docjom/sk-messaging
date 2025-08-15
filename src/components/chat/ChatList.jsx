@@ -226,7 +226,7 @@ const ChatCard = React.memo(
                   </span>
                 ))}
                 {chat.topicNameList.length > 2 && (
-                  <span className="text-xs text-gray-500 dark:text-gray-400">
+                  <span className="text-xs text-gray-500 flex justify-center items-center dark:text-gray-400">
                     +{chat.topicNameList.length - 2}
                   </span>
                 )}
