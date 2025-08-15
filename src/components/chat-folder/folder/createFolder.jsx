@@ -286,9 +286,13 @@ const FolderManagementSystem = () => {
                       }}
                     >
                       <DialogTrigger asChild>
-                        <Button variant="outline" size="sm">
-                          <Plus className="h-4 w-4 mr-1" />
-                          Add Chats
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex justify-center items-center"
+                        >
+                          <Plus className="h-4 w-4 sm:mr-1" />
+                          <span className="hidden sm:flex">Add Chats</span>
                         </Button>
                       </DialogTrigger>
                       <DialogContent className="sm:max-w-[500px]">
@@ -381,49 +385,6 @@ const FolderManagementSystem = () => {
                 )}
               </div>
             </div>
-
-            {/* Chats in folder */}
-            {/* <div className="space-y-2">
-              {folder.chatIds.length === 0 ? (
-                <p className="text-gray-500 text-center py-4">
-                  No chats in this folder
-                </p>
-              ) : (
-                folder.chatIds.map((chatId) => {
-                  const chat = mockChats.find((c) => c.id === chatId);
-                  if (!chat) return null;
-
-                  return (
-                    <div
-                      key={chatId}
-                      className="flex items-center p-2 bg-gray-50 rounded-lg"
-                    >
-                      <div className="text-xl mr-3">{chat.avatar}</div>
-                      <div className="flex-1">
-                        <div className="font-medium">{chat.name}</div>
-                        <div className="text-sm text-gray-500">
-                          {chat.lastMessage}
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {getChatIcon(chat.type)}
-                        {!folder.isDefault && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() =>
-                              handleRemoveChatFromFolder(folder.id, chatId)
-                            }
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })
-              )}
-            </div> */}
           </div>
         ))}
       </div>
