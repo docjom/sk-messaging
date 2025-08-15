@@ -44,9 +44,12 @@ const ChatHeader = ({
   };
   return (
     <div
-      className={`fixed top-0 left-0 right-0 border-b  z-30 ${
-        (hasFolders && !folderSidebar ? "sm:ml-74" : "",
-        folderSidebar && hasFolders ? "sm:ml-80" : "sm:ml-74")
+      className={`fixed top-0 left-0 right-0 border-b z-30 ${
+        hasFolders && !folderSidebar
+          ? "sm:ml-74"
+          : folderSidebar && hasFolders
+          ? "sm:ml-96"
+          : "sm:ml-64"
       }`}
     >
       <div className="px-4 py-2 dark:bg-gray-800 bg-white  w-full flex items-center">

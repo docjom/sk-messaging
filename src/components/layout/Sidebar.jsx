@@ -18,6 +18,7 @@ import { useChatFolderStore } from "@/stores/chat-folder/useChatFolderStore";
 import { useFolderStore } from "@/stores/chat-folder/useFolderStore";
 import { Badge, Folder, Menu, MessageSquare } from "lucide-react";
 import { Button } from "../ui/button";
+import { useFolderChatFilter } from "@/hooks/chat-folder/useFolderChatFilter";
 function SidebarPanel({
   searchTerm,
   setSearchTerm,
@@ -36,34 +37,8 @@ function SidebarPanel({
   hasFolders,
   folders,
 }) {
-  const { chats, setChats } = useMessageActionStore();
-  const [originalChats, setOriginalChats] = useState(chats);
-  const [selectedFolder, setSelectedFolder] = useState(null);
-
-  useEffect(() => {
-    if (!selectedFolder) {
-      setOriginalChats(chats);
-    }
-  }, [chats, selectedFolder]);
-
-  const handleClickFolder = (folder) => {
-    if (selectedFolder?.id === folder.id) {
-      setSelectedFolder(null);
-      setChats(originalChats);
-    } else {
-      setSelectedFolder(folder);
-      const folderChatIds = folder.chatIds || [];
-      const filteredChats = originalChats.filter((chat) =>
-        folderChatIds.includes(chat.id)
-      );
-      setChats(filteredChats);
-    }
-  };
-
-  const clearFolderFilter = () => {
-    setChats(originalChats);
-    setSelectedFolder(null);
-  };
+  const { selectedFolder, handleClickFolder, clearFolderFilter } =
+    useFolderChatFilter();
   return (
     <div className="flex">
       {!folderSidebar && (
@@ -73,7 +48,7 @@ function SidebarPanel({
             <div className={className}>
               <div className="relative">
                 <div className="absolute top-0 left-0 z-50 bg-white dark:bg-gray-800 w-full border-b ">
-                  <div className="flex items-center justify-start gap-2 px-2 pt-1.5 pb-1.5">
+                  <div className="flex items-center justify-start gap-2 p-2">
                     <div className="flex  justify-center items-center border-gray-200 dark:border-gray-700">
                       <Button
                         variant="outline"

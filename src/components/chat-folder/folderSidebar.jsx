@@ -21,7 +21,9 @@ import { PinnedMessages } from "../chat/PinnedMessages";
 import { ChatFiles } from "../chat/ChatFiles";
 import { CreateNewTopic } from "./folderCreateNewTopic";
 import { useMentions } from "@/stores/useUsersMentions";
-import { ChevronLeft, EllipsisVertical, Menu } from "lucide-react";
+import { ChevronLeft, EllipsisVertical, Menu, Search } from "lucide-react";
+import { useFolderStore } from "@/stores/chat-folder/useFolderStore";
+import { useFolderChatFilter } from "@/hooks/chat-folder/useFolderChatFilter";
 
 export const FolderSidebar = ({
   filteredChats,
@@ -51,6 +53,10 @@ export const FolderSidebar = ({
 
   const [topics, setTopics] = useState([]);
   const [userRole, setUserRole] = useState("");
+  const { hasFolders, folders } = useFolderStore();
+
+  const { selectedFolder, handleClickFolder, clearFolderFilter } =
+    useFolderChatFilter();
 
   const toggleMenu = () => {
     console.log(menu);
@@ -58,6 +64,13 @@ export const FolderSidebar = ({
   };
 
   const clearTopic = () => {
+    clearTopicId();
+    clearCurrentTopic();
+  };
+
+  const searchToggle = () => {
+    setFolderSidebar(false);
+    clearTopic();
     clearTopicId();
     clearCurrentTopic();
   };
@@ -140,17 +153,97 @@ export const FolderSidebar = ({
 
   return (
     <div className=" fixed lg:sticky top-0 left-0 z-30 overflow-y-auto bg-white flex sm:w-auto w-full h-full dark:bg-gray-800">
+      {hasFolders && (
+        <>
+          <div className="bg-gray-100 dark:bg-gray-900 border-r">
+            <div className="px-3 py-2 flex  justify-center items-center border-b border-gray-200 dark:border-gray-700">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={toggleMenu}
+                className="w-10 h-10 rounded-full p-0 border-gray-300 dark:border-gray-600"
+              >
+                <Menu size={18} />
+              </Button>
+            </div>
+            <div className="w-16 overflow-y-auto">
+              <div className="flex justify-center w-full items-center">
+                <div className="w-full">
+                  <div
+                    onClick={() => clearFolderFilter()}
+                    className={`py-2.5 hover:bg-gray-300 hover:dark:bg-gray-700 color-transition duration-200 cursor-pointer ${
+                      !selectedFolder
+                        ? "text-blue-500 bg-gray-300 dark:bg-gray-700"
+                        : "text-gray-500"
+                    }`}
+                  >
+                    <div className="flex  items-center justify-center  ">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width={20}
+                        height={20}
+                        viewBox="-2 -2.5 24 24"
+                      >
+                        <path
+                          fill="currentColor"
+                          d="M3.656 17.979A1 1 0 0 1 2 17.243V15a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H8.003zM16 10.017a7 7 0 0 0 0 .369zq.007-.16.004-4.019a3 3 0 0 0-3-2.997H5V2a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2v2.243a1 1 0 0 1-1.656.736L16 13.743z"
+                        ></path>
+                      </svg>
+                    </div>
+                    <div className="text-[10px] text-center ">All chats</div>
+                  </div>
+                  {folders.map((folder) => (
+                    <div
+                      key={folder.id}
+                      onClick={() => handleClickFolder(folder)}
+                      className={`py-2 hover:bg-gray-300 hover:dark:bg-gray-700 color-transition duration-200 cursor-pointer ${
+                        folder.id !== selectedFolder?.id
+                          ? "text-gray-500"
+                          : "text-blue-500 shadow bg-gray-300 dark:bg-gray-700"
+                      }`}
+                    >
+                      <div className="flex  items-center justify-center ">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width={20}
+                          height={20}
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            fill="currentColor"
+                            stroke="currentColor"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M3 6a2 2 0 0 1 2-2h3.93a2 2 0 0 1 1.664.89l.812 1.22A2 2 0 0 0 13.07 7H19a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"
+                          ></path>
+                        </svg>
+                      </div>
+                      <div className="text-[10px] text-center">
+                        {folder.folderName.length > 10
+                          ? `${folder.folderName.substring(0, 10)}...`
+                          : folder.folderName}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
       {/* Chat List Sidebar - Left Panel */}
-      <div className="w-16 flex-shrink-0 bg-gray-50 dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 flex flex-col">
+      <div className="w-16 flex-shrink-0 bg-gray-50 dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col">
         {/* Menu Button */}
         <div className="px-3 py-2 flex  justify-center items-center border-b border-gray-200 dark:border-gray-700">
           <Button
             variant="outline"
             size="sm"
-            onClick={toggleMenu}
+            onClick={searchToggle}
             className="w-10 h-10 rounded-full p-0 border-gray-300 dark:border-gray-600"
           >
-            <Menu size={18} />
+            <Search size={18} />
           </Button>
         </div>
 

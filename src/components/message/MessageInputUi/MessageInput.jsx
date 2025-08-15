@@ -130,7 +130,13 @@ const MessageInput = memo(
     const containerClassName = useMemo(
       () =>
         `fixed bottom-0 left-0 right-0 shadow-lg z-30 ${
-          hasFolders && !folderSidebar ? "sm:ml-74" : "sm:ml-64"
+          hasFolders && !folderSidebar
+            ? "sm:ml-74"
+            : !hasFolders && !folderSidebar
+            ? "sm:ml-64"
+            : folderSidebar && hasFolders
+            ? "sm:ml-96"
+            : ""
         }`,
       [hasFolders, folderSidebar]
     );
