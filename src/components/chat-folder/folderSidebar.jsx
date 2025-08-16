@@ -5,6 +5,11 @@ import { db } from "@/firebase";
 import { useMenu } from "@/hooks/useMenuState";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 import {
   Popover,
@@ -258,18 +263,25 @@ export const FolderSidebar = ({
                   chatId === chat.id ? "scale-110" : "hover:scale-105"
                 }`}
               >
-                <Avatar
-                  className={`w-12 h-12 border-2 transition-all duration-200 ${
-                    chatId === chat.id
-                      ? "border-blue-500 shadow-lg ring-2 ring-blue-200 dark:ring-blue-800"
-                      : "border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500"
-                  }`}
-                >
-                  <AvatarImage src={getChatPhoto(chat)} />
-                  <AvatarFallback className="text-sm font-medium">
-                    {getChatDisplayName(chat)[0]?.toUpperCase() || "U"}
-                  </AvatarFallback>
-                </Avatar>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Avatar
+                      className={`w-12 h-12 border-2 transition-all duration-200 ${
+                        chatId === chat.id
+                          ? "border-blue-500 shadow-lg ring-2 ring-blue-200 dark:ring-blue-800"
+                          : "border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500"
+                      }`}
+                    >
+                      <AvatarImage src={getChatPhoto(chat)} />
+                      <AvatarFallback className="text-sm font-medium">
+                        {getChatDisplayName(chat)[0]?.toUpperCase() || "U"}
+                      </AvatarFallback>
+                    </Avatar>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p> {getChatDisplayName(chat)}</p>
+                  </TooltipContent>
+                </Tooltip>
               </div>
             ))}
           </div>
