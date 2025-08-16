@@ -129,7 +129,7 @@ const GroupChatHeader = ({
   currentTopic,
 }) => (
   <div className="flex justify-between items-center w-full ">
-    <div className="flex justify-start gap-3 items-center w-full">
+    <div className="flex justify-start gap-3 items-center w-full flex-1  min-w-0">
       {topicId ? (
         <>
           {currentTopic.name === "General" ? (
@@ -205,9 +205,9 @@ const GroupChatHeader = ({
         </>
       ) : (
         <>
-          <Avatar className="h-10 w-10 border">
+          <Avatar className="h-10 w-10 border ">
             <AvatarImage src={currentChat.photoURL} />
-            <AvatarFallback>
+            <AvatarFallback className="  bg-gradient-to-br from-blue-400 to-blue-600 text-white">
               {topicId ? (
                 <>{currentTopic.name[0].toUpperCase()}</>
               ) : (
@@ -217,15 +217,15 @@ const GroupChatHeader = ({
           </Avatar>
         </>
       )}
-
-      <div className="font-semibold text-sm sm:max-w-52 max-w-20 truncate sm:text-base capitalize">
-        {topicId ? (
-          <>{currentTopic.name}</>
-        ) : (
-          <> {getChatDisplayName(currentChat)}</>
-        )}
-
-        <div className=" text-xs">
+      <div className="flex-1 flex-col justify-center min-w-0">
+        <div className="font-semibold text-sm sm:text-base capitalize truncate">
+          {topicId ? (
+            <>{currentTopic.name}</>
+          ) : (
+            <>{getChatDisplayName(currentChat)}</>
+          )}
+        </div>
+        <div className="text-xs truncate">
           <TypingIndicator chatId={chatId} getName={getSenderDisplayName} />
         </div>
       </div>
@@ -264,31 +264,28 @@ const DirectChatHeader = ({
   getSenderDisplayName,
   setIfUserInfoOpen,
 }) => (
-  <div className="flex justify-between items-center w-full">
-    <Button
-      type="button"
-      variant="ghost"
-      className="flex items-center justify-start relative p-0"
+  <div className="flex justify-between items-center w-full  flex-1 min-w-0">
+    <div
+      className="flex items-center gap-2 justify-start flex-1 min-w-0 relative p-0"
       onClick={() => setIfUserInfoOpen(true)}
     >
-      <div className="flex gap-2 justify-start items-center">
-        <Avatar className="h-10 w-10">
-          <AvatarImage
-            src={selectedUser.photoURL}
-            alt={selectedUser.displayName}
-          />
-          <AvatarFallback></AvatarFallback>
-        </Avatar>
-        <div className="">
-          <div className="text-sm flex justify-start max-w-40 sm:max-w-96 truncate sm:text-base items-center font-semibold  capitalize">
-            {selectedUser.displayName}
-          </div>
-          <div className="text-xs ">
-            <TypingIndicator chatId={chatId} getName={getSenderDisplayName} />
-          </div>
+      <Avatar className="h-10 w-10">
+        <AvatarImage
+          src={selectedUser.photoURL}
+          alt={selectedUser.displayName}
+        />
+        <AvatarFallback></AvatarFallback>
+      </Avatar>
+      <div className="flex-1 flex-col justify-center min-w-0">
+        <div className="text-sm sm:text-base font-semibold capitalize truncate">
+          {selectedUser.displayName}
+        </div>
+        <div className="text-xs truncate">
+          <TypingIndicator chatId={chatId} getName={getSenderDisplayName} />
         </div>
       </div>
-    </Button>
+    </div>
+
     <div>
       <Popover>
         <PopoverTrigger asChild>

@@ -359,22 +359,11 @@ const ChatList = ({
   }, [filteredChats, currentUserId]);
 
   const renderChats = useCallback(
-    (chats, showPinnedHeader = false) => {
+    (chats) => {
       if (chats.length === 0) return null;
 
       return (
         <div className="w-full">
-          {showPinnedHeader && (
-            <div className="px-4 py-2 bg-gray-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-700">
-              <div className="flex items-center gap-2">
-                <Pin size={14} className="text-blue-500" />
-                <span className="text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wide">
-                  Pinned Chats
-                </span>
-              </div>
-            </div>
-          )}
-
           <div className="divide-y divide-gray-100 dark:divide-gray-800">
             {chats.map((chat) => (
               <ChatCard

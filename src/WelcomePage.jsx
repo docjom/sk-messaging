@@ -35,7 +35,7 @@ export const WelcomePage = () => {
             <Icon icon="solar:login-broken" width="24" height="24" />
             Login
           </Button>
-          <Button
+          {/* <Button
             type="button"
             variant="ghost"
             className=" border shadow text-white"
@@ -43,7 +43,7 @@ export const WelcomePage = () => {
           >
             <Icon icon="solar:add-circle-broken" width="24" height="24" />
             Sign Up
-          </Button>
+          </Button> */}
         </div>
       </div>
     </div>
