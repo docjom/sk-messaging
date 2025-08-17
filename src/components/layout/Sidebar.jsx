@@ -43,129 +43,121 @@ function SidebarPanel({
     <div className="flex">
       {!folderSidebar && (
         <>
-          {" "}
-          <div className="">
-            <div className={className}>
-              <div className="relative">
-                <div className="absolute top-0 left-0 z-50 bg-white dark:bg-gray-800 w-full border-b ">
-                  <div className="flex items-center justify-start gap-2 p-2">
-                    <div className="flex  justify-center items-center border-gray-200 dark:border-gray-700">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={toggleMenu}
-                        className="w-10 h-10 rounded-full p-0 border-gray-300 dark:border-gray-600"
-                      >
-                        <Menu size={18} />
-                      </Button>
-                    </div>
-
-                    <div className="w-full">
-                      <Input
-                        type="search"
-                        placeholder="Search..."
-                        className="w-full rounded-full border border-gray-600/50"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                      />
-                    </div>
-                  </div>
+          <div className={className}>
+            <div className="absolute top-0 left-0 z-10 bg-white dark:bg-gray-800 w-full border-b ">
+              <div className="flex items-center justify-start gap-2 p-2">
+                <div className="flex  justify-center items-center border-gray-200 dark:border-gray-700">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={toggleMenu}
+                    className="w-10 h-10 rounded-full p-0 border-gray-300 dark:border-gray-600"
+                  >
+                    <Menu size={18} />
+                  </Button>
                 </div>
-                <div className="h-screen ">
-                  <div className="flex ">
-                    {hasFolders && (
-                      <>
-                        <div className="  w-15 pt-13 h-screen overflow-y-auto bg-gray-100 dark:bg-gray-800 border-r">
-                          <div className="flex justify-center w-full items-center">
-                            <div className="w-full">
-                              <div
-                                onClick={() => clearFolderFilter()}
-                                className={`py-2.5 hover:bg-gray-300 hover:dark:bg-gray-700 color-transition duration-200 cursor-pointer ${
-                                  !selectedFolder
-                                    ? "text-blue-500 bg-gray-300 dark:bg-gray-700"
-                                    : "text-gray-500"
-                                }`}
+
+                <div className="w-full">
+                  <Input
+                    type="search"
+                    placeholder="Search..."
+                    className="w-full rounded-full border border-gray-600/50"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="h-screen ">
+              <div className="flex ">
+                {hasFolders && (
+                  <>
+                    <div className="  w-15 pt-13 h-screen overflow-y-auto bg-gray-100 dark:bg-gray-800 border-r">
+                      <div className="flex justify-center w-full items-center">
+                        <div className="w-full">
+                          <div
+                            onClick={() => clearFolderFilter()}
+                            className={`py-2.5 hover:bg-gray-300 hover:dark:bg-gray-700 color-transition duration-200 cursor-pointer ${
+                              !selectedFolder
+                                ? "text-blue-500 bg-gray-300 dark:bg-gray-700"
+                                : "text-gray-500"
+                            }`}
+                          >
+                            <div className="flex  items-center justify-center  ">
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width={20}
+                                height={20}
+                                viewBox="-2 -2.5 24 24"
                               >
-                                <div className="flex  items-center justify-center  ">
-                                  <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    width={20}
-                                    height={20}
-                                    viewBox="-2 -2.5 24 24"
-                                  >
-                                    <path
-                                      fill="currentColor"
-                                      d="M3.656 17.979A1 1 0 0 1 2 17.243V15a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H8.003zM16 10.017a7 7 0 0 0 0 .369zq.007-.16.004-4.019a3 3 0 0 0-3-2.997H5V2a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2v2.243a1 1 0 0 1-1.656.736L16 13.743z"
-                                    ></path>
-                                  </svg>
-                                </div>
-                                <div className="text-[10px] text-center ">
-                                  All chats
-                                </div>
-                              </div>
-                              {folders.map((folder) => (
-                                <div
-                                  key={folder.id}
-                                  onClick={() => handleClickFolder(folder)}
-                                  className={`py-2 hover:bg-gray-300 hover:dark:bg-gray-700 color-transition duration-200 cursor-pointer ${
-                                    folder.id !== selectedFolder?.id
-                                      ? "text-gray-500"
-                                      : "text-blue-500 shadow bg-gray-300 dark:bg-gray-700"
-                                  }`}
-                                >
-                                  <div className="flex  items-center justify-center ">
-                                    <svg
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      width={20}
-                                      height={20}
-                                      viewBox="0 0 24 24"
-                                    >
-                                      <path
-                                        fill="currentColor"
-                                        stroke="currentColor"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M3 6a2 2 0 0 1 2-2h3.93a2 2 0 0 1 1.664.89l.812 1.22A2 2 0 0 0 13.07 7H19a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"
-                                      ></path>
-                                    </svg>
-                                  </div>
-                                  <div className="text-[10px] text-center">
-                                    {folder.folderName.length > 10
-                                      ? `${folder.folderName.substring(
-                                          0,
-                                          10
-                                        )}...`
-                                      : folder.folderName}
-                                  </div>
-                                </div>
-                              ))}
+                                <path
+                                  fill="currentColor"
+                                  d="M3.656 17.979A1 1 0 0 1 2 17.243V15a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H8.003zM16 10.017a7 7 0 0 0 0 .369zq.007-.16.004-4.019a3 3 0 0 0-3-2.997H5V2a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2v2.243a1 1 0 0 1-1.656.736L16 13.743z"
+                                ></path>
+                              </svg>
+                            </div>
+                            <div className="text-[10px] text-center ">
+                              All chats
                             </div>
                           </div>
+                          {folders.map((folder) => (
+                            <div
+                              key={folder.id}
+                              onClick={() => handleClickFolder(folder)}
+                              className={`py-2 hover:bg-gray-300 hover:dark:bg-gray-700 color-transition duration-200 cursor-pointer ${
+                                folder.id !== selectedFolder?.id
+                                  ? "text-gray-500"
+                                  : "text-blue-500 shadow bg-gray-300 dark:bg-gray-700"
+                              }`}
+                            >
+                              <div className="flex  items-center justify-center ">
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width={20}
+                                  height={20}
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    fill="currentColor"
+                                    stroke="currentColor"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M3 6a2 2 0 0 1 2-2h3.93a2 2 0 0 1 1.664.89l.812 1.22A2 2 0 0 0 13.07 7H19a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"
+                                  ></path>
+                                </svg>
+                              </div>
+                              <div className="text-[10px] text-center">
+                                {folder.folderName.length > 10
+                                  ? `${folder.folderName.substring(0, 10)}...`
+                                  : folder.folderName}
+                              </div>
+                            </div>
+                          ))}
                         </div>
-                      </>
-                    )}
-                    <div className="h-screen w-full pt-13 overflow-y-auto">
-                      {chatsLoading ? (
-                        <ChatListLoading />
-                      ) : filteredChats.length > 0 ? (
-                        <ChatList
-                          filteredChats={filteredChats}
-                          handleSelectChat={handleSelectChat}
-                          getOtherUserInDirectChat={getOtherUserInDirectChat}
-                          getChatPhoto={getChatPhoto}
-                          getChatDisplayName={getChatDisplayName}
-                          currentUserId={user?.uid}
-                          onLeaveSuccess={clearChat}
-                          getSenderDisplayName={getSenderDisplayName}
-                        />
-                      ) : (
-                        <div className="mx-1 p-2  rounded-lg text-sm text-gray-500">
-                          No Recent Chats
-                        </div>
-                      )}
+                      </div>
                     </div>
-                  </div>
+                  </>
+                )}
+                <div className="h-screen w-full pt-13 overflow-y-auto">
+                  {chatsLoading ? (
+                    <ChatListLoading />
+                  ) : filteredChats.length > 0 ? (
+                    <ChatList
+                      filteredChats={filteredChats}
+                      handleSelectChat={handleSelectChat}
+                      getOtherUserInDirectChat={getOtherUserInDirectChat}
+                      getChatPhoto={getChatPhoto}
+                      getChatDisplayName={getChatDisplayName}
+                      currentUserId={user?.uid}
+                      onLeaveSuccess={clearChat}
+                      getSenderDisplayName={getSenderDisplayName}
+                    />
+                  ) : (
+                    <div className="mx-1 p-2  rounded-lg text-sm text-gray-500">
+                      No Recent Chats
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -342,7 +334,7 @@ const Sidebar = ({ toggleMenu, handleSelectChat, getSenderDisplayName }) => {
           clearChat={clearChat}
           getSenderDisplayName={getSenderDisplayName}
           toggleMenu={toggleMenu}
-          className="w-screen bg-white dark:bg-gray-800 border-r sm:hidden fixed lg:sticky top-0 left-0 z-30  flex-col h-full"
+          className="w-full bg-white dark:bg-gray-800 border-r sm:hidden fixed lg:sticky top-0 left-0 z-30  flex-col h-full"
         />
       )}
       {folderSidebar && (
@@ -353,26 +345,26 @@ const Sidebar = ({ toggleMenu, handleSelectChat, getSenderDisplayName }) => {
         />
       )}
 
-      <SidebarPanel
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-        chatsLoading={chatsLoading}
-        filteredChats={filteredChats}
-        folders={folders}
-        hasFolders={hasFolders}
-        handleSelectChat={handleSelectChat}
-        getOtherUserInDirectChat={getOtherUserInDirectChat}
-        getChatPhoto={getChatPhoto}
-        getChatDisplayName={getChatDisplayName}
-        user={user}
-        clearChat={clearChat}
-        folderSidebar={folderSidebar}
-        getSenderDisplayName={getSenderDisplayName}
-        toggleMenu={toggleMenu}
-        className={` hidden bg-white dark:bg-gray-800 border-r sm:fixed lg:sticky top-0 left-0 z-10   sm:flex flex-col h-full ${
-          hasFolders ? "w-74" : "w-64"
-        } `}
-      />
+      <div className="w-full relative">
+        <SidebarPanel
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          chatsLoading={chatsLoading}
+          filteredChats={filteredChats}
+          folders={folders}
+          hasFolders={hasFolders}
+          handleSelectChat={handleSelectChat}
+          getOtherUserInDirectChat={getOtherUserInDirectChat}
+          getChatPhoto={getChatPhoto}
+          getChatDisplayName={getChatDisplayName}
+          user={user}
+          clearChat={clearChat}
+          folderSidebar={folderSidebar}
+          getSenderDisplayName={getSenderDisplayName}
+          toggleMenu={toggleMenu}
+          className="bg-white hidden sm:block dark:bg-gray-800 border-r w-full relative"
+        />
+      </div>
     </>
   );
 };

@@ -31,8 +31,8 @@ import {
 } from "@/components/ui/popover";
 import { useTypingForChat } from "../../../hooks/userTypingForChat";
 import { useMentions } from "@/stores/useUsersMentions";
-import { useFolderStore } from "@/stores/chat-folder/useFolderStore";
-import { useChatFolderStore } from "@/stores/chat-folder/useChatFolderStore";
+// import { useFolderStore } from "@/stores/chat-folder/useFolderStore";
+// import { useChatFolderStore } from "@/stores/chat-folder/useChatFolderStore";
 
 const MentionSuggestionItem = memo(({ user, onSelect }) => {
   const handleClick = useCallback(() => {
@@ -101,8 +101,8 @@ const MessageInput = memo(
     } = useMentions();
 
     // Memoize folder state to prevent unnecessary re-renders
-    const { hasFolders } = useFolderStore();
-    const { folderSidebar } = useChatFolderStore();
+    // const { hasFolders } = useFolderStore();
+    // const { folderSidebar } = useChatFolderStore();
 
     const { setTyping } = useTypingForChat(chatId);
     const user = useUserStore((s) => s.user);
@@ -127,19 +127,8 @@ const MessageInput = memo(
       [chatId, messagesLoading, isMessagesSending]
     );
 
-    const containerClassName = useMemo(
-      () =>
-        `fixed bottom-0 left-0 right-0 shadow-lg z-30 ${
-          hasFolders && !folderSidebar
-            ? "sm:ml-74"
-            : !hasFolders && !folderSidebar
-            ? "sm:ml-64"
-            : folderSidebar && hasFolders
-            ? "sm:ml-96"
-            : ""
-        }`,
-      [hasFolders, folderSidebar]
-    );
+    const containerClassName =
+      "absolute bottom-0 left-0 right-0 shadow-lg z-30 ";
 
     useEffect(() => {
       if (!chatId) return;
@@ -411,256 +400,263 @@ const MessageInput = memo(
     }, []);
 
     return (
-      <div className={containerClassName}>
-        <div className="px-4 py-2 border-t backdrop-blur-sm border-gray-300 dark:border-gray-700">
-          <div className="flex flex-col gap-1">
-            {/* Mention Suggestions */}
-            {showMentions && mentionSuggestions.length > 0 && (
-              <div className="absolute bottom-full mb-0 left-0 right-0 z-50 bg-white dark:bg-gray-800 border-y dark:border-gray-700 max-h-48 overflow-y-auto">
-                {mentionSuggestions.map((suggestedUser) => (
-                  <MentionSuggestionItem
-                    key={suggestedUser.id}
-                    user={suggestedUser}
-                    onSelect={handleMentionInsert}
-                  />
-                ))}
-              </div>
-            )}
-
-            {/* Display pasted image */}
-            {pastedImage && (
-              <div className="flex justify-between border backdrop-blur-sm p-2 rounded-2xl items-start gap-2">
-                <div className="flex gap-2 items-start">
-                  <div className="relative">
-                    <img
-                      src={pastedImage.preview}
-                      alt="Pasted image"
-                      className="h-16 w-16 rounded-lg object-cover"
+      <div className="w-full relative">
+        <div className={containerClassName}>
+          <div className="px-4 py-2 border-t backdrop-blur-sm border-gray-300 dark:border-gray-700">
+            <div className="flex flex-col gap-1">
+              {/* Mention Suggestions */}
+              {showMentions && mentionSuggestions.length > 0 && (
+                <div className="absolute bottom-full mb-0 left-0 right-0 z-50 bg-white dark:bg-gray-800 border-y dark:border-gray-700 max-h-48 overflow-y-auto">
+                  {mentionSuggestions.map((suggestedUser) => (
+                    <MentionSuggestionItem
+                      key={suggestedUser.id}
+                      user={suggestedUser}
+                      onSelect={handleMentionInsert}
                     />
-                  </div>
-                  <div className="flex flex-col">
-                    <p className="font-semibold text-sm">{pastedImage.name}</p>
-                    <p className="text-xs text-gray-500">
-                      {(pastedImage.file.size / 1024 / 1024).toFixed(2)} MB
-                    </p>
-                  </div>
+                  ))}
                 </div>
-                <button
-                  onClick={handleCancelPastedImage}
-                  className="text-gray-500 hover:text-red-500 transition text-sm"
-                >
-                  <Icon icon="mdi:close" width="18" height="18" />
-                </button>
-              </div>
-            )}
+              )}
 
-            {/* Reply/Edit indicator */}
-            {(replyTo || editMessage) && (
-              <div className="flex items-start justify-between border-l-4 border-blue-500 px-2 w-full mb-1">
-                <div className="text-sm max-w-[80%]">
-                  <span className="font-medium text-blue-600">
-                    {editMessage ? (
-                      <>
-                        <Icon
-                          icon="solar:pen-bold"
-                          className="inline mr-1"
-                          width="14"
-                          height="14"
-                        />
-                        Editing message
-                      </>
-                    ) : (
-                      <>Replying to {replyTo?.name || "Unknown"}</>
-                    )}
-                  </span>
-                  <div className="truncate">
-                    {editMessage ? (
-                      <span className="">
-                        {editMessage.message || "No content"}
-                      </span>
-                    ) : (
-                      <>
-                        {replyTo?.message || (
-                          <>
-                            {replyTo?.fileData && (
-                              <div className="p-2 rounded border flex items-center gap-2">
-                                {replyTo?.fileData.type?.startsWith(
-                                  "image/"
-                                ) ? (
-                                  <div className="flex items-center gap-2">
-                                    <Icon
-                                      icon="solar:gallery-bold"
-                                      className="text-blue-500"
-                                      width="16"
-                                      height="16"
-                                    />
-                                    <span className="text-xs ">
-                                      Image: {replyTo?.fileData.name}
-                                    </span>
-                                  </div>
-                                ) : replyTo?.fileData.type?.startsWith(
-                                    "video/"
-                                  ) ? (
-                                  <div className="flex items-center gap-2">
-                                    <Icon
-                                      icon="solar:videocamera-bold"
-                                      className="text-red-500"
-                                      width="16"
-                                      height="16"
-                                    />
-                                    <span className="text-xs text-gray-600">
-                                      Video: {replyTo?.fileData.name}
-                                    </span>
-                                  </div>
-                                ) : (
-                                  <div className="flex items-center gap-2">
-                                    <Icon
-                                      icon="solar:document-bold"
-                                      className="text-gray-500"
-                                      width="16"
-                                      height="16"
-                                    />
-                                    <span className="text-xs text-gray-600">
-                                      File: {replyTo?.fileData.name}
-                                    </span>
-                                  </div>
-                                )}
-                              </div>
-                            )}
-                          </>
-                        )}
-                      </>
-                    )}
+              {/* Display pasted image */}
+              {pastedImage && (
+                <div className="flex justify-between border backdrop-blur-sm p-2 rounded-2xl items-start gap-2">
+                  <div className="flex gap-2 items-start">
+                    <div className="relative">
+                      <img
+                        src={pastedImage.preview}
+                        alt="Pasted image"
+                        className="h-16 w-16 rounded-lg object-cover"
+                      />
+                    </div>
+                    <div className="flex flex-col">
+                      <p className="font-semibold text-sm">
+                        {pastedImage.name}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {(pastedImage.file.size / 1024 / 1024).toFixed(2)} MB
+                      </p>
+                    </div>
                   </div>
-                </div>
-                <button
-                  onClick={handleCancelEdit}
-                  className="text-gray-500 hover:text-red-500 transition text-sm"
-                >
-                  <Icon icon="mdi:close" width="18" height="18" />
-                </button>
-              </div>
-            )}
-
-            {/* Input area */}
-            <div className="flex justify-center items-end gap-2">
-              {!editMessage && (
-                <div>
                   <button
-                    className="text-blue-500 p-2 rounded-full border"
-                    onClick={handleFileDialogOpen}
-                    disabled={isFileButtonDisabled}
+                    onClick={handleCancelPastedImage}
+                    className="text-gray-500 hover:text-red-500 transition text-sm"
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="20"
-                      height="20"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        fill="currentColor"
-                        d="m19.352 7.617l-3.96-3.563c-1.127-1.015-1.69-1.523-2.383-1.788L13 5c0 2.357 0 3.536.732 4.268S15.643 10 18 10h3.58c-.362-.704-1.012-1.288-2.228-2.383"
-                      />
-                      <path
-                        fill="currentColor"
-                        fillRule="evenodd"
-                        d="M10 22h4c3.771 0 5.657 0 6.828-1.172S22 17.771 22 14v-.437c0-.873 0-1.529-.043-2.063h-4.052c-1.097 0-2.067 0-2.848-.105c-.847-.114-1.694-.375-2.385-1.066c-.692-.692-.953-1.539-1.067-2.386c-.105-.781-.105-1.75-.105-2.848l.01-2.834q0-.124.02-.244C11.121 2 10.636 2 10.03 2C6.239 2 4.343 2 3.172 3.172C2 4.343 2 6.229 2 10v4c0 3.771 0 5.657 1.172 6.828S6.229 22 10 22m-.987-9.047a.75.75 0 0 0-1.026 0l-2 1.875a.75.75 0 0 0 1.026 1.094l.737-.69V18.5a.75.75 0 0 0 1.5 0v-3.269l.737.691a.75.75 0 0 0 1.026-1.094z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
+                    <Icon icon="mdi:close" width="18" height="18" />
                   </button>
                 </div>
               )}
 
-              <textarea
-                className="flex-1 p-2 outline-none rounded-l-lg resize-none min-h-[40px] max-h-32 overflow-y-auto"
-                value={message}
-                ref={textareaRef}
-                required
-                onChange={handleTextareaChange}
-                onKeyDown={enhancedHandleKeyPress}
-                onPaste={handlePaste}
-                placeholder={
-                  editMessage ? "Edit your message..." : "Write a message..."
-                }
-                disabled={isInputDisabled}
-                rows={1}
-                style={{ height: "auto", minHeight: "40px" }}
-                onInput={handleTextareaInput}
-              />
-
-              <Popover open={emojiPickerOpen} onOpenChange={setEmojiPickerOpen}>
-                <PopoverTrigger asChild>
-                  <button className="p-2 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 text-blue-500 transition">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="20"
-                      height="20"
-                      viewBox="0 0 24 24"
-                    >
-                      <g fill="none">
-                        <path
-                          stroke="currentColor"
-                          strokeLinecap="round"
-                          strokeWidth="1.5"
-                          d="M8.913 15.934c1.258.315 2.685.315 4.122-.07s2.673-1.099 3.605-2.001"
-                        />
-                        <ellipse
-                          cx="14.509"
-                          cy="9.774"
-                          fill="currentColor"
-                          rx="1"
-                          ry="1.5"
-                          transform="rotate(-15 14.51 9.774)"
-                        />
-                        <ellipse
-                          cx="8.714"
-                          cy="11.328"
-                          fill="currentColor"
-                          rx="1"
-                          ry="1.5"
-                          transform="rotate(-15 8.714 11.328)"
-                        />
-                        <path
-                          stroke="currentColor"
-                          strokeWidth="1.5"
-                          d="m13 16l.478.974a1.5 1.5 0 1 0 2.693-1.322l-.46-.935"
-                        />
-                        <path
-                          stroke="currentColor"
-                          strokeLinecap="round"
-                          strokeWidth="1.5"
-                          d="M4.928 4.927A9.95 9.95 0 0 1 9.412 2.34C14.746.91 20.23 4.077 21.659 9.411c1.43 5.335-1.736 10.818-7.07 12.248S3.77 19.922 2.34 14.588a9.95 9.95 0 0 1-.002-5.176"
-                        />
-                      </g>
-                    </svg>
-                  </button>
-                </PopoverTrigger>
-                <PopoverContent className="w-full p-0">
-                  <Suspense
-                    fallback={
-                      <div className="p-2 text-sm text-gray-500">
-                        Loading emojis...
-                      </div>
-                    }
+              {/* Reply/Edit indicator */}
+              {(replyTo || editMessage) && (
+                <div className="flex items-start justify-between border-l-4 border-blue-500 px-2 w-full mb-1">
+                  <div className="text-sm max-w-[80%]">
+                    <span className="font-medium text-blue-600">
+                      {editMessage ? (
+                        <>
+                          <Icon
+                            icon="solar:pen-bold"
+                            className="inline mr-1"
+                            width="14"
+                            height="14"
+                          />
+                          Editing message
+                        </>
+                      ) : (
+                        <>Replying to {replyTo?.name || "Unknown"}</>
+                      )}
+                    </span>
+                    <div className="truncate">
+                      {editMessage ? (
+                        <span className="">
+                          {editMessage.message || "No content"}
+                        </span>
+                      ) : (
+                        <>
+                          {replyTo?.message || (
+                            <>
+                              {replyTo?.fileData && (
+                                <div className="p-2 rounded border flex items-center gap-2">
+                                  {replyTo?.fileData.type?.startsWith(
+                                    "image/"
+                                  ) ? (
+                                    <div className="flex items-center gap-2">
+                                      <Icon
+                                        icon="solar:gallery-bold"
+                                        className="text-blue-500"
+                                        width="16"
+                                        height="16"
+                                      />
+                                      <span className="text-xs ">
+                                        Image: {replyTo?.fileData.name}
+                                      </span>
+                                    </div>
+                                  ) : replyTo?.fileData.type?.startsWith(
+                                      "video/"
+                                    ) ? (
+                                    <div className="flex items-center gap-2">
+                                      <Icon
+                                        icon="solar:videocamera-bold"
+                                        className="text-red-500"
+                                        width="16"
+                                        height="16"
+                                      />
+                                      <span className="text-xs text-gray-600">
+                                        Video: {replyTo?.fileData.name}
+                                      </span>
+                                    </div>
+                                  ) : (
+                                    <div className="flex items-center gap-2">
+                                      <Icon
+                                        icon="solar:document-bold"
+                                        className="text-gray-500"
+                                        width="16"
+                                        height="16"
+                                      />
+                                      <span className="text-xs text-gray-600">
+                                        File: {replyTo?.fileData.name}
+                                      </span>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  <button
+                    onClick={handleCancelEdit}
+                    className="text-gray-500 hover:text-red-500 transition text-sm"
                   >
-                    <LazyEmojiPicker
-                      height={400}
-                      width={300}
-                      onEmojiClick={handleEmojiClick}
-                    />
-                  </Suspense>
-                </PopoverContent>
-              </Popover>
+                    <Icon icon="mdi:close" width="18" height="18" />
+                  </button>
+                </div>
+              )}
 
-              <SendButton
-                handleSendMessage={handleSendMessage}
-                message={message}
-                messagesLoading={messagesLoading}
-                isMessagesSending={isMessagesSending}
-                editMessage={editMessage}
-                pastedImage={pastedImage}
-              />
+              {/* Input area */}
+              <div className="flex justify-center items-end gap-2">
+                {!editMessage && (
+                  <div>
+                    <button
+                      className="text-blue-500 p-2 rounded-full border"
+                      onClick={handleFileDialogOpen}
+                      disabled={isFileButtonDisabled}
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          fill="currentColor"
+                          d="m19.352 7.617l-3.96-3.563c-1.127-1.015-1.69-1.523-2.383-1.788L13 5c0 2.357 0 3.536.732 4.268S15.643 10 18 10h3.58c-.362-.704-1.012-1.288-2.228-2.383"
+                        />
+                        <path
+                          fill="currentColor"
+                          fillRule="evenodd"
+                          d="M10 22h4c3.771 0 5.657 0 6.828-1.172S22 17.771 22 14v-.437c0-.873 0-1.529-.043-2.063h-4.052c-1.097 0-2.067 0-2.848-.105c-.847-.114-1.694-.375-2.385-1.066c-.692-.692-.953-1.539-1.067-2.386c-.105-.781-.105-1.75-.105-2.848l.01-2.834q0-.124.02-.244C11.121 2 10.636 2 10.03 2C6.239 2 4.343 2 3.172 3.172C2 4.343 2 6.229 2 10v4c0 3.771 0 5.657 1.172 6.828S6.229 22 10 22m-.987-9.047a.75.75 0 0 0-1.026 0l-2 1.875a.75.75 0 0 0 1.026 1.094l.737-.69V18.5a.75.75 0 0 0 1.5 0v-3.269l.737.691a.75.75 0 0 0 1.026-1.094z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                )}
+
+                <textarea
+                  className="flex-1 p-2 outline-none rounded-l-lg resize-none min-h-[40px] max-h-32 overflow-y-auto"
+                  value={message}
+                  ref={textareaRef}
+                  required
+                  onChange={handleTextareaChange}
+                  onKeyDown={enhancedHandleKeyPress}
+                  onPaste={handlePaste}
+                  placeholder={
+                    editMessage ? "Edit your message..." : "Write a message..."
+                  }
+                  disabled={isInputDisabled}
+                  rows={1}
+                  style={{ height: "auto", minHeight: "40px" }}
+                  onInput={handleTextareaInput}
+                />
+
+                <Popover
+                  open={emojiPickerOpen}
+                  onOpenChange={setEmojiPickerOpen}
+                >
+                  <PopoverTrigger asChild>
+                    <button className="p-2 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 text-blue-500 transition">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                      >
+                        <g fill="none">
+                          <path
+                            stroke="currentColor"
+                            strokeLinecap="round"
+                            strokeWidth="1.5"
+                            d="M8.913 15.934c1.258.315 2.685.315 4.122-.07s2.673-1.099 3.605-2.001"
+                          />
+                          <ellipse
+                            cx="14.509"
+                            cy="9.774"
+                            fill="currentColor"
+                            rx="1"
+                            ry="1.5"
+                            transform="rotate(-15 14.51 9.774)"
+                          />
+                          <ellipse
+                            cx="8.714"
+                            cy="11.328"
+                            fill="currentColor"
+                            rx="1"
+                            ry="1.5"
+                            transform="rotate(-15 8.714 11.328)"
+                          />
+                          <path
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                            d="m13 16l.478.974a1.5 1.5 0 1 0 2.693-1.322l-.46-.935"
+                          />
+                          <path
+                            stroke="currentColor"
+                            strokeLinecap="round"
+                            strokeWidth="1.5"
+                            d="M4.928 4.927A9.95 9.95 0 0 1 9.412 2.34C14.746.91 20.23 4.077 21.659 9.411c1.43 5.335-1.736 10.818-7.07 12.248S3.77 19.922 2.34 14.588a9.95 9.95 0 0 1-.002-5.176"
+                          />
+                        </g>
+                      </svg>
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-full p-0">
+                    <Suspense
+                      fallback={
+                        <div className="p-2 text-sm text-gray-500">
+                          Loading emojis...
+                        </div>
+                      }
+                    >
+                      <LazyEmojiPicker
+                        height={400}
+                        width={300}
+                        onEmojiClick={handleEmojiClick}
+                      />
+                    </Suspense>
+                  </PopoverContent>
+                </Popover>
+
+                <SendButton
+                  handleSendMessage={handleSendMessage}
+                  message={message}
+                  messagesLoading={messagesLoading}
+                  isMessagesSending={isMessagesSending}
+                  editMessage={editMessage}
+                  pastedImage={pastedImage}
+                />
+              </div>
             </div>
           </div>
         </div>

@@ -15,7 +15,7 @@ import { TypingIndicator } from "./TypingIndicator";
 import { useMessageActionStore } from "@/stores/useMessageActionStore";
 import { useChatFolderStore } from "@/stores/chat-folder/useChatFolderStore";
 import { SquareUser, Menu, ArrowLeft } from "lucide-react";
-import { useFolderStore } from "@/stores/chat-folder/useFolderStore";
+//import { useFolderStore } from "@/stores/chat-folder/useFolderStore";
 import { useUserStore } from "@/stores/useUserStore";
 
 const ChatHeader = ({
@@ -26,7 +26,10 @@ const ChatHeader = ({
   addUsersToGroup,
   isAddingUsers,
 }) => {
-  const { setFolderSidebar, folderSidebar } = useChatFolderStore();
+  const {
+    setFolderSidebar,
+    // folderSidebar
+  } = useChatFolderStore();
   const {
     topicId,
     currentTopic,
@@ -36,79 +39,74 @@ const ChatHeader = ({
     currentChat,
     selectedUser,
   } = useMessageActionStore();
-  const { hasFolders } = useFolderStore();
+  //  const { hasFolders } = useFolderStore();
   const { userProfile } = useUserStore();
   const openFolderSidebar = () => {
     setFolderSidebar(true);
     clearTopicId();
   };
   return (
-    <div
-      className={`fixed top-0 left-0 right-0 border-b z-30 ${
-        hasFolders && !folderSidebar
-          ? "sm:ml-74"
-          : folderSidebar && hasFolders
-          ? "sm:ml-96"
-          : "sm:ml-64"
-      }`}
-    >
-      <div className="px-4 py-2 dark:bg-gray-800 bg-white  w-full flex items-center">
-        <div className="w-full flex justify-start items-center gap-2">
-          {/* Back button */}
-          {topicId ? (
-            <>
-              <div className="flex sm:hidden  justify-center items-center border-gray-200 dark:border-gray-700">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => openFolderSidebar()}
-                  className="w-10 h-10 rounded-full p-0 border-gray-300 dark:border-gray-600"
-                >
-                  <ArrowLeft size={18} />
-                </Button>
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="flex sm:hidden  justify-center items-center border-gray-200 dark:border-gray-700">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={clearChatId}
-                  className="w-10 h-10 rounded-full p-0 border-gray-300 dark:border-gray-600"
-                >
-                  <ArrowLeft size={18} />
-                </Button>
-              </div>
-            </>
-          )}
+    <div className="relative w-full">
+      <div className="absolute top-0 left-0 right-0 border-b z-30 w-full ">
+        <div className="px-4 py-2 dark:bg-gray-800 bg-white  w-full flex items-center">
+          <div className="w-full flex justify-start items-center gap-2">
+            {/* Back button */}
+            {topicId ? (
+              <>
+                <div className="flex sm:hidden  justify-center items-center border-gray-200 dark:border-gray-700">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => openFolderSidebar()}
+                    className="w-10 h-10 rounded-full p-0 border-gray-300 dark:border-gray-600"
+                  >
+                    <ArrowLeft size={18} />
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="flex sm:hidden  justify-center items-center border-gray-200 dark:border-gray-700">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={clearChatId}
+                    className="w-10 h-10 rounded-full p-0 border-gray-300 dark:border-gray-600"
+                  >
+                    <ArrowLeft size={18} />
+                  </Button>
+                </div>
+              </>
+            )}
 
-          {/* Group Chat Header */}
-          {(currentChat?.type === "group" || currentChat?.type === "saved") && (
-            <GroupChatHeader
-              currentChat={currentChat}
-              user={userProfile}
-              users={users}
-              chatId={chatId}
-              topicId={topicId}
-              currentTopic={currentTopic}
-              getChatDisplayName={getChatDisplayName}
-              getSenderDisplayName={getSenderDisplayName}
-              clearChatId={clearChatId}
-              addUsersToGroup={addUsersToGroup}
-              isAddingUsers={isAddingUsers}
-            />
-          )}
+            {/* Group Chat Header */}
+            {(currentChat?.type === "group" ||
+              currentChat?.type === "saved") && (
+              <GroupChatHeader
+                currentChat={currentChat}
+                user={userProfile}
+                users={users}
+                chatId={chatId}
+                topicId={topicId}
+                currentTopic={currentTopic}
+                getChatDisplayName={getChatDisplayName}
+                getSenderDisplayName={getSenderDisplayName}
+                clearChatId={clearChatId}
+                addUsersToGroup={addUsersToGroup}
+                isAddingUsers={isAddingUsers}
+              />
+            )}
 
-          {/* Direct Chat Header */}
-          {currentChat?.type === "direct" && selectedUser && (
-            <DirectChatHeader
-              selectedUser={selectedUser}
-              chatId={chatId}
-              getSenderDisplayName={getSenderDisplayName}
-              setIfUserInfoOpen={setIfUserInfoOpen}
-            />
-          )}
+            {/* Direct Chat Header */}
+            {currentChat?.type === "direct" && selectedUser && (
+              <DirectChatHeader
+                selectedUser={selectedUser}
+                chatId={chatId}
+                getSenderDisplayName={getSenderDisplayName}
+                setIfUserInfoOpen={setIfUserInfoOpen}
+              />
+            )}
+          </div>
         </div>
       </div>
     </div>
@@ -128,7 +126,7 @@ const GroupChatHeader = ({
   topicId,
   currentTopic,
 }) => (
-  <div className="flex justify-between items-center w-full ">
+  <div className="flex justify-start items-center w-full  flex-1 min-w-0 ">
     <div className="flex justify-start gap-3 items-center w-full flex-1  min-w-0">
       {topicId ? (
         <>
@@ -230,25 +228,17 @@ const GroupChatHeader = ({
         </div>
       </div>
     </div>
-    <div className="flex items-center gap-2">
-      {topicId ? (
-        <></>
-      ) : (
-        currentChat?.type !== "saved" && (
-          <>
-            {" "}
-            <AddUsersToGroup
-              users={users}
-              currentUserId={user?.uid}
-              currentChat={currentChat}
-              submitText="Add Members"
-              onSubmit={addUsersToGroup}
-              isLoading={isAddingUsers}
-            />
-          </>
-        )
+    <div className="  min-w-0 flex relative justify-end items-center gap-2">
+      {!topicId && currentChat?.type !== "saved" && (
+        <AddUsersToGroup
+          users={users}
+          currentUserId={user?.uid}
+          currentChat={currentChat}
+          submitText="Add Members"
+          onSubmit={addUsersToGroup}
+          isLoading={isAddingUsers}
+        />
       )}
-
       <ManageGroupChat
         chatId={currentChat.id}
         currentUserId={user?.uid}

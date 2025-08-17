@@ -67,13 +67,10 @@ export function AddUsersToGroup({
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        <Button
-          variant="ghost"
-          className="border flex justify-start rounded-full"
-        >
-          <UserPlus size={20} /> Add
-          user
-        </Button>
+        <span className="flex justify-center items-center gap-2 p-2.5 border rounded-full border-gray-300 dark:border-gray-600">
+          <UserPlus size={18} />{" "}
+          <span className="hidden sm:block text-sm"> Add user</span>
+        </span>
       </DialogTrigger>
 
       <DialogContent className="sm:max-w-[425px] max-h-[600px] overflow-y-auto">

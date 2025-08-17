@@ -40,6 +40,11 @@ import { NoInternetConnectionAlert } from "@/components/notification/AlertNoInte
 import { clearChatId } from "@/hooks/useDashboard";
 import { useMentions } from "@/stores/useUsersMentions";
 import { useFolderStore } from "@/stores/chat-folder/useFolderStore";
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "@/components/ui/resizable";
 
 function Dashboard() {
   const user = useUserStore((s) => s.userProfile);
@@ -72,10 +77,26 @@ function Dashboard() {
   } = useMessageActionStore();
   const { clearMentionSuggestions } = useMentions();
 
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Check screen size
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsMobile(window.innerWidth < 640); // Tailwind's sm breakpoint
+    };
+
+    checkScreenSize();
+    window.addEventListener("resize", checkScreenSize);
+    return () => window.removeEventListener("resize", checkScreenSize);
+  }, []);
+
   const cleanup = useTypingStatus((state) => state.cleanup);
-  const { setFolderSidebar, folderSidebar } = useChatFolderStore();
+  const {
+    setFolderSidebar,
+    //   folderSidebar
+  } = useChatFolderStore();
   const { isOnline, wasOffline } = useInternetConnection();
-  const { hasFolders } = useFolderStore();
+  //  const { hasFolders } = useFolderStore();
 
   const { messages, messagesLoading, loadOlderMessages } =
     useInfiniteMessages(chatId);
@@ -556,54 +577,70 @@ function Dashboard() {
           closeMenu={closeMenu}
         />
       )}
-      {/* Sidebar */}
-      <Sidebar
-        toggleMenu={toggleMenu}
-        handleSelectChat={handleSelectChat}
-        getSenderDisplayName={getSenderDisplayName}
-      />
-      {/* Center Chat Area */}
-      <div
-        className={`flex-1 bg-gray-white   lg:ml-0 sticky top-0 left-0 z-20 overflow-y-hidden flex flex-col h-full 
-        ${hasFolders && !folderSidebar ? "sm:ml-74" : "sm:ml-64"}`}
+      <ResizablePanelGroup
+        key={isMobile ? "mobile" : "desktop"}
+        direction="horizontal"
+        className="h-full w-full"
       >
-        {/* Header */}
-        {chatId && (
-          <ChatHeader
-            getChatDisplayName={getChatDisplayName}
+        {/* Sidebar Panel */}
+        <ResizablePanel
+          defaultSize={isMobile ? 0 : 32}
+          minSize={isMobile ? 0 : 30}
+          maxSize={80}
+        >
+          <Sidebar
+            toggleMenu={toggleMenu}
+            handleSelectChat={handleSelectChat}
             getSenderDisplayName={getSenderDisplayName}
-            clearChatId={clearChatId}
-            setIfUserInfoOpen={setIfUserInfoOpen}
-            addUsersToGroup={addUsersToGroup}
-            isAddingUsers={isAddingUsers}
           />
-        )}
+        </ResizablePanel>
 
-        {/* Chat Content */}
-        <ChatContent
-          chatId={chatId}
-          messages={messages}
-          messagesLoading={messagesLoading}
-          loadOlderMessages={loadOlderMessages}
-          user={user}
-          userProfile={user}
-          getSenderData={getSenderData}
-          getSenderDisplayName={getSenderDisplayName}
-        />
-        {/* Message Input */}
-        {chatId && (
-          <MessageInputContainer
-            chatId={chatId}
-            user={user}
-            users={users}
-            messagesLoading={messagesLoading}
-            isMessagesSending={isMessagesSending}
-            setIsMessagesSending={setIsMessagesSending}
-            setIsFileDialogOpen={setIsFileDialogOpen}
-            getSenderDisplayName={getSenderDisplayName}
-          />
-        )}
-      </div>
+        <ResizableHandle withHandle />
+
+        {/* Main Content Panel */}
+        <ResizablePanel
+          defaultSize={isMobile ? 0 : 100}
+          minSize={isMobile ? 100 : 32}
+        >
+          <div className="flex-1 flex flex-col h-full">
+            {/* Your existing content structure remains the same */}
+            {chatId && (
+              <ChatHeader
+                getChatDisplayName={getChatDisplayName}
+                getSenderDisplayName={getSenderDisplayName}
+                clearChatId={clearChatId}
+                setIfUserInfoOpen={setIfUserInfoOpen}
+                addUsersToGroup={addUsersToGroup}
+                isAddingUsers={isAddingUsers}
+              />
+            )}
+
+            <ChatContent
+              chatId={chatId}
+              messages={messages}
+              messagesLoading={messagesLoading}
+              loadOlderMessages={loadOlderMessages}
+              user={user}
+              userProfile={user}
+              getSenderData={getSenderData}
+              getSenderDisplayName={getSenderDisplayName}
+            />
+
+            {chatId && (
+              <MessageInputContainer
+                chatId={chatId}
+                user={user}
+                users={users}
+                messagesLoading={messagesLoading}
+                isMessagesSending={isMessagesSending}
+                setIsMessagesSending={setIsMessagesSending}
+                setIsFileDialogOpen={setIsFileDialogOpen}
+                getSenderDisplayName={getSenderDisplayName}
+              />
+            )}
+          </div>
+        </ResizablePanel>
+      </ResizablePanelGroup>
       {/* Dialogs */}
       <FileUploadDialog
         isOpen={isFileDialogOpen}
