@@ -313,7 +313,7 @@ export const FolderSidebar = ({
                 <h2 className="font-semibold text-base capitalize truncate text-gray-900 dark:text-white">
                   {currentChat?.name}
                 </h2>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
+                <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
                   {currentChat?.users?.length} members
                 </p>
               </div>
