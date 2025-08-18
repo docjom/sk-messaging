@@ -23,7 +23,17 @@ import { db, app } from "@/firebase";
 import { collection, getDocs, query, where } from "firebase/firestore";
 
 import { getFunctions, httpsCallable } from "firebase/functions";
-import { Pin, Plus, UserPlus } from "lucide-react";
+import {
+  Briefcase,
+  Building2,
+  Lock,
+  Mail,
+  Phone,
+  Pin,
+  Plus,
+  User,
+  UserPlus,
+} from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useUserStore } from "@/stores/useUserStore";
 
@@ -125,60 +135,135 @@ export const AddUserDialog = () => {
   };
 
   return (
-    <>
-      <Dialog>
-        <DialogTrigger asChild>
-          <Button
-            onClick={(e) => {
-              e.stopPropagation();
-            }}
-            className=""
-          >
-            <UserPlus className="h-4 w-4" />
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button
+          onClick={(e) => {
+            e.stopPropagation();
+          }}
+          className="gap-2"
+        >
+          <UserPlus className="h-4 w-4" />
+          Add New User
+        </Button>
+      </DialogTrigger>
+
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+        <DialogHeader className="pb-4">
+          <DialogTitle className="flex items-center gap-3">
+            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10">
+              <Plus size={16} className="text-primary" />
+            </div>
             Add New User
-          </Button>
-        </DialogTrigger>
+          </DialogTitle>
+        </DialogHeader>
 
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Plus size={20} />
-              Add User
-            </DialogTitle>
-          </DialogHeader>
-
+        <div className="space-y-6">
+          {/* Personal Information Section */}
           <div className="space-y-4">
-            <div>
-              <Label>Name</Label>
-              <Input
-                value={form.name}
-                onChange={(e) => setForm({ ...form, name: e.target.value })}
-              />
+            <div className="flex items-center gap-2 pb-2 border-b border-border/50">
+              <User size={16} className="text-muted-foreground" />
+              <h4 className="text-sm font-medium text-muted-foreground">
+                Personal Information
+              </h4>
             </div>
-            <div>
-              <Label>Email</Label>
-              <Input
-                type="email"
-                value={form.email}
-                onChange={(e) => setForm({ ...form, email: e.target.value })}
-              />
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="name" className="flex items-center gap-2">
+                  <User size={14} />
+                  Full Name
+                </Label>
+                <Input
+                  id="name"
+                  placeholder="Enter full name"
+                  value={form.name}
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  className="transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="phone" className="flex items-center gap-2">
+                  <Phone size={14} />
+                  Phone Number
+                </Label>
+                <Input
+                  id="phone"
+                  type="tel"
+                  placeholder="Enter phone number"
+                  value={form.phone}
+                  onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                  className="transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+                />
+              </div>
             </div>
-            <div>
-              <Label>Password</Label>
-              <Input
-                type="password"
-                value={form.password}
-                onChange={(e) => setForm({ ...form, password: e.target.value })}
-              />
+          </div>
+
+          {/* Account Information Section */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 pb-2 border-b border-border/50">
+              <Lock size={16} className="text-muted-foreground" />
+              <h4 className="text-sm font-medium text-muted-foreground">
+                Account Information
+              </h4>
             </div>
-            <div className="flex gap-4 flex-wrap flex-1">
-              <div>
-                <Label>Role</Label>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="email" className="flex items-center gap-2">
+                  <Mail size={14} />
+                  Email Address
+                </Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="Enter email address"
+                  value={form.email}
+                  onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  className="transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="password" className="flex items-center gap-2">
+                  <Lock size={14} />
+                  Password
+                </Label>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="Enter password"
+                  value={form.password}
+                  onChange={(e) =>
+                    setForm({ ...form, password: e.target.value })
+                  }
+                  className="transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Work Information Section */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 pb-2 border-b border-border/50">
+              <Building2 size={16} className="text-muted-foreground" />
+              <h4 className="text-sm font-medium text-muted-foreground">
+                Work Information
+              </h4>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="role" className="flex items-center gap-2">
+                  <Briefcase size={14} />
+                  Role
+                </Label>
                 <Select
                   value={form.role}
                   onValueChange={(value) => setForm({ ...form, role: value })}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="transition-all duration-200 focus:ring-2 focus:ring-primary/20">
                     <SelectValue placeholder="Select role" />
                   </SelectTrigger>
                   <SelectContent>
@@ -191,55 +276,73 @@ export const AddUserDialog = () => {
                 </Select>
               </div>
 
-              <div className="w-1/3">
-                <Label>Department</Label>
+              <div className="space-y-2">
+                <Label htmlFor="department" className="flex items-center gap-2">
+                  <Building2 size={14} />
+                  Department
+                </Label>
                 <Input
-                  type="text"
+                  id="department"
+                  placeholder="Enter department"
                   value={form.department}
                   onChange={(e) =>
                     setForm({ ...form, department: e.target.value })
                   }
+                  className="transition-all duration-200 focus:ring-2 focus:ring-primary/20"
                 />
               </div>
-              <div>
-                <Label>Position</Label>
+
+              <div className="space-y-2 md:col-span-2 lg:col-span-1">
+                <Label htmlFor="position" className="flex items-center gap-2">
+                  <Briefcase size={14} />
+                  Position
+                </Label>
                 <Input
-                  type="text"
+                  id="position"
+                  placeholder="Enter position"
                   value={form.position}
                   onChange={(e) =>
                     setForm({ ...form, position: e.target.value })
                   }
-                />
-              </div>
-              <div>
-                <Label>Phone Number</Label>
-                <Input
-                  type="text"
-                  value={form.phone}
-                  onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                  className="transition-all duration-200 focus:ring-2 focus:ring-primary/20"
                 />
               </div>
             </div>
           </div>
+        </div>
 
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button
-                variant="outline"
-                onClick={(e) => {
-                  e.stopPropagation();
-                }}
-                type="button"
-              >
-                Close
-              </Button>
-            </DialogClose>
-            <Button disabled={loading} onClick={handleAddUser}>
-              {loading ? "Adding..." : "Add User"}
+        <DialogFooter className="flex-col sm:flex-row gap-3 pt-6 border-t border-border/50">
+          <DialogClose asChild>
+            <Button
+              variant="outline"
+              onClick={(e) => {
+                e.stopPropagation();
+              }}
+              type="button"
+              className="w-full sm:w-auto"
+            >
+              Cancel
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </>
+          </DialogClose>
+          <Button
+            disabled={loading}
+            onClick={handleAddUser}
+            className="w-full sm:w-auto gap-2"
+          >
+            {loading ? (
+              <>
+                <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                Adding User...
+              </>
+            ) : (
+              <>
+                <Plus size={16} />
+                Add User
+              </>
+            )}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 };
