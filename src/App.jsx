@@ -16,6 +16,7 @@ import { AdminHome } from "./admin/pages/Home";
 import { Management } from "./admin/pages/Management";
 import { MainLoading } from "./components/loading/mainLoading";
 import { AdminRoute } from "./components/auth/AdminRoute";
+import { AdminSettings } from "./admin/pages/Settings";
 
 function App() {
   const { userProfile, initialized, initAuthListener } = useUserStore();
@@ -48,6 +49,7 @@ function App() {
             <Route index element={<AdminHome />} />
             <Route path="home" element={<AdminHome />} />
             <Route path="management" element={<Management />} />
+            <Route path="settings" element={<AdminSettings />} />
           </Route>
         </Route>
       </Routes>

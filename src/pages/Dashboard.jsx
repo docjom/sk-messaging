@@ -45,6 +45,8 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
+import { MaintenanceMode } from "@/components/system/MaintenanceMode";
+import { useSystemMaintenance } from "@/admin/hooks/useSystemMaintenance";
 
 function Dashboard() {
   const user = useUserStore((s) => s.userProfile);
@@ -57,6 +59,8 @@ function Dashboard() {
   const [isFileDialogOpen, setIsFileDialogOpen] = useState(false);
   const [ifUserInfoOpen, setIfUserInfoOpen] = useState(false);
   const [isUploadingFile, setIsUploadingFile] = useState(false);
+
+  const { isSystemUnderMaintenance } = useSystemMaintenance();
 
   const {
     chatId,
@@ -82,7 +86,7 @@ function Dashboard() {
   // Check screen size
   useEffect(() => {
     const checkScreenSize = () => {
-      setIsMobile(window.innerWidth < 640); // Tailwind's sm breakpoint
+      setIsMobile(window.innerWidth < 640);
     };
 
     checkScreenSize();
@@ -557,104 +561,113 @@ function Dashboard() {
   }, [chatId, user?.uid, clearChat]);
 
   return (
-    <div className="h-screen  flex flex-col lg:flex-row">
-      {!isOnline && wasOffline && (
-        <div className="top-0 absolute w-full z-50">
-          <div className="flex justify-center items-center m-2">
-            <NoInternetConnectionAlert />
-          </div>
-        </div>
-      )}
-      {/* Toast Notifications */}
-      <Toaster />
+    <>
+      {isSystemUnderMaintenance ? (
+        <MaintenanceMode />
+      ) : (
+        <>
+          {" "}
+          <div className="h-screen  flex flex-col lg:flex-row">
+            {!isOnline && wasOffline && (
+              <div className="top-0 absolute w-full z-50">
+                <div className="flex justify-center items-center m-2">
+                  <NoInternetConnectionAlert />
+                </div>
+              </div>
+            )}
+            {/* Toast Notifications */}
+            <Toaster />
 
-      {/* Menu */}
-      {menu && (
-        <Menu
-          isCreatingGroup={isCreatingGroup}
-          createGroupChat={createGroupChat}
-          handleSelectUser={handleSelectUser}
-          closeMenu={closeMenu}
-        />
-      )}
-      <ResizablePanelGroup
-        key={isMobile ? "mobile" : "desktop"}
-        direction="horizontal"
-        className="h-full w-full"
-      >
-        {/* Sidebar Panel */}
-        <ResizablePanel
-          defaultSize={isMobile ? 0 : 32}
-          minSize={isMobile ? 0 : 30}
-          maxSize={80}
-        >
-          <Sidebar
-            toggleMenu={toggleMenu}
-            handleSelectChat={handleSelectChat}
-            getSenderDisplayName={getSenderDisplayName}
-          />
-        </ResizablePanel>
-
-        <ResizableHandle withHandle />
-
-        {/* Main Content Panel */}
-        <ResizablePanel
-          defaultSize={isMobile ? 0 : 100}
-          minSize={isMobile ? 100 : 32}
-        >
-          <div className="flex-1 flex flex-col h-full">
-            {/* Your existing content structure remains the same */}
-            {chatId && (
-              <ChatHeader
-                getChatDisplayName={getChatDisplayName}
-                getSenderDisplayName={getSenderDisplayName}
-                clearChatId={clearChatId}
-                setIfUserInfoOpen={setIfUserInfoOpen}
-                addUsersToGroup={addUsersToGroup}
-                isAddingUsers={isAddingUsers}
+            {/* Menu */}
+            {menu && (
+              <Menu
+                isCreatingGroup={isCreatingGroup}
+                createGroupChat={createGroupChat}
+                handleSelectUser={handleSelectUser}
+                closeMenu={closeMenu}
               />
             )}
+            <ResizablePanelGroup
+              key={isMobile ? "mobile" : "desktop"}
+              direction="horizontal"
+              className="h-full w-full"
+            >
+              {/* Sidebar Panel */}
+              <ResizablePanel
+                defaultSize={isMobile ? 0 : 32}
+                minSize={isMobile ? 0 : 30}
+                maxSize={80}
+              >
+                <Sidebar
+                  toggleMenu={toggleMenu}
+                  handleSelectChat={handleSelectChat}
+                  getSenderDisplayName={getSenderDisplayName}
+                />
+              </ResizablePanel>
 
-            <ChatContent
+              <ResizableHandle withHandle />
+
+              {/* Main Content Panel */}
+              <ResizablePanel
+                defaultSize={isMobile ? 0 : 100}
+                minSize={isMobile ? 100 : 32}
+              >
+                <div className="flex-1 flex flex-col h-full">
+                  {/* Your existing content structure remains the same */}
+                  {chatId && (
+                    <ChatHeader
+                      getChatDisplayName={getChatDisplayName}
+                      getSenderDisplayName={getSenderDisplayName}
+                      clearChatId={clearChatId}
+                      setIfUserInfoOpen={setIfUserInfoOpen}
+                      addUsersToGroup={addUsersToGroup}
+                      isAddingUsers={isAddingUsers}
+                    />
+                  )}
+
+                  <ChatContent
+                    chatId={chatId}
+                    messages={messages}
+                    messagesLoading={messagesLoading}
+                    loadOlderMessages={loadOlderMessages}
+                    user={user}
+                    userProfile={user}
+                    getSenderData={getSenderData}
+                    getSenderDisplayName={getSenderDisplayName}
+                  />
+
+                  {chatId && (
+                    <MessageInputContainer
+                      chatId={chatId}
+                      user={user}
+                      users={users}
+                      messagesLoading={messagesLoading}
+                      isMessagesSending={isMessagesSending}
+                      setIsMessagesSending={setIsMessagesSending}
+                      setIsFileDialogOpen={setIsFileDialogOpen}
+                      getSenderDisplayName={getSenderDisplayName}
+                    />
+                  )}
+                </div>
+              </ResizablePanel>
+            </ResizablePanelGroup>
+            {/* Dialogs */}
+            <FileUploadDialog
+              isOpen={isFileDialogOpen}
+              onClose={() => setIsFileDialogOpen(false)}
+              onSend={handleFileUpload}
               chatId={chatId}
-              messages={messages}
-              messagesLoading={messagesLoading}
-              loadOlderMessages={loadOlderMessages}
-              user={user}
-              userProfile={user}
-              getSenderData={getSenderData}
-              getSenderDisplayName={getSenderDisplayName}
+              isLoading={isUploadingFile}
             />
-
-            {chatId && (
-              <MessageInputContainer
-                chatId={chatId}
-                user={user}
-                users={users}
-                messagesLoading={messagesLoading}
-                isMessagesSending={isMessagesSending}
-                setIsMessagesSending={setIsMessagesSending}
-                setIsFileDialogOpen={setIsFileDialogOpen}
-                getSenderDisplayName={getSenderDisplayName}
-              />
-            )}
+            <UserInfo
+              isOpen={ifUserInfoOpen}
+              onClose={() => setIfUserInfoOpen(false)}
+              user={selectedUser}
+            />
           </div>
-        </ResizablePanel>
-      </ResizablePanelGroup>
-      {/* Dialogs */}
-      <FileUploadDialog
-        isOpen={isFileDialogOpen}
-        onClose={() => setIsFileDialogOpen(false)}
-        onSend={handleFileUpload}
-        chatId={chatId}
-        isLoading={isUploadingFile}
-      />
-      <UserInfo
-        isOpen={ifUserInfoOpen}
-        onClose={() => setIfUserInfoOpen(false)}
-        user={selectedUser}
-      />
-    </div>
+        </>
+      )}
+    </>
   );
 }
 

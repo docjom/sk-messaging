@@ -22,6 +22,8 @@ import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 import { Icon } from "@iconify/react";
 import { useUserStore } from "@/stores/useUserStore";
+import { MaintenanceMode } from "@/components/system/MaintenanceMode";
+import { useSystemMaintenance } from "@/admin/hooks/useSystemMaintenance";
 
 function Login() {
   const navigate = useNavigate();
@@ -31,6 +33,7 @@ function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const [isResetLoading, setIsResetLoading] = useState(false);
   const { userProfile, initialized } = useUserStore();
+  const { isSystemUnderMaintenance } = useSystemMaintenance();
 
   useEffect(() => {
     if (!initialized) return;
@@ -226,73 +229,81 @@ function Login() {
 
   return (
     <>
-      <Toaster />
-      <div className="flex items-center justify-center min-h-screen  px-4">
-        <Card className="w-full max-w-md shadow-lg border">
-          <CardHeader className="space-y-2 text-center">
-            <CardTitle className="text-2xl font-bold">Welcome Back</CardTitle>
-            <CardDescription>Login to your account to continue</CardDescription>
-          </CardHeader>
+      {isSystemUnderMaintenance ? (
+        <MaintenanceMode />
+      ) : (
+        <>
+          <Toaster />
+          <div className="flex items-center justify-center min-h-screen  px-4">
+            <Card className="w-full max-w-md shadow-lg border">
+              <CardHeader className="space-y-2 text-center">
+                <CardTitle className="text-2xl font-bold">
+                  Welcome Back
+                </CardTitle>
+                <CardDescription>
+                  Login to your account to continue
+                </CardDescription>
+              </CardHeader>
 
-          <CardContent>
-            <form onSubmit={handleEmailLogin} className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email Address</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="you@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  disabled={isLoading}
-                />
-              </div>
+              <CardContent>
+                <form onSubmit={handleEmailLogin} className="space-y-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email Address</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="you@example.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      disabled={isLoading}
+                    />
+                  </div>
 
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="password">Password</Label>
-                  <button
-                    type="button"
-                    onClick={handleForgotPassword}
-                    disabled={isResetLoading}
-                    className="text-sm text-blue-600 hover:underline disabled:opacity-50"
-                  >
-                    {isResetLoading ? "Sending..." : "Forgot password?"}
-                  </button>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="password">Password</Label>
+                      <button
+                        type="button"
+                        onClick={handleForgotPassword}
+                        disabled={isResetLoading}
+                        className="text-sm text-blue-600 hover:underline disabled:opacity-50"
+                      >
+                        {isResetLoading ? "Sending..." : "Forgot password?"}
+                      </button>
+                    </div>
+                    <Input
+                      id="password"
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      disabled={isLoading}
+                    />
+                  </div>
+
+                  <Button type="submit" className="w-full" disabled={isLoading}>
+                    {isLoading ? "Logging in..." : "Login"}
+                  </Button>
+                </form>
+              </CardContent>
+
+              <CardFooter className="flex flex-col gap-4">
+                <div className="flex items-center gap-2 w-full">
+                  <span className="flex-1 border-t" />
+                  <span className="text-xs text-gray-400">OR</span>
+                  <span className="flex-1 border-t" />
                 </div>
-                <Input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+
+                <Button
+                  variant="outline"
+                  className="w-full flex items-center gap-2"
+                  onClick={handleGoogleLogin}
                   disabled={isLoading}
-                />
-              </div>
+                >
+                  <Icon icon="flat-color-icons:google" width="20" height="20" />
+                  Continue with Google
+                </Button>
 
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? "Logging in..." : "Login"}
-              </Button>
-            </form>
-          </CardContent>
-
-          <CardFooter className="flex flex-col gap-4">
-            <div className="flex items-center gap-2 w-full">
-              <span className="flex-1 border-t" />
-              <span className="text-xs text-gray-400">OR</span>
-              <span className="flex-1 border-t" />
-            </div>
-
-            <Button
-              variant="outline"
-              className="w-full flex items-center gap-2"
-              onClick={handleGoogleLogin}
-              disabled={isLoading}
-            >
-              <Icon icon="flat-color-icons:google" width="20" height="20" />
-              Continue with Google
-            </Button>
-
-            {/* <p className="text-sm text-center text-gray-500">
+                {/* <p className="text-sm text-center text-gray-500">
               Don’t have an account?{" "}
               <button
                 className="text-blue-600 hover:underline"
@@ -301,9 +312,11 @@ function Login() {
                 Sign Up
               </button>
             </p> */}
-          </CardFooter>
-        </Card>
-      </div>
+              </CardFooter>
+            </Card>
+          </div>
+        </>
+      )}
     </>
   );
 }

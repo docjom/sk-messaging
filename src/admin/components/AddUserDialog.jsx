@@ -23,7 +23,7 @@ import { db, app } from "@/firebase";
 import { collection, getDocs, query, where } from "firebase/firestore";
 
 import { getFunctions, httpsCallable } from "firebase/functions";
-import { Pin, Plus } from "lucide-react";
+import { Pin, Plus, UserPlus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useUserStore } from "@/stores/useUserStore";
 
@@ -129,14 +129,13 @@ export const AddUserDialog = () => {
       <Dialog>
         <DialogTrigger asChild>
           <Button
-            variant={"ghost"}
             onClick={(e) => {
               e.stopPropagation();
             }}
-            className="flex w-full border justify-start"
+            className=""
           >
-            <Plus size={20} />
-            Add User
+            <UserPlus className="h-4 w-4" />
+            Add New User
           </Button>
         </DialogTrigger>
 
