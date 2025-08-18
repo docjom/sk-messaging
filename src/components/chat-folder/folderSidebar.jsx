@@ -161,7 +161,7 @@ export const FolderSidebar = ({
       <div className=" fixed sm:static top-0 left-0 z-50 flex overflow-y-auto bg-white  sm:w-auto w-full h-full dark:bg-gray-800">
         {hasFolders && (
           <>
-            <div className="bg-gray-100 dark:bg-gray-900 border-r h-full">
+            <div className="bg-gray-100 dark:bg-gray-900 border-r h-screen">
               <div className="px-3 py-2 flex  justify-center items-center border-b border-gray-200 dark:border-gray-700">
                 <Button
                   variant="outline"
