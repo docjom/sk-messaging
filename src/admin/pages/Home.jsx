@@ -24,6 +24,7 @@ import { db } from "../../firebase";
 import { useFirebaseStats } from "../hooks/useFirebaseStats";
 import { useSystemMaintenance } from "../hooks/useSystemMaintenance";
 import { Link } from "react-router-dom";
+import { Roles } from "@/scripts/roles";
 
 export const AdminHome = () => {
   const { isSystemUnderMaintenance, handleMaintenanceToggle } =
@@ -126,7 +127,18 @@ export const AdminHome = () => {
                   <span className="hidden sm:inline">Welcome back,</span>{" "}
                   {userProfile.displayName}
                 </h1>
-                <Badge className="capitalize" variant="secondary">
+                <Badge
+                  className="capitalize"
+                  variant={
+                    userProfile.role === Roles.ADMIN
+                      ? "default"
+                      : userProfile.role === Roles.SUPER_ADMIN
+                      ? "destructive"
+                      : userProfile.role === Roles.HR
+                      ? "secondary"
+                      : "outline"
+                  }
+                >
                   {userProfile.role}
                 </Badge>
                 {firebaseStats.loading && (

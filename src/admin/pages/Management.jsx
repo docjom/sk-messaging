@@ -49,6 +49,7 @@ import {
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AddUserDialog } from "../components/AddUserDialog";
+import { Roles } from "@/scripts/roles";
 
 export const Management = () => {
   const [users, setUsers] = useState([]);
@@ -68,6 +69,7 @@ export const Management = () => {
     { value: "user", label: "User" },
     { value: "hr", label: "HR" },
     { value: "admin", label: "Administrator" },
+    { value: "super_admin", label: "Super Administrator" },
   ];
 
   const availableRoleOptions =
@@ -268,6 +270,43 @@ export const Management = () => {
     },
   ];
 
+  const canDelete = (currentUser, targetUser) => {
+    if (!currentUser || !targetUser) return false;
+
+    // ❌ prevent deleting yourself
+    if (currentUser.id === targetUser.id) return false;
+
+    // super admin can delete anyone (except self)
+    if (currentUser.role === Roles.SUPER_ADMIN) return true;
+
+    // admin can delete but NOT super admin
+    if (
+      currentUser.role === Roles.ADMIN &&
+      targetUser.role !== Roles.SUPER_ADMIN
+    ) {
+      return true;
+    }
+
+    return false;
+  };
+
+    const canEdit = (currentUser, targetUser) => {
+    if (!currentUser || !targetUser) return false;
+
+    // super admin can delete anyone (except self)
+    if (currentUser.role === Roles.SUPER_ADMIN) return true;
+
+    // admin can delete but NOT super admin
+    if (
+      currentUser.role === Roles.ADMIN &&
+      targetUser.role !== Roles.SUPER_ADMIN
+    ) {
+      return true;
+    }
+
+    return false;
+  };
+
   return (
     <div className="min-h-screen bg-muted/30 p-4 md:p-6">
       <Toaster />
@@ -438,9 +477,11 @@ export const Management = () => {
                                 <td className="p-4">
                                   <Badge
                                     variant={
-                                      user.role === "admin"
+                                      user.role === Roles.ADMIN
                                         ? "default"
-                                        : user.role === "hr"
+                                        : user.role === Roles.SUPER_ADMIN
+                                        ? "destructive"
+                                        : user.role === Roles.HR
                                         ? "secondary"
                                         : "outline"
                                     }
@@ -472,6 +513,7 @@ export const Management = () => {
                                 <td className="p-4">
                                   <div className="flex items-center gap-2">
                                     <Button
+                                      disabled={!canEdit(userProfile, user)}
                                       variant="ghost"
                                       size="sm"
                                       onClick={() => handleEditUser(user)}
@@ -483,6 +525,9 @@ export const Management = () => {
                                       <AlertDialog>
                                         <AlertDialogTrigger asChild>
                                           <Button
+                                            disabled={
+                                              !canDelete(userProfile, user)
+                                            }
                                             variant="ghost"
                                             size="sm"
                                             className={
@@ -547,46 +592,50 @@ export const Management = () => {
                                       </AlertDialog>
                                     )}
 
-                                    {user.deleted !== "deleted" && (
-                                      <AlertDialog>
-                                        <AlertDialogTrigger asChild>
-                                          <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            className="text-destructive hover:text-destructive"
-                                          >
-                                            <Trash2 className="h-4 w-4" />
-                                          </Button>
-                                        </AlertDialogTrigger>
-                                        <AlertDialogContent>
-                                          <AlertDialogHeader>
-                                            <AlertDialogTitle>
-                                              Delete User
-                                            </AlertDialogTitle>
-                                            <AlertDialogDescription>
-                                              This will mark{" "}
-                                              <strong>
-                                                {user.displayName}
-                                              </strong>{" "}
-                                              as deleted.
-                                            </AlertDialogDescription>
-                                          </AlertDialogHeader>
-                                          <AlertDialogFooter>
-                                            <AlertDialogCancel>
-                                              Cancel
-                                            </AlertDialogCancel>
-                                            <AlertDialogAction
-                                              onClick={() =>
-                                                handleDelete(user.id)
+                                    {user.deleted !== "deleted" &&
+                                      userProfile.role !== Roles.HR && (
+                                        <AlertDialog>
+                                          <AlertDialogTrigger asChild>
+                                            <Button
+                                              disabled={
+                                                !canDelete(userProfile, user)
                                               }
-                                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                              variant="ghost"
+                                              size="sm"
+                                              className="text-destructive hover:text-destructive"
                                             >
-                                              Delete
-                                            </AlertDialogAction>
-                                          </AlertDialogFooter>
-                                        </AlertDialogContent>
-                                      </AlertDialog>
-                                    )}
+                                              <Trash2 className="h-4 w-4" />
+                                            </Button>
+                                          </AlertDialogTrigger>
+                                          <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                              <AlertDialogTitle>
+                                                Delete User
+                                              </AlertDialogTitle>
+                                              <AlertDialogDescription>
+                                                This will mark{" "}
+                                                <strong>
+                                                  {user.displayName}
+                                                </strong>{" "}
+                                                as deleted.
+                                              </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                              <AlertDialogCancel>
+                                                Cancel
+                                              </AlertDialogCancel>
+                                              <AlertDialogAction
+                                                onClick={() =>
+                                                  handleDelete(user.id)
+                                                }
+                                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                              >
+                                                Delete
+                                              </AlertDialogAction>
+                                            </AlertDialogFooter>
+                                          </AlertDialogContent>
+                                        </AlertDialog>
+                                      )}
                                   </div>
                                 </td>
                               </motion.tr>

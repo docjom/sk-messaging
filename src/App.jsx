@@ -15,8 +15,9 @@ import { AdminDashboard } from "./admin/pages/Dashboard";
 import { AdminHome } from "./admin/pages/Home";
 import { Management } from "./admin/pages/Management";
 import { MainLoading } from "./components/loading/mainLoading";
-import { AdminRoute } from "./components/auth/AdminRoute";
+import { ProtectedRoute } from "./components/auth/AdminRoute";
 import { AdminSettings } from "./admin/pages/Settings";
+import { Roles } from "./scripts/roles";
 
 function App() {
   const { userProfile, initialized, initAuthListener } = useUserStore();
@@ -44,7 +45,14 @@ function App() {
           element={userProfile ? <Dashboard /> : <Navigate to="/login" />}
         />
 
-        <Route path="/admin" element={<AdminRoute />}>
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute
+              allowedRoles={[Roles.ADMIN, Roles.SUPER_ADMIN, Roles.HR]}
+            />
+          }
+        >
           <Route element={<AdminDashboard />}>
             <Route index element={<AdminHome />} />
             <Route path="home" element={<AdminHome />} />

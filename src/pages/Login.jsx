@@ -24,6 +24,7 @@ import { Icon } from "@iconify/react";
 import { useUserStore } from "@/stores/useUserStore";
 import { MaintenanceMode } from "@/components/system/MaintenanceMode";
 import { useSystemMaintenance } from "@/admin/hooks/useSystemMaintenance";
+import { Roles } from "@/scripts/roles";
 
 function Login() {
   const navigate = useNavigate();
@@ -65,7 +66,11 @@ function Login() {
       (p) => p.providerId === "google.com"
     );
 
-    if (isGoogleAuth && userProfile.role !== "admin") {
+    if (
+      isGoogleAuth &&
+      userProfile.role !== Roles.ADMIN &&
+      userProfile.role !== Roles.SUPER_ADMIN
+    ) {
       toast.error("Only admin can login using Google!");
       (async () => {
         try {
@@ -79,11 +84,9 @@ function Login() {
       return;
     }
 
-    navigate(
-      userProfile.role === "admin" || userProfile.role === "hr"
-        ? "/admin"
-        : "/dashboard"
-    );
+    const allRoles = [Roles.ADMIN, Roles.SUPER_ADMIN, Roles.HR];
+
+    navigate(allRoles.includes(userProfile.role) ? "/admin" : "/dashboard");
   }, [initialized, userProfile, navigate]);
 
   const handleGoogleLogin = async () => {
@@ -112,7 +115,10 @@ function Login() {
         userData = docSnap.data();
 
         // 🔹 Immediately block non-admins BEFORE success toast/navigation
-        if (userData.role !== "admin") {
+        if (
+          userData.role !== Roles?.ADMIN &&
+          userProfile.role !== Roles?.SUPER_ADMIN
+        ) {
           toast.error("Only admin can login using Google!");
           await auth.signOut();
           setIsLoading(false);
@@ -181,7 +187,11 @@ function Login() {
       }
 
       toast.success("Login successful!");
-      navigate(userData.role === "admin" ? "/admin" : "/dashboard");
+      navigate(
+        userData.role === Roles.ADMIN || userProfile.role === Roles.SUPER_ADMIN
+          ? "/admin"
+          : "/dashboard"
+      );
     } catch (error) {
       console.error("Email login error:", error);
       switch (error.code) {

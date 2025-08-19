@@ -36,6 +36,7 @@ import {
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useUserStore } from "@/stores/useUserStore";
+import { Roles } from "@/scripts/roles";
 
 export const AddUserDialog = () => {
   const [form, setForm] = useState({
@@ -269,8 +270,14 @@ export const AddUserDialog = () => {
                   <SelectContent>
                     <SelectItem value="user">User</SelectItem>
                     <SelectItem value="hr">HR</SelectItem>
-                    {userProfile.role === "admin" && (
+                    {userProfile.role === Roles.ADMIN && (
                       <SelectItem value="admin">Admin</SelectItem>
+                    )}
+                    {userProfile.role === Roles.SUPER_ADMIN && (
+                      <>
+                        <SelectItem value="admin">Admin</SelectItem>
+                        <SelectItem value="super_admin">Super Admin</SelectItem>
+                      </>
                     )}
                   </SelectContent>
                 </Select>

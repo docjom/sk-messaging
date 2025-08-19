@@ -14,6 +14,7 @@ import FolderManagementSystem from "@/components/chat-folder/folder/createFolder
 import { ArrowRight, Bolt } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useUserStore } from "@/stores/useUserStore";
+import { Roles } from "@/scripts/roles";
 
 export const Settings = () => {
   const { userProfile } = useUserStore();
@@ -36,14 +37,16 @@ export const Settings = () => {
           </DialogHeader>
 
           <div>
-            {(userProfile.role === "admin" || userProfile.role === "hr") && (
+            {(userProfile.role === Roles.SUPER_ADMIN ||
+              userProfile.role === Roles.HR ||
+              userProfile.role === Roles.SUPER_ADMIN) && (
               <div className="mb-2">
                 {" "}
                 <Link to="/admin">
                   <Button>
                     {" "}
                     <ArrowRight />
-                    {userProfile.role === "hr"
+                    {userProfile.role === Roles.HR
                       ? " Go to hr dashboard"
                       : " Go to admin dashboard"}
                   </Button>
