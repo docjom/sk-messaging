@@ -35,17 +35,13 @@ import {
 import { useUserStore } from "@/stores/useUserStore";
 import {
   Users,
-  UserX,
   Trash2,
   Pencil,
   Search,
-  UserPlus,
   ShieldCheck,
   ShieldBan,
   ChevronLeft,
   ChevronRight,
-  MoreHorizontal,
-  Filter,
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AddUserDialog } from "../components/AddUserDialog";
@@ -78,12 +74,12 @@ export const Management = () => {
   let availableRoleOptions = [];
 
   if (userProfile?.role === Roles.HR) {
-    // HR can only assign User or HR
+    // HR can only assign User, Manager or HR
     availableRoleOptions = roleOptions.filter((role) =>
       ["user", "hr", "manager"].includes(role.value)
     );
   } else if (userProfile?.role === Roles.ADMIN) {
-    // Admin can assign User, HR, or Admin
+    // Admin can assign User, HR, Manager or Admin
     availableRoleOptions = roleOptions.filter((role) =>
       ["user", "hr", "manager", "admin"].includes(role.value)
     );
@@ -153,7 +149,7 @@ export const Management = () => {
       case "deleted":
         return deletedUsers;
       default:
-        return [...activeUsers, ...blockedUsers]; // All non-deleted users
+        return [...activeUsers, ...blockedUsers];
     }
   };
 
