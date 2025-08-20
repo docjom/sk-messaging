@@ -307,6 +307,10 @@ export const Management = () => {
   const canEdit = (currentUser, targetUser) => {
     if (!currentUser || !targetUser) return false;
 
+    if (currentUser.role === targetUser.role) {
+      return false;
+    }
+
     // cannot edit self
     if (currentUser.id === targetUser.id) return false;
 

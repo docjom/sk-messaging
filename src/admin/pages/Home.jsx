@@ -66,27 +66,27 @@ export const AdminHome = () => {
       bgColor: "bg-chart-1/10",
       trend: firebaseStats.totalUsers > 0 ? "up" : "neutral",
     },
-    {
-      title: "Active Chats",
-      value: firebaseStats.loading ? "..." : firebaseStats.activeChats,
-      icon: MessageSquare,
-      description: "All conversations",
-      color: "text-chart-2",
-      bgColor: "bg-chart-2/10",
-      trend: "neutral",
-    },
-    {
-      title: "Messages Today",
-      value: firebaseStats.loading ? "..." : firebaseStats.messagesToday,
-      icon: Activity,
-      description: "Messages sent today",
-      color: "text-chart-3",
-      bgColor: "bg-chart-3/10",
-      trend:
-        firebaseStats.messagesToday > firebaseStats.messagesThisWeek / 7
-          ? "up"
-          : "down",
-    },
+    // {
+    //   title: "Active Chats",
+    //   value: firebaseStats.loading ? "..." : firebaseStats.activeChats,
+    //   icon: MessageSquare,
+    //   description: "All conversations",
+    //   color: "text-chart-2",
+    //   bgColor: "bg-chart-2/10",
+    //   trend: "neutral",
+    // },
+    // {
+    //   title: "Messages Today",
+    //   value: firebaseStats.loading ? "..." : firebaseStats.messagesToday,
+    //   icon: Activity,
+    //   description: "Messages sent today",
+    //   color: "text-chart-3",
+    //   bgColor: "bg-chart-3/10",
+    //   trend:
+    //     firebaseStats.messagesToday > firebaseStats.messagesThisWeek / 7
+    //       ? "up"
+    //       : "down",
+    // },
     {
       title: "Active Users",
       value: firebaseStats.loading ? "..." : firebaseStats.onlineUsers,
@@ -100,14 +100,14 @@ export const AdminHome = () => {
 
   // Additional stats that could be useful
   const additionalStats = [
-    {
-      title: "Messages This Week",
-      value: firebaseStats.loading ? "..." : firebaseStats.messagesThisWeek,
-      icon: Clock,
-      description: "Weekly activity",
-      color: "text-chart-5",
-      bgColor: "bg-chart-5/10",
-    },
+    // {
+    //   title: "Messages This Week",
+    //   value: firebaseStats.loading ? "..." : firebaseStats.messagesThisWeek,
+    //   icon: Clock,
+    //   description: "Weekly activity",
+    //   color: "text-chart-5",
+    //   bgColor: "bg-chart-5/10",
+    // },
   ];
 
   return (
