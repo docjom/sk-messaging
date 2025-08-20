@@ -50,6 +50,8 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AddUserDialog } from "../components/AddUserDialog";
 import { Roles } from "@/scripts/roles";
+import { Avatar } from "@radix-ui/react-avatar";
+import { AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export const Management = () => {
   const [users, setUsers] = useState([]);
@@ -64,18 +66,34 @@ export const Management = () => {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isSaveConfirmOpen, setIsSaveConfirmOpen] = useState(false);
 
-  // Role options with HR restrictions
+  // Role options
   const roleOptions = [
     { value: "user", label: "User" },
     { value: "hr", label: "HR" },
+    { value: "manager", label: "Manager" },
     { value: "admin", label: "Administrator" },
     { value: "super_admin", label: "Super Administrator" },
   ];
 
-  const availableRoleOptions =
-    userProfile?.role === "hr"
-      ? roleOptions.filter((role) => ["user", "hr"].includes(role.value))
-      : roleOptions;
+  let availableRoleOptions = [];
+
+  if (userProfile?.role === Roles.HR) {
+    // HR can only assign User or HR
+    availableRoleOptions = roleOptions.filter((role) =>
+      ["user", "hr", "manager"].includes(role.value)
+    );
+  } else if (userProfile?.role === Roles.ADMIN) {
+    // Admin can assign User, HR, or Admin
+    availableRoleOptions = roleOptions.filter((role) =>
+      ["user", "hr", "manager", "admin"].includes(role.value)
+    );
+  } else if (userProfile?.role === Roles.SUPER_ADMIN) {
+    // Super Admin can assign any role
+    availableRoleOptions = roleOptions;
+  } else {
+    // Default fallback (normal users, etc.)
+    availableRoleOptions = roleOptions.filter((role) => role.value === "user");
+  }
 
   // Pagination states per section
   const perPage = 5;
@@ -274,7 +292,7 @@ export const Management = () => {
     if (!currentUser || !targetUser) return false;
 
     // ❌ prevent deleting yourself
-    if (currentUser.id === targetUser.id) return false;
+    if (currentUser.role === targetUser.role) return false;
 
     // super admin can delete anyone (except self)
     if (currentUser.role === Roles.SUPER_ADMIN) return true;
@@ -290,15 +308,29 @@ export const Management = () => {
     return false;
   };
 
-    const canEdit = (currentUser, targetUser) => {
+  const canEdit = (currentUser, targetUser) => {
     if (!currentUser || !targetUser) return false;
 
-    // super admin can delete anyone (except self)
-    if (currentUser.role === Roles.SUPER_ADMIN) return true;
+    // cannot edit self
+    if (currentUser.id === targetUser.id) return false;
 
-    // admin can delete but NOT super admin
+    // super admin can edit anyone (except self)
+    if (currentUser.role === Roles.SUPER_ADMIN) {
+      return true;
+    }
+
+    // admin can edit but NOT super admin
     if (
       currentUser.role === Roles.ADMIN &&
+      targetUser.role !== Roles.SUPER_ADMIN
+    ) {
+      return true;
+    }
+
+    // hr can edit only if target is not admin or super admin
+    if (
+      currentUser.role === Roles.HR &&
+      targetUser.role !== Roles.ADMIN &&
       targetUser.role !== Roles.SUPER_ADMIN
     ) {
       return true;
@@ -394,28 +426,29 @@ export const Management = () => {
                 <TabsList className="grid w-full grid-cols-4">
                   <TabsTrigger value="all" className="flex items-center gap-2">
                     <Users className="h-4 w-4" />
-                    All Users
+                    <span className="hidden sm:block"> All Users</span>
                   </TabsTrigger>
                   <TabsTrigger
                     value="active"
                     className="flex items-center gap-2"
                   >
                     <ShieldCheck className="h-4 w-4" />
-                    Active
+
+                    <span className="hidden sm:block"> Active</span>
                   </TabsTrigger>
                   <TabsTrigger
                     value="blocked"
                     className="flex items-center gap-2"
                   >
                     <ShieldBan className="h-4 w-4" />
-                    Blocked
+                    <span className="hidden sm:block"> Blocked</span>
                   </TabsTrigger>
                   <TabsTrigger
                     value="deleted"
                     className="flex items-center gap-2"
                   >
                     <Trash2 className="h-4 w-4" />
-                    Deleted
+                    <span className="hidden sm:block"> Deleted</span>
                   </TabsTrigger>
                 </TabsList>
               </div>
@@ -458,15 +491,17 @@ export const Management = () => {
                                 }}
                               >
                                 <td className="p-4">
-                                  <div className="flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                                      <span className="text-sm font-medium text-primary">
-                                        {(user.displayName || "U")
-                                          .charAt(0)
-                                          .toUpperCase()}
-                                      </span>
-                                    </div>
-                                    <span className="font-medium">
+                                  <div className="flex items-center gap-3 flex-1 min-w-0 ">
+                                    <Avatar className="w-8 h-8 rounded-full">
+                                      <AvatarImage
+                                        src={user.photoURL}
+                                        className="object-cover rounded-full"
+                                      />
+                                      <AvatarFallback>
+                                        {user.displayName[0]?.toUpperCase()}
+                                      </AvatarFallback>
+                                    </Avatar>
+                                    <span className="font-medium truncate">
                                       {user.displayName || "Unknown User"}
                                     </span>
                                   </div>

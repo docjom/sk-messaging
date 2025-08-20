@@ -167,58 +167,63 @@ export const AdminHome = () => {
           </div>
         </motion.div>
 
-        {/* System Controls */}
-        <motion.div
-          className="bg-card rounded-lg border shadow-sm p-6"
-          initial={{ y: -10, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-        >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-primary/10 rounded-lg">
-                <Settings className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <h3 className="font-semibold">System Maintenance</h3>
-                <p className="text-sm text-muted-foreground">
-                  Toggle maintenance mode for system updates
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3">
-              {isSystemUnderMaintenance && (
-                <div className="flex items-center gap-2 text-orange-500">
-                  <Shield className="h-4 w-4" />
-                  <span className="text-sm font-medium">Active</span>
-                </div>
-              )}
-              <Switch
-                checked={isSystemUnderMaintenance}
-                onCheckedChange={handleMaintenanceToggle}
-                aria-label="Toggle maintenance mode"
-              />
-            </div>
-          </div>
-
-          {isSystemUnderMaintenance && (
+        {(userProfile.role === Roles.SUPER_ADMIN ||
+          userProfile.role === Roles.ADMIN) && (
+          <>
+            {/* System Controls */}
             <motion.div
-              className="mt-4 p-3 bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800 rounded-lg"
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              transition={{ duration: 0.3 }}
+              className="bg-card rounded-lg border shadow-sm p-6"
+              initial={{ y: -10, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
             >
-              <div className="flex items-center gap-2 text-orange-700 dark:text-orange-300">
-                <Shield className="h-4 w-4" />
-                <span className="text-sm font-medium">
-                  Maintenance mode is active - Users will see the maintenance
-                  page
-                </span>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-primary/10 rounded-lg">
+                    <Settings className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold">System Maintenance</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Toggle maintenance mode for system updates
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  {isSystemUnderMaintenance && (
+                    <div className="flex items-center gap-2 text-orange-500">
+                      <Shield className="h-4 w-4" />
+                      <span className="text-sm font-medium">Active</span>
+                    </div>
+                  )}
+                  <Switch
+                    checked={isSystemUnderMaintenance}
+                    onCheckedChange={handleMaintenanceToggle}
+                    aria-label="Toggle maintenance mode"
+                  />
+                </div>
               </div>
+
+              {isSystemUnderMaintenance && (
+                <motion.div
+                  className="mt-4 p-3 bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800 rounded-lg"
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <div className="flex items-center gap-2 text-orange-700 dark:text-orange-300">
+                    <Shield className="h-4 w-4" />
+                    <span className="text-sm font-medium">
+                      Maintenance mode is active - Users will see the
+                      maintenance page
+                    </span>
+                  </div>
+                </motion.div>
+              )}
             </motion.div>
-          )}
-        </motion.div>
+          </>
+        )}
 
         <Separator />
 

@@ -33,6 +33,7 @@ import {
   updatePassword,
 } from "firebase/auth";
 import { useUserStore } from "@/stores/useUserStore";
+import { Roles } from "@/scripts/roles";
 
 export function EditProfile({ currentUserId }) {
   const { userProfile } = useUserStore();
@@ -261,7 +262,11 @@ export function EditProfile({ currentUserId }) {
               <Input
                 value={department}
                 disabled={
-                  !(userProfile?.role === "admin" || userProfile?.role === "hr")
+                  !(
+                    userProfile?.role === Roles.ADMIN ||
+                    userProfile?.role === Roles.HR ||
+                    userProfile?.role === Roles.SUPER_ADMIN
+                  )
                 }
                 onChange={(e) => setDepartment(e.target.value)}
               />
@@ -285,7 +290,11 @@ export function EditProfile({ currentUserId }) {
               <Input
                 value={position}
                 disabled={
-                  !(userProfile?.role === "admin" || userProfile?.role === "hr")
+                  !(
+                    userProfile?.role === Roles.ADMIN ||
+                    userProfile?.role === Roles.HR ||
+                    userProfile?.role === Roles.SUPER_ADMIN
+                  )
                 }
                 onChange={(e) => setPosition(e.target.value)}
               />
