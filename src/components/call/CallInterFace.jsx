@@ -48,9 +48,9 @@ const CallInterface = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col">
+    <div className=" bg-gradient-to-b from-gray-900 h-full via-gray-800 to-gray-900 text-white">
       {/* Remote video */}
-      <div className="flex-1 relative">
+      <div className="">
         {callType === "video" ? (
           <video
             ref={remoteVideoRef}
@@ -64,14 +64,21 @@ const CallInterface = ({
               <div className="w-32 h-32 rounded-full bg-gray-600 flex items-center justify-center mb-4 mx-auto">
                 <span className="text-4xl">👤</span>
               </div>
-              <p>{isConnected ? "Call in progress..." : "Connecting..."}</p>
+              <p className="text-lg">
+                {isConnected ? "Call in progress..." : "Connecting..."}
+              </p>
+              {!isConnected && (
+                <div className="mt-4">
+                  <div className="w-8 h-8 border-4 border-t-transparent border-white rounded-full animate-spin mx-auto"></div>
+                </div>
+              )}
             </div>
           </div>
         )}
 
         {/* Local video (picture-in-picture) */}
         {callType === "video" && (
-          <div className="absolute top-4 right-4 w-32 h-24 bg-gray-800 rounded-lg overflow-hidden">
+          <div className="absolute top-4 right-4 w-32 h-24 bg-gray-800 rounded-lg overflow-hidden border-2 border-white shadow-lg">
             <video
               ref={localVideoRef}
               autoPlay
@@ -84,12 +91,13 @@ const CallInterface = ({
       </div>
 
       {/* Controls */}
-      <div className="p-6 flex justify-center gap-4">
+      <div className="p-6 flex justify-center gap-6">
         <Button
           variant={isMuted ? "destructive" : "secondary"}
           size="lg"
           onClick={toggleMute}
-          className="rounded-full w-14 h-14"
+          className="rounded-full w-14 h-14 hover:scale-110 transition-transform"
+          title={isMuted ? "Unmute" : "Mute"}
         >
           {isMuted ? (
             <MicOff className="h-6 w-6" />
@@ -103,7 +111,8 @@ const CallInterface = ({
             variant={isVideoEnabled ? "secondary" : "destructive"}
             size="lg"
             onClick={toggleVideo}
-            className="rounded-full w-14 h-14"
+            className="rounded-full w-14 h-14 hover:scale-110 transition-transform"
+            title={isVideoEnabled ? "Disable Video" : "Enable Video"}
           >
             {isVideoEnabled ? (
               <Video className="h-6 w-6" />
@@ -117,7 +126,8 @@ const CallInterface = ({
           variant="destructive"
           size="lg"
           onClick={onEndCall}
-          className="rounded-full w-14 h-14"
+          className="rounded-full w-14 h-14 hover:scale-110 transition-transform"
+          title="End Call"
         >
           <PhoneOff className="h-6 w-6" />
         </Button>

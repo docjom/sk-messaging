@@ -21,6 +21,7 @@ import { useUserStore } from "@/stores/useUserStore";
 // import { useCall } from "@/hooks/useCall";
 // import CallInterface from "../call/CallInterFace";
 // import IncomingCall from "../call/IncomingCallModal";
+// import CallDialog from "../call/CallDialog";
 
 const ChatHeader = ({
   getChatDisplayName,
@@ -60,7 +61,7 @@ const ChatHeader = ({
   //   answerCall,
   //   rejectCall,
   //   endCall,
-  // } = useCall(user.uid);
+  // } = useCall(userProfile.uid);
 
   // const handleAudioCall = () => {
   //   if (selectedUser) {
@@ -341,7 +342,11 @@ const DirectChatHeader = ({
     )}
 
     {currentCall && (
-      <CallInterface
+      <CallDialog
+        open={!!currentCall}
+        onOpenChange={(open) => {
+          if (!open) endCall();
+        }}
         localStream={localStream}
         remoteStream={remoteStream}
         onEndCall={endCall}
