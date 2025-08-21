@@ -40,10 +40,13 @@
     "react-dom": "^19.1.0",
     "react-resizable-panels": "^3.0.4",
     "react-router-dom": "^7.6.2",
+    "simple-peer": "^9.11.1",
+    "socket.io-client": "^4.8.1",
     "sonner": "^2.0.5",
     "tailwind-merge": "^3.3.1",
     "tailwind-scrollbar": "^4.0.2",
     "tailwindcss": "^4.1.10",
+    "webrtc-adapter": "^9.0.3",
     "zustand": "^5.0.6"
   },
   "devDependencies": {

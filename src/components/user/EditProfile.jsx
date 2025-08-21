@@ -25,7 +25,7 @@ import {
   deleteObject,
   getMetadata,
 } from "firebase/storage";
-import { UserPen, Key } from "lucide-react";
+import { UserPen, Key, Camera, Upload } from "lucide-react";
 import {
   getAuth,
   reauthenticateWithCredential,
@@ -34,6 +34,8 @@ import {
 } from "firebase/auth";
 import { useUserStore } from "@/stores/useUserStore";
 import { Roles } from "@/scripts/roles";
+import { Card, CardContent } from "../ui/card";
+import { Separator } from "../ui/separator";
 
 export function EditProfile({ currentUserId }) {
   const { userProfile } = useUserStore();
@@ -202,209 +204,316 @@ export function EditProfile({ currentUserId }) {
     }
   };
 
+  const canEditRoleFields =
+    userProfile?.role === Roles.ADMIN ||
+    userProfile?.role === Roles.HR ||
+    userProfile?.role === Roles.SUPER_ADMIN;
+
   return (
     <>
-      {/* Edit Profile */}
+      {/* Edit Profile Dialog */}
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogTrigger asChild>
           <Button
             variant="ghost"
-            className="w-full mb-1 flex justify-start gap-4 items-center"
+            className="w-full justify-start gap-3 px-4 hover:bg-accent/50 transition-colors"
           >
-            <UserPen /> Manage Profile
+            <UserPen />
+            <span>Manage Profile</span>
           </Button>
         </DialogTrigger>
 
-        <DialogContent className="sm:max-w-[425px]">
-          <form onSubmit={handleSubmit}>
-            <DialogHeader>
-              <DialogTitle>Edit Profile</DialogTitle>
-              <DialogDescription>
-                Make changes and click save when done.
+        <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <DialogHeader className="space-y-3">
+              <DialogTitle className="text-xl">Edit Profile</DialogTitle>
+              <DialogDescription className="text-muted-foreground">
+                Update your profile information and click save when you're done.
               </DialogDescription>
             </DialogHeader>
 
             {profileErrors.general && (
-              <p className="text-red-500 text-sm mb-2">
-                {profileErrors.general}
-              </p>
+              <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20">
+                <p className="text-destructive text-sm font-medium">
+                  {profileErrors.general}
+                </p>
+              </div>
             )}
 
-            <div className="flex items-center gap-4 mb-4">
-              <Avatar className="w-20 h-20 border">
-                <AvatarImage src={imagePreview || profilePhotoURL} />
-                <AvatarFallback>{name[0]?.toUpperCase() || "P"}</AvatarFallback>
-              </Avatar>
-              <Button variant="ghost" type="button" className="border">
-                <label htmlFor="profile-photo" className="cursor-pointer">
-                  Change
-                </label>
-              </Button>
-              <input
-                type="file"
-                id="profile-photo"
-                accept="image/*"
-                className="hidden"
-                onChange={handleImageChange}
-              />
+            {/* Avatar Section */}
+            <Card className="border border-border/50">
+              <CardContent className="p-6">
+                <div className="flex flex-col items-center space-y-4">
+                  <div className="relative group">
+                    <Avatar className="h-24 w-24 border-2 border-border shadow-lg">
+                      <AvatarImage
+                        src={imagePreview || profilePhotoURL}
+                        className="object-cover"
+                      />
+                      <AvatarFallback className="text-xl bg-muted">
+                        {name[0]?.toUpperCase() || "P"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <Camera className="h-6 w-6 text-white" />
+                    </div>
+                  </div>
+                  <Button
+                    variant="outline"
+                    type="button"
+                    className="gap-2 hover:bg-accent"
+                    size="sm"
+                  >
+                    <Upload className="h-4 w-4" />
+                    <label htmlFor="profile-photo" className="cursor-pointer">
+                      Change Photo
+                    </label>
+                  </Button>
+                  <input
+                    type="file"
+                    id="profile-photo"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleImageChange}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Separator />
+
+            {/* Form Fields */}
+            <div className="grid gap-5">
+              <div className="space-y-2">
+                <Label htmlFor="name" className="text-sm font-medium">
+                  Full Name
+                </Label>
+                <Input
+                  id="name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Enter your full name"
+                  className="h-11"
+                />
+                {profileErrors.name && (
+                  <p className="text-destructive text-sm font-medium">
+                    {profileErrors.name}
+                  </p>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="department" className="text-sm font-medium">
+                    Department
+                    {!canEditRoleFields && (
+                      <span className="text-xs text-muted-foreground ml-1">
+                        (Read-only)
+                      </span>
+                    )}
+                  </Label>
+                  <Input
+                    id="department"
+                    value={department}
+                    disabled={!canEditRoleFields}
+                    onChange={(e) => setDepartment(e.target.value)}
+                    placeholder="Engineering"
+                    className="h-11"
+                  />
+                  {profileErrors.department && (
+                    <p className="text-destructive text-sm font-medium">
+                      {profileErrors.department}
+                    </p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="position" className="text-sm font-medium">
+                    Position
+                    {!canEditRoleFields && (
+                      <span className="text-xs text-muted-foreground ml-1">
+                        (Read-only)
+                      </span>
+                    )}
+                  </Label>
+                  <Input
+                    id="position"
+                    value={position}
+                    disabled={!canEditRoleFields}
+                    onChange={(e) => setPosition(e.target.value)}
+                    placeholder="Software Developer"
+                    className="h-11"
+                  />
+                  {profileErrors.position && (
+                    <p className="text-destructive text-sm font-medium">
+                      {profileErrors.position}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="phone" className="text-sm font-medium">
+                  Phone Number
+                </Label>
+                <Input
+                  id="phone"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="+1 (555) 123-4567"
+                  type="tel"
+                  className="h-11"
+                />
+                {profileErrors.phone && (
+                  <p className="text-destructive text-sm font-medium">
+                    {profileErrors.phone}
+                  </p>
+                )}
+              </div>
             </div>
 
-            <div className="mb-3">
-              <Label>Name</Label>
-              <Input value={name} onChange={(e) => setName(e.target.value)} />
-              {profileErrors.name && (
-                <p className="text-red-500 text-sm">{profileErrors.name}</p>
-              )}
-            </div>
-
-            <div className="mb-3">
-              <Label>Department</Label>
-              <Input
-                value={department}
-                disabled={
-                  !(
-                    userProfile?.role === Roles.ADMIN ||
-                    userProfile?.role === Roles.HR ||
-                    userProfile?.role === Roles.SUPER_ADMIN
-                  )
-                }
-                onChange={(e) => setDepartment(e.target.value)}
-              />
-              {profileErrors.department && (
-                <p className="text-red-500 text-sm">
-                  {profileErrors.department}
-                </p>
-              )}
-            </div>
-
-            <div className="mb-3">
-              <Label>Phone</Label>
-              <Input value={phone} onChange={(e) => setPhone(e.target.value)} />
-              {profileErrors.phone && (
-                <p className="text-red-500 text-sm">{profileErrors.phone}</p>
-              )}
-            </div>
-
-            <div className="mb-3">
-              <Label>Position</Label>
-              <Input
-                value={position}
-                disabled={
-                  !(
-                    userProfile?.role === Roles.ADMIN ||
-                    userProfile?.role === Roles.HR ||
-                    userProfile?.role === Roles.SUPER_ADMIN
-                  )
-                }
-                onChange={(e) => setPosition(e.target.value)}
-              />
-              {profileErrors.position && (
-                <p className="text-red-500 text-sm">{profileErrors.position}</p>
-              )}
-            </div>
-
-            <DialogFooter>
+            <DialogFooter className="gap-3 pt-4">
               <DialogClose asChild>
-                <Button variant="outline" type="button" disabled={isLoading}>
+                <Button
+                  variant="outline"
+                  type="button"
+                  disabled={isLoading}
+                  className="px-6"
+                >
                   Cancel
                 </Button>
               </DialogClose>
-              <Button type="submit" disabled={isLoading}>
-                {isLoading && (
-                  <Icon
-                    icon="line-md:loading-alt-loop"
-                    width="16"
-                    height="16"
-                    className="mr-2"
-                  />
+              <Button type="submit" disabled={isLoading} className="px-6">
+                {isLoading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2" />
+                    Updating...
+                  </>
+                ) : (
+                  "Save Changes"
                 )}
-                {isLoading ? "Updating..." : "Save changes"}
               </Button>
             </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
 
-      {/* Change Password */}
+      {/* Change Password Dialog */}
       <Dialog open={isPwOpen} onOpenChange={setIsPwOpen}>
         <DialogTrigger asChild>
           <Button
             variant="ghost"
-            className="w-full flex justify-start gap-4 items-center"
+            className="w-full justify-start gap-3 px-4 hover:bg-accent/50 transition-colors"
           >
-            <Key /> Change Password
+            <Key />
+            <span>Change Password</span>
           </Button>
         </DialogTrigger>
 
-        <DialogContent className="sm:max-w-[425px]">
-          <form onSubmit={handleChangePassword}>
-            <DialogHeader>
-              <DialogTitle>Change Password</DialogTitle>
-              <DialogDescription>
-                Enter your current and new password.
+        <DialogContent className="sm:max-w-[450px]">
+          <form onSubmit={handleChangePassword} className="space-y-6">
+            <DialogHeader className="space-y-3">
+              <DialogTitle className="text-xl">Change Password</DialogTitle>
+              <DialogDescription className="text-muted-foreground">
+                Enter your current password and choose a new secure password.
               </DialogDescription>
             </DialogHeader>
 
             {pwErrors.general && (
-              <p className="text-red-500 text-sm mb-2">{pwErrors.general}</p>
+              <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20">
+                <p className="text-destructive text-sm font-medium">
+                  {pwErrors.general}
+                </p>
+              </div>
             )}
 
-            <div className="mb-3">
-              <Label>Current Password</Label>
-              <Input
-                type="password"
-                value={currentPassword}
-                onChange={(e) => setCurrentPassword(e.target.value)}
-              />
-              {pwErrors.currentPassword && (
-                <p className="text-red-500 text-sm">
-                  {pwErrors.currentPassword}
-                </p>
-              )}
+            <div className="space-y-5">
+              <div className="space-y-2">
+                <Label
+                  htmlFor="current-password"
+                  className="text-sm font-medium"
+                >
+                  Current Password
+                </Label>
+                <Input
+                  id="current-password"
+                  type="password"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  placeholder="Enter current password"
+                  className="h-11"
+                />
+                {pwErrors.currentPassword && (
+                  <p className="text-destructive text-sm font-medium">
+                    {pwErrors.currentPassword}
+                  </p>
+                )}
+              </div>
+
+              <Separator />
+
+              <div className="space-y-2">
+                <Label htmlFor="new-password" className="text-sm font-medium">
+                  New Password
+                </Label>
+                <Input
+                  id="new-password"
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Enter new password"
+                  className="h-11"
+                />
+                {pwErrors.newPassword && (
+                  <p className="text-destructive text-sm font-medium">
+                    {pwErrors.newPassword}
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label
+                  htmlFor="confirm-password"
+                  className="text-sm font-medium"
+                >
+                  Confirm New Password
+                </Label>
+                <Input
+                  id="confirm-password"
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Confirm new password"
+                  className="h-11"
+                />
+                {pwErrors.confirmPassword && (
+                  <p className="text-destructive text-sm font-medium">
+                    {pwErrors.confirmPassword}
+                  </p>
+                )}
+              </div>
             </div>
 
-            <div className="mb-3">
-              <Label>New Password</Label>
-              <Input
-                type="password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-              />
-              {pwErrors.newPassword && (
-                <p className="text-red-500 text-sm">{pwErrors.newPassword}</p>
-              )}
-            </div>
-
-            <div className="mb-3">
-              <Label>Confirm New Password</Label>
-              <Input
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-              />
-              {pwErrors.confirmPassword && (
-                <p className="text-red-500 text-sm">
-                  {pwErrors.confirmPassword}
-                </p>
-              )}
-            </div>
-
-            <DialogFooter>
+            <DialogFooter className="gap-3 pt-4">
               <DialogClose asChild>
-                <Button variant="outline" type="button" disabled={isPwLoading}>
+                <Button
+                  variant="outline"
+                  type="button"
+                  disabled={isPwLoading}
+                  className="px-6"
+                >
                   Cancel
                 </Button>
               </DialogClose>
-              <Button type="submit" disabled={isPwLoading}>
-                {isPwLoading && (
-                  <Icon
-                    icon="line-md:loading-alt-loop"
-                    width="16"
-                    height="16"
-                    className="mr-2"
-                  />
+              <Button type="submit" disabled={isPwLoading} className="px-6">
+                {isPwLoading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2" />
+                    Updating...
+                  </>
+                ) : (
+                  "Update Password"
                 )}
-                {isPwLoading ? "Updating..." : "Update Password"}
               </Button>
             </DialogFooter>
           </form>

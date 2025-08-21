@@ -406,7 +406,7 @@ const MessageInput = memo(
             <div className="flex flex-col gap-1">
               {/* Mention Suggestions */}
               {showMentions && mentionSuggestions.length > 0 && (
-                <div className="absolute bottom-full mb-0 left-0 right-0 z-50 bg-white dark:bg-gray-800 border-y dark:border-gray-700 max-h-48 overflow-y-auto">
+                <div className="absolute bottom-full mb-0 left-0 right-0 z-10 bg-white dark:bg-gray-800 border-y dark:border-gray-700 max-h-48 overflow-y-auto">
                   {mentionSuggestions.map((suggestedUser) => (
                     <MentionSuggestionItem
                       key={suggestedUser.id}

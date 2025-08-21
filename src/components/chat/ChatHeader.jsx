@@ -17,6 +17,10 @@ import { useChatFolderStore } from "@/stores/chat-folder/useChatFolderStore";
 import { SquareUser, Menu, ArrowLeft } from "lucide-react";
 //import { useFolderStore } from "@/stores/chat-folder/useFolderStore";
 import { useUserStore } from "@/stores/useUserStore";
+// import CallButton from "../call/CallButton";
+// import { useCall } from "@/hooks/useCall";
+// import CallInterface from "../call/CallInterFace";
+// import IncomingCall from "../call/IncomingCallModal";
 
 const ChatHeader = ({
   getChatDisplayName,
@@ -45,6 +49,32 @@ const ChatHeader = ({
     setFolderSidebar(true);
     clearTopicId();
   };
+
+  // const {
+  //   incomingCall,
+  //   currentCall,
+  //   localStream,
+  //   remoteStream,
+  //   isConnected,
+  //   startCall,
+  //   answerCall,
+  //   rejectCall,
+  //   endCall,
+  // } = useCall(user.uid);
+
+  // const handleAudioCall = () => {
+  //   if (selectedUser) {
+  //     startCall(selectedUser.uid, "audio");
+  //     console.log("Audio call started with user:", selectedUser.uid);
+  //   }
+  // };
+
+  // const handleVideoCall = () => {
+  //   if (selectedUser) {
+  //     startCall(selectedUser.uid, "video");
+  //   }
+  // };
+
   return (
     <div className="relative w-full">
       <div className="absolute top-0 left-0 right-0 border-b z-30 w-full ">
@@ -104,6 +134,16 @@ const ChatHeader = ({
                 chatId={chatId}
                 getSenderDisplayName={getSenderDisplayName}
                 setIfUserInfoOpen={setIfUserInfoOpen}
+                // incomingCall={incomingCall}
+                // handleAudioCall={handleAudioCall}
+                // handleVideoCall={handleVideoCall}
+                // currentCall={currentCall}
+                // localStream={localStream}
+                // remoteStream={remoteStream}
+                // isConnected={isConnected}
+                // answerCall={answerCall}
+                // rejectCall={rejectCall}
+                // endCall={endCall}
               />
             )}
           </div>
@@ -253,6 +293,16 @@ const DirectChatHeader = ({
   chatId,
   getSenderDisplayName,
   setIfUserInfoOpen,
+  // incomingCall,
+  // handleAudioCall,
+  // handleVideoCall,
+  // currentCall,
+  // localStream,
+  // remoteStream,
+  // isConnected,
+  // answerCall,
+  // rejectCall,
+  // endCall,
 }) => (
   <div className="flex justify-between items-center w-full  flex-1 min-w-0">
     <div
@@ -275,6 +325,30 @@ const DirectChatHeader = ({
         </div>
       </div>
     </div>
+    {/* <CallButton
+      onAudioCall={handleAudioCall}
+      onVideoCall={handleVideoCall}
+      disabled={!!currentCall}
+    />
+
+    {incomingCall && (
+      <IncomingCall
+        caller={incomingCall.caller}
+        callType={incomingCall.type}
+        onAccept={answerCall}
+        onReject={rejectCall}
+      />
+    )}
+
+    {currentCall && (
+      <CallInterface
+        localStream={localStream}
+        remoteStream={remoteStream}
+        onEndCall={endCall}
+        callType={currentCall.type}
+        isConnected={isConnected}
+      />
+    )} */}
 
     <div>
       <Popover>
