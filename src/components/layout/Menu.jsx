@@ -29,7 +29,9 @@ export const Menu = ({
           <div className=" rounded mb-4 flex items-center gap-2 justify-start">
             <Avatar className="w-12 h-12 border">
               <AvatarImage src={userProfile?.photoURL} />
-              <AvatarFallback></AvatarFallback>
+              <AvatarFallback>
+                {userProfile.displayName[0].toUpperCase()}
+              </AvatarFallback>
             </Avatar>
             <h1 className="text-lg font-semibold max-w-32 truncate capitalize">
               {userProfile?.displayName}

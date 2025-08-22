@@ -126,11 +126,25 @@ function SidebarPanel({
                   </div>
                 )}
                 <div className="flex-1 flex flex-col min-w-0">
-                  <div className=" py-2.5 px-2">
+                  <div className=" flex justify-center items-center">
+                    {!hasFolders && (
+                      <div className="flex py-2 px-2   justify-center  items-center ">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={toggleMenu}
+                          className="w-10 h-10 rounded-full p-0 border-gray-300 dark:border-gray-600"
+                        >
+                          <Menu size={18} />
+                        </Button>
+                      </div>
+                    )}
                     <Input
                       type="search"
                       placeholder="Search..."
-                      className=" rounded-full dark:bg-gray-600/50 bg-gray-100"
+                      className={`rounded-full  dark:bg-gray-600/50 bg-gray-100 ${
+                        !hasFolders ? "mr-2" : "my-2.5 mx-2"
+                      } `}
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                     />
