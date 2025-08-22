@@ -315,7 +315,9 @@ const DirectChatHeader = ({
           src={selectedUser.photoURL}
           alt={selectedUser.displayName}
         />
-        <AvatarFallback></AvatarFallback>
+        <AvatarFallback className=" bg-gradient-to-br from-blue-400 to-blue-600 text-white">
+          {selectedUser.displayName[0].toUpperCase()}
+        </AvatarFallback>
       </Avatar>
       <div className="flex-1 flex-col justify-center min-w-0">
         <div className="text-sm sm:text-base font-semibold capitalize truncate">

@@ -158,7 +158,7 @@ export const FolderSidebar = ({
 
   return (
     <div className="relative w-full">
-      <div className=" fixed sm:static top-0 left-0 z-50 flex overflow-y-auto bg-white  sm:w-auto w-full h-full dark:bg-gray-800">
+      <div className=" fixed sm:static top-0 left-0 z-[48] flex overflow-y-auto bg-white  sm:w-auto w-full sm:h-full dark:bg-gray-800">
         {hasFolders && (
           <>
             <div className="bg-gray-100 dark:bg-gray-900 border-r h-screen">
@@ -250,7 +250,7 @@ export const FolderSidebar = ({
             <Button
               variant="outline"
               size="sm"
-              onClick={closeFolderSidebar}
+              onClick={searchToggle}
               className="w-10 h-10 rounded-full p-0 border-gray-300 dark:border-gray-600"
             >
               <Search size={18} />
@@ -379,7 +379,7 @@ export const FolderSidebar = ({
             {/* Topics List */}
             <div className="flex-1  border-r overflow-y-auto scrollbar-hide h-screen bg-white dark:bg-gray-800">
               {topics.length > 0 ? (
-                <div className="divide-y divide-gray-100  dark:divide-gray-700">
+                <div className="divide-y divide-gray-100 pb-14 dark:divide-gray-700">
                   {topics.map((topic) => (
                     <FolderList key={topic.id} topic={topic} />
                   ))}

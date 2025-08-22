@@ -25,7 +25,7 @@ export const Menu = ({
     <>
       <div>
         {" "}
-        <div className="w-64 bg-white dark:bg-gray-800 fixed top-0 left-0 z-[52] overflow-y-auto p-4 flex flex-col h-full">
+        <div className="w-64 bg-white dark:bg-gray-800 fixed top-0 left-0 z-[50] overflow-y-auto p-4 flex flex-col h-full">
           <div className=" rounded mb-4 flex items-center gap-2 justify-start">
             <Avatar className="w-12 h-12 border">
               <AvatarImage src={userProfile?.photoURL} />
@@ -72,7 +72,7 @@ export const Menu = ({
         </div>
         <div
           onClick={() => closeMenu()}
-          className=" bg-gray-500/30 fixed top-0 left-0 z-[51] w-screen h-screen backdrop-blur-sm"
+          className=" bg-gray-500/30 fixed top-0 left-0 z-[49] w-screen h-screen backdrop-blur-sm"
         ></div>
       </div>
     </>
