@@ -44,42 +44,28 @@ function SidebarPanel({
       {!folderSidebar && (
         <>
           <div className={className}>
-            <div className="absolute top-0 left-0 z-10 bg-white dark:bg-gray-800 w-full border-b ">
-              <div className="flex items-center justify-start gap-2 p-2">
-                <div className="flex  justify-center items-center border-gray-200 dark:border-gray-700">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={toggleMenu}
-                    className="w-10 h-10 rounded-full p-0 border-gray-300 dark:border-gray-600"
-                  >
-                    <Menu size={18} />
-                  </Button>
-                </div>
-
-                <div className="w-full">
-                  <Input
-                    type="search"
-                    placeholder="Search..."
-                    className="w-full rounded-full border border-gray-600/50"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
-                </div>
-              </div>
-            </div>
             <div className="h-screen ">
               <div className="flex ">
                 {hasFolders && (
-                  <>
-                    <div className="  w-15 pt-13 h-screen overflow-y-auto bg-gray-100 dark:bg-gray-800 border-r">
+                  <div className="block w-16 border-r border-gray-200 dark:border-gray-900 flex-shrink-0">
+                    <div className="flex py-2 bg-gray-100 dark:bg-gray-900  justify-center  items-center ">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={toggleMenu}
+                        className="w-10 h-10 rounded-full p-0 border-gray-300 dark:border-gray-600"
+                      >
+                        <Menu size={18} />
+                      </Button>
+                    </div>
+                    <div className="  h-screen overflow-y-auto bg-gray-100 dark:bg-gray-900 ">
                       <div className="flex justify-center w-full items-center">
                         <div className="w-full">
                           <div
                             onClick={() => clearFolderFilter()}
-                            className={`py-2.5 hover:bg-gray-300 hover:dark:bg-gray-700 color-transition duration-200 cursor-pointer ${
+                            className={`py-2.5 hover:bg-gray-300 hover:dark:bg-gray-900 color-transition duration-200 cursor-pointer ${
                               !selectedFolder
-                                ? "text-blue-500 bg-gray-300 dark:bg-gray-700"
+                                ? "text-blue-500 bg-gray-300 dark:bg-gray-950"
                                 : "text-gray-500"
                             }`}
                           >
@@ -104,10 +90,10 @@ function SidebarPanel({
                             <div
                               key={folder.id}
                               onClick={() => handleClickFolder(folder)}
-                              className={`py-2 hover:bg-gray-300 hover:dark:bg-gray-700 color-transition duration-200 cursor-pointer ${
+                              className={`py-2 hover:bg-gray-300 hover:dark:bg-gray-900 color-transition duration-200 cursor-pointer ${
                                 folder.id !== selectedFolder?.id
                                   ? "text-gray-500"
-                                  : "text-blue-500 shadow bg-gray-300 dark:bg-gray-700"
+                                  : "text-blue-500 shadow bg-gray-300 dark:bg-gray-950"
                               }`}
                             >
                               <div className="flex  items-center justify-center ">
@@ -137,27 +123,38 @@ function SidebarPanel({
                         </div>
                       </div>
                     </div>
-                  </>
+                  </div>
                 )}
-                <div className="h-screen w-full pt-13 overflow-y-auto">
-                  {chatsLoading ? (
-                    <ChatListLoading />
-                  ) : filteredChats.length > 0 ? (
-                    <ChatList
-                      filteredChats={filteredChats}
-                      handleSelectChat={handleSelectChat}
-                      getOtherUserInDirectChat={getOtherUserInDirectChat}
-                      getChatPhoto={getChatPhoto}
-                      getChatDisplayName={getChatDisplayName}
-                      currentUserId={user?.uid}
-                      onLeaveSuccess={clearChat}
-                      getSenderDisplayName={getSenderDisplayName}
+                <div className="flex-1 flex flex-col min-w-0">
+                  <div className=" py-2.5 px-2">
+                    <Input
+                      type="search"
+                      placeholder="Search..."
+                      className=" rounded-full dark:bg-gray-600/50 bg-gray-100"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
                     />
-                  ) : (
-                    <div className="mx-1 p-2  rounded-lg text-sm text-gray-500">
-                      No Recent Chats
-                    </div>
-                  )}
+                  </div>
+                  <div className="h-screen w-full relative overflow-y-auto">
+                    {chatsLoading ? (
+                      <ChatListLoading />
+                    ) : filteredChats.length > 0 ? (
+                      <ChatList
+                        filteredChats={filteredChats}
+                        handleSelectChat={handleSelectChat}
+                        getOtherUserInDirectChat={getOtherUserInDirectChat}
+                        getChatPhoto={getChatPhoto}
+                        getChatDisplayName={getChatDisplayName}
+                        currentUserId={user?.uid}
+                        onLeaveSuccess={clearChat}
+                        getSenderDisplayName={getSenderDisplayName}
+                      />
+                    ) : (
+                      <div className="mx-1 p-2  rounded-lg text-sm text-gray-500">
+                        No Recent Chats
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>

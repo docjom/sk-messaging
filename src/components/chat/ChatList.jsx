@@ -404,8 +404,8 @@ const ChatList = ({
   );
 
   return (
-    <div className="w-full h-full overflow-hidden">
-      <div className="h-full overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent">
+    <div className="w-full h-full  overflow-hidden">
+      <div className="h-full overflow-y-auto pb-15 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent">
         {/* Pinned Chats */}
         {pinnedChats.length > 0 && renderChats(pinnedChats, true)}
 
