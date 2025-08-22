@@ -301,6 +301,14 @@ export const Management = () => {
       return true;
     }
 
+    if (
+      currentUser.role === Roles.HR &&
+      targetUser.role !== Roles.SUPER_ADMIN &&
+      targetUser.role !== Roles.ADMIN
+    ) {
+      return true;
+    }
+
     return false;
   };
 
@@ -627,50 +635,49 @@ export const Management = () => {
                                       </AlertDialog>
                                     )}
 
-                                    {user.deleted !== "deleted" &&
-                                      userProfile.role !== Roles.HR && (
-                                        <AlertDialog>
-                                          <AlertDialogTrigger asChild>
-                                            <Button
-                                              disabled={
-                                                !canDelete(userProfile, user)
+                                    {user.deleted !== "deleted" && (
+                                      <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                          <Button
+                                            disabled={
+                                              !canDelete(userProfile, user)
+                                            }
+                                            variant="ghost"
+                                            size="sm"
+                                            className="text-destructive hover:text-destructive"
+                                          >
+                                            <Trash2 className="h-4 w-4" />
+                                          </Button>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                          <AlertDialogHeader>
+                                            <AlertDialogTitle>
+                                              Delete User
+                                            </AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                              This will mark{" "}
+                                              <strong>
+                                                {user.displayName}
+                                              </strong>{" "}
+                                              as deleted.
+                                            </AlertDialogDescription>
+                                          </AlertDialogHeader>
+                                          <AlertDialogFooter>
+                                            <AlertDialogCancel>
+                                              Cancel
+                                            </AlertDialogCancel>
+                                            <AlertDialogAction
+                                              onClick={() =>
+                                                handleDelete(user.id)
                                               }
-                                              variant="ghost"
-                                              size="sm"
-                                              className="text-destructive hover:text-destructive"
+                                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                                             >
-                                              <Trash2 className="h-4 w-4" />
-                                            </Button>
-                                          </AlertDialogTrigger>
-                                          <AlertDialogContent>
-                                            <AlertDialogHeader>
-                                              <AlertDialogTitle>
-                                                Delete User
-                                              </AlertDialogTitle>
-                                              <AlertDialogDescription>
-                                                This will mark{" "}
-                                                <strong>
-                                                  {user.displayName}
-                                                </strong>{" "}
-                                                as deleted.
-                                              </AlertDialogDescription>
-                                            </AlertDialogHeader>
-                                            <AlertDialogFooter>
-                                              <AlertDialogCancel>
-                                                Cancel
-                                              </AlertDialogCancel>
-                                              <AlertDialogAction
-                                                onClick={() =>
-                                                  handleDelete(user.id)
-                                                }
-                                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                              >
-                                                Delete
-                                              </AlertDialogAction>
-                                            </AlertDialogFooter>
-                                          </AlertDialogContent>
-                                        </AlertDialog>
-                                      )}
+                                              Delete
+                                            </AlertDialogAction>
+                                          </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                      </AlertDialog>
+                                    )}
                                   </div>
                                 </td>
                               </motion.tr>
