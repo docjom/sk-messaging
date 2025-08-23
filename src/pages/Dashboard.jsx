@@ -20,8 +20,6 @@ import {
   updateDoc,
   onSnapshot,
   writeBatch,
-  // limitToLast,
-  // orderBy,
   arrayUnion,
   getDoc,
   getDocs,
@@ -80,10 +78,7 @@ function Dashboard() {
     clearMessage,
   } = useMessageActionStore();
   const { clearMentionSuggestions } = useMentions();
-
   const [isMobile, setIsMobile] = useState(false);
-
-  // Check screen size
   useEffect(() => {
     const checkScreenSize = () => {
       setIsMobile(window.innerWidth < 640);
@@ -95,12 +90,8 @@ function Dashboard() {
   }, []);
 
   const cleanup = useTypingStatus((state) => state.cleanup);
-  const {
-    setFolderSidebar,
-    //   folderSidebar
-  } = useChatFolderStore();
+  const { setFolderSidebar } = useChatFolderStore();
   const { isOnline, wasOffline } = useInternetConnection();
-  //  const { hasFolders } = useFolderStore();
 
   const { messages, messagesLoading, loadOlderMessages } =
     useInfiniteMessages(chatId);
@@ -155,10 +146,8 @@ function Dashboard() {
         topicId,
         fileName,
       });
-
       const uploadResult = await uploadBytes(storageRef, file);
       const downloadURL = await getDownloadURL(uploadResult.ref);
-
       const messageData = {
         senderId: user?.uid,
         message: message || "",
@@ -175,7 +164,6 @@ function Dashboard() {
         },
       };
       await addDoc(messageCollectionRef, messageData);
-
       if (message && message.match(/(https?:\/\/[^\s]+)/g)) {
         const foundLinks = message.match(/(https?:\/\/[^\s]+)/g);
         for (const url of foundLinks) {
@@ -461,7 +449,6 @@ function Dashboard() {
       const chatsRef = collection(db, "chats");
       const q = query(chatsRef, where("type", "==", "direct"));
       const querySnapshot = await getDocs(q);
-
       for (const doc of querySnapshot.docs) {
         const chatData = doc.data();
         if (

@@ -85,7 +85,6 @@ export const FolderSidebar = ({
     clearEdit();
     clearPastedImage();
     clearMessage();
-
     if (!chat.hasChatTopic) {
       setFolderSidebar(false);
       clearTopic();
@@ -112,40 +111,30 @@ export const FolderSidebar = ({
 
   useEffect(() => {
     if (!chatId || !currentChat) return;
-
     const role = currentChat.userRoles?.[user.uid] || "member";
     setUserRole(role);
-
     let unsubscribe;
-
     if (currentChat.hasChatTopic) {
       const topicsRef = collection(db, "chats", chatId, "topics");
       const topicsQuery = query(topicsRef, orderBy("lastMessageTime", "desc"));
-
       unsubscribe = onSnapshot(topicsQuery, (snapshot) => {
         const loadedTopics = snapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
         }));
-
         const sortedTopics = loadedTopics.sort((a, b) => {
           const isAPinned = a.pin?.includes(user.uid) ? 1 : 0;
           const isBPinned = b.pin?.includes(user.uid) ? 1 : 0;
-
           if (isAPinned !== isBPinned) return isBPinned - isAPinned;
-
           const timeA = a.createdAt?.toMillis?.() || 0;
           const timeB = b.createdAt?.toMillis?.() || 0;
-
           return timeB - timeA;
         });
-
         setTopics(sortedTopics);
       });
     } else {
       setTopics([]);
     }
-
     return () => {
       if (typeof unsubscribe === "function") {
         unsubscribe();
