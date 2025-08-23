@@ -260,7 +260,7 @@ export const FolderSidebar = ({
           {/* Chat Avatars List */}
           <div className="relative">
             <div className="flex-1 overflow-y-auto scrollbar-hide h-screen py-2">
-              <div className="flex flex-col items-center gap-2">
+              <div className="flex flex-col pb-14 items-center gap-2">
                 {filteredChats.map((chat) => (
                   <div
                     key={chat.id}
