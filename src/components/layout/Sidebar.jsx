@@ -1,4 +1,3 @@
-import { Icon } from "@iconify/react";
 import React, { useState, useEffect, useCallback } from "react";
 import ChatList from "@/components/chat/ChatList";
 import { Input } from "@/components/ui/input";
@@ -16,7 +15,7 @@ import { useUserStore } from "@/stores/useUserStore";
 import { FolderSidebar } from "../chat-folder/folderSidebar";
 import { useChatFolderStore } from "@/stores/chat-folder/useChatFolderStore";
 import { useFolderStore } from "@/stores/chat-folder/useFolderStore";
-import { Badge, Folder, Menu, MessageSquare } from "lucide-react";
+import { Menu } from "lucide-react";
 import { Button } from "../ui/button";
 import { useFolderChatFilter } from "@/hooks/chat-folder/useFolderChatFilter";
 function SidebarPanel({
@@ -37,8 +36,9 @@ function SidebarPanel({
   hasFolders,
   folders,
 }) {
-  const { selectedFolder, handleClickFolder, clearFolderFilter } =
+  const { selectedFolder, handleShowAll, handleClickFolder } =
     useFolderChatFilter();
+
   return (
     <div className="flex">
       {!folderSidebar && (
@@ -62,7 +62,7 @@ function SidebarPanel({
                       <div className="flex justify-center w-full items-center">
                         <div className="w-full">
                           <div
-                            onClick={() => clearFolderFilter()}
+                            onClick={() => handleShowAll()}
                             className={`py-2.5 hover:bg-gray-300 hover:dark:bg-gray-900 color-transition duration-200 cursor-pointer ${
                               !selectedFolder
                                 ? "text-blue-500 bg-gray-300 dark:bg-gray-950"
@@ -180,7 +180,8 @@ function SidebarPanel({
 }
 
 const Sidebar = ({ toggleMenu, handleSelectChat, getSenderDisplayName }) => {
-  const { chats, setChats, clearChat, chatId, users } = useMessageActionStore();
+  const { chats, setAllChats, clearChat, chatId, users } =
+    useMessageActionStore();
   const [searchTerm, setSearchTerm] = useState("");
   const user = useUserStore((s) => s?.user);
   const [chatsLoading, setChatsLoading] = useState(true);
@@ -259,7 +260,7 @@ const Sidebar = ({ toggleMenu, handleSelectChat, getSenderDisplayName }) => {
 
   useEffect(() => {
     if (!user) {
-      setChats([]);
+      setAllChats([]);
       setChatsLoading(false);
       return;
     }
@@ -272,7 +273,7 @@ const Sidebar = ({ toggleMenu, handleSelectChat, getSenderDisplayName }) => {
         const cacheAge = Date.now() - timestamp;
         const maxCacheAge = 5 * 60 * 1000;
         if (cacheAge < maxCacheAge) {
-          setChats(data);
+          setAllChats(data);
           setChatsLoading(false);
         }
       } catch (err) {
@@ -292,7 +293,7 @@ const Sidebar = ({ toggleMenu, handleSelectChat, getSenderDisplayName }) => {
           updatedAt: doc.data().updatedAt?.toDate?.() || doc.data().updatedAt,
         });
       });
-      setChats(chatsArray);
+      setAllChats(chatsArray);
       setChatsLoading(false);
       try {
         localStorage.setItem(
@@ -308,7 +309,7 @@ const Sidebar = ({ toggleMenu, handleSelectChat, getSenderDisplayName }) => {
     });
 
     return () => unsubscribe();
-  }, [user, setChats]);
+  }, [user, setAllChats]);
 
   const sortedChats = React.useMemo(() => {
     return chats.slice().sort((a, b) => {

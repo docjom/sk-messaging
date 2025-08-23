@@ -609,7 +609,7 @@ function Dashboard() {
 
               {/* Main Content Panel */}
               <ResizablePanel
-                defaultSize={isMobile ? 0 : 100}
+                defaultSize={isMobile ? 100 : 68}
                 minSize={isMobile ? 100 : 32}
               >
                 <div className="flex-1 flex flex-col h-full">

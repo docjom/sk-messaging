@@ -60,9 +60,6 @@ export const FolderSidebar = ({
   const [userRole, setUserRole] = useState("");
   const { hasFolders, folders } = useFolderStore();
 
-  const { selectedFolder, handleClickFolder, clearFolderFilter } =
-    useFolderChatFilter();
-
   const toggleMenu = () => {
     console.log(menu);
     setMenu(true);
@@ -156,6 +153,9 @@ export const FolderSidebar = ({
     };
   }, [chatId, user.uid, currentChat]);
 
+  const { selectedFolder, handleClickFolder, handleShowAll } =
+    useFolderChatFilter();
+
   return (
     <div className="relative w-full">
       <div className=" fixed sm:static top-0 left-0 z-[48] flex overflow-y-auto bg-white  sm:w-auto w-full sm:h-full dark:bg-gray-800">
@@ -177,7 +177,7 @@ export const FolderSidebar = ({
                   <div className="flex justify-center w-full items-center">
                     <div className="w-full">
                       <div
-                        onClick={() => clearFolderFilter()}
+                        onClick={() => handleShowAll()}
                         className={`py-2.5 hover:bg-gray-300 hover:dark:bg-gray-900 color-transition duration-200 cursor-pointer ${
                           !selectedFolder
                             ? "text-blue-500 bg-gray-300 dark:bg-gray-950"

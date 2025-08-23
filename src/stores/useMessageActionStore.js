@@ -14,6 +14,15 @@ export const useMessageActionStore = create(
     currentChat: null,
     message: "",
 
+    allChats: [],
+
+    setAllChats: (newChats) =>
+      set(() => ({
+        allChats: newChats,
+        chats: newChats,
+      })),
+    setChats: (filteredChats) => set({ chats: filteredChats }),
+
     topicId: null,
     currentTopic: null,
     setCurrentTopic: (data) => set({ currentTopic: data }),
@@ -34,8 +43,6 @@ export const useMessageActionStore = create(
 
     setChatIdTo: (data) => set({ chatId: data }),
     clearChat: () => set({ chatId: null }),
-
-    setChats: (data) => set({ chats: data }),
 
     setReplyTo: (data) => set({ replyTo: data, editMessage: null }),
     clearReply: () => set({ replyTo: null }),
