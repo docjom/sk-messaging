@@ -272,7 +272,12 @@ export const FolderSidebar = ({
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <Avatar
-                          className={`w-12 h-12 border-2 transition-all duration-200 ${
+                          className={`w-12 h-12 border-2 transition-all duration-200
+                              ${
+                                chat.hasChatTopic
+                                  ? "rounded-2xl"
+                                  : "rounded-full"
+                              } ${
                             chatId === chat.id
                               ? "border-gray-900 shadow-lg ring-2 ring-blue-200 dark:ring-blue-800"
                               : "border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500"
