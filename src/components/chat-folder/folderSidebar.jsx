@@ -274,12 +274,21 @@ export const FolderSidebar = ({
                         <Avatar
                           className={`w-12 h-12 border-2 transition-all duration-200 ${
                             chatId === chat.id
-                              ? "border-blue-500 shadow-lg ring-2 ring-blue-200 dark:ring-blue-800"
+                              ? "border-gray-900 shadow-lg ring-2 ring-blue-200 dark:ring-blue-800"
                               : "border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500"
                           }`}
                         >
                           <AvatarImage src={getChatPhoto(chat)} />
-                          <AvatarFallback className="text-sm font-medium">
+                          <AvatarFallback
+                            className={`
+                                        bg-gradient-to-br from-blue-400 to-blue-600 text-white
+                                        ${
+                                          chat.hasChatTopic
+                                            ? "rounded-xl"
+                                            : "rounded-full"
+                                        }
+                                      `}
+                          >
                             {getChatDisplayName(chat)[0]?.toUpperCase() || "U"}
                           </AvatarFallback>
                         </Avatar>
