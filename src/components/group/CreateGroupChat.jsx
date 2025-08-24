@@ -32,7 +32,7 @@ export function CreateGroupChat({
   onSubmit,
   isLoading,
 }) {
-  const { chats, users } = useMessageActionStore();
+  const { allChats, users } = useMessageActionStore();
   const [groupName, setGroupName] = useState("");
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [isOpen, setIsOpen] = useState(false);
@@ -131,16 +131,16 @@ export function CreateGroupChat({
       }
 
       setIsSearching(false);
-    }, 300); // Small delay to show loading state
+    }, 300); 
   };
 
   // Get users you've chatted with from direct chats
   const getChatContacts = () => {
-    if (!chats || !Array.isArray(chats)) return [];
+    if (!allChats || !Array.isArray(allChats)) return [];
 
     const chatUserIds = new Set();
 
-    chats
+    allChats
       .filter(
         (chat) => chat.type === "direct" && chat.users?.includes(currentUserId)
       )

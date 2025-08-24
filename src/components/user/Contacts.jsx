@@ -22,12 +22,10 @@ import {
   MessageCircle,
   Users,
 } from "lucide-react";
-import { db } from "@/firebase";
-import { collection, query, where, getDocs } from "firebase/firestore";
 import { useMessageActionStore } from "@/stores/useMessageActionStore";
 
 export function Contacts({ users, currentUserId, handleSelectUser }) {
-  const { chats } = useMessageActionStore();
+  const { allChats } = useMessageActionStore();
   const [isOpen, setIsOpen] = useState(false);
   const [searchEmail, setSearchEmail] = useState("");
   const [searchResults, setSearchResults] = useState([]);
@@ -52,39 +50,37 @@ export function Contacts({ users, currentUserId, handleSelectUser }) {
     setSearchError("");
     setSearchResults([]);
 
-    try {
-      const usersRef = collection(db, "users");
-      const q = query(
-        usersRef,
-        where("email", "==", searchEmail.toLowerCase().trim())
+    setTimeout(() => {
+      const searchEmailLower = searchEmail.toLowerCase().trim();
+
+      // Search through users in Zustand store
+      const foundUsers = users.filter(
+        (user) =>
+          user.email?.toLowerCase() === searchEmailLower &&
+          user.id !== currentUserId
       );
-      const querySnapshot = await getDocs(q);
 
-      if (querySnapshot.empty) {
-        setSearchError("No user found with this email address");
-        setSearchResults([]);
-      } else {
-        const foundUsers = [];
-        querySnapshot.forEach((doc) => {
-          const userData = { id: doc.id, ...doc.data() };
-          // Don't include the current user in search results
-          if (userData.id !== currentUserId) {
-            foundUsers.push(userData);
-          }
-        });
+      if (foundUsers.length === 0) {
+        // Check if it's the current user's email
+        const isCurrentUserEmail = users.some(
+          (user) =>
+            user.email?.toLowerCase() === searchEmailLower &&
+            user.id === currentUserId
+        );
 
-        if (foundUsers.length === 0) {
+        if (isCurrentUserEmail) {
           setSearchError("This is your own email address");
         } else {
-          setSearchResults(foundUsers);
+          setSearchError("No user found with this email address");
         }
+        setSearchResults([]);
+      } else {
+        setSearchResults(foundUsers);
+        setSearchError("");
       }
-    } catch (error) {
-      console.error("Error searching for user:", error);
-      setSearchError("Failed to search for user. Please try again.");
-    } finally {
+
       setIsSearching(false);
-    }
+    }, 300);
   };
 
   const handleUserSelect = (user) => {
@@ -99,12 +95,12 @@ export function Contacts({ users, currentUserId, handleSelectUser }) {
 
   // Get users you've chatted with from direct chats
   const getChatContacts = () => {
-    if (!chats || !Array.isArray(chats)) return [];
+    if (!allChats || !Array.isArray(allChats)) return [];
 
     // Get all user IDs from direct chats
     const chatUserIds = new Set();
 
-    chats
+    allChats
       .filter(
         (chat) => chat.type === "direct" && chat.users?.includes(currentUserId)
       )
