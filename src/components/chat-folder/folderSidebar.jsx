@@ -34,6 +34,7 @@ export const FolderSidebar = ({
   filteredChats,
   getChatPhoto,
   getChatDisplayName,
+  triggerSearchFocus,
 }) => {
   const { menu, setMenu } = useMenu();
   const {
@@ -72,9 +73,10 @@ export const FolderSidebar = ({
 
   const searchToggle = () => {
     setFolderSidebar(false);
-    clearTopic();
     clearTopicId();
+    clearChat();
     clearCurrentTopic();
+    triggerSearchFocus();
   };
 
   const handleSelectChat = (chat) => {

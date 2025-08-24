@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import ChatList from "@/components/chat/ChatList";
 import { Input } from "@/components/ui/input";
 import { ChatListLoading } from "../chat/ChatListLoading";
@@ -35,9 +35,21 @@ function SidebarPanel({
   className = "",
   hasFolders,
   folders,
+  focusSearchInput,
 }) {
   const { selectedFolder, handleShowAll, handleClickFolder } =
     useFolderChatFilter();
+
+  const searchInputRef = useRef(null);
+
+  useEffect(() => {
+    if (focusSearchInput) {
+      focusSearchInput(() => {
+        searchInputRef.current?.focus();
+        console.log("Search input focused from parent");
+      });
+    }
+  }, [focusSearchInput]);
 
   return (
     <div className="flex">
@@ -140,6 +152,7 @@ function SidebarPanel({
                       </div>
                     )}
                     <Input
+                      ref={searchInputRef}
                       type="search"
                       placeholder="Search..."
                       className={`rounded-full  dark:bg-gray-600/50 bg-gray-100 ${
@@ -328,6 +341,19 @@ const Sidebar = ({ toggleMenu, handleSelectChat, getSenderDisplayName }) => {
     });
   }, [sortedChats, searchTerm, getChatDisplayName]);
 
+  const searchInputFocusRef = useRef(null);
+
+  const focusSearchInput = (focusFn) => {
+    searchInputFocusRef.current = focusFn;
+  };
+
+  const triggerSearchFocus = () => {
+    if (searchInputFocusRef.current) {
+      searchInputFocusRef.current();
+      console.log("Search input focused");
+    }
+  };
+
   return (
     <>
       {!chatId && (
@@ -346,6 +372,7 @@ const Sidebar = ({ toggleMenu, handleSelectChat, getSenderDisplayName }) => {
           clearChat={clearChat}
           getSenderDisplayName={getSenderDisplayName}
           toggleMenu={toggleMenu}
+          focusSearchInput={focusSearchInput}
           className="w-full bg-white dark:bg-gray-800 border-r sm:hidden fixed lg:sticky top-0 left-0 z-30  flex-col h-full"
         />
       )}
@@ -354,6 +381,7 @@ const Sidebar = ({ toggleMenu, handleSelectChat, getSenderDisplayName }) => {
           filteredChats={filteredChats}
           getChatPhoto={getChatPhoto}
           getChatDisplayName={getChatDisplayName}
+          triggerSearchFocus={triggerSearchFocus}
         />
       )}
 
@@ -374,6 +402,7 @@ const Sidebar = ({ toggleMenu, handleSelectChat, getSenderDisplayName }) => {
           folderSidebar={folderSidebar}
           getSenderDisplayName={getSenderDisplayName}
           toggleMenu={toggleMenu}
+          focusSearchInput={focusSearchInput}
           className="bg-white hidden sm:block dark:bg-gray-800 border-r w-full relative"
         />
       </div>
