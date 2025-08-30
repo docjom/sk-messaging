@@ -37,7 +37,7 @@ export const Settings = () => {
           </DialogHeader>
 
           <div>
-            {(userProfile.role === Roles.SUPER_ADMIN ||
+            {(userProfile.role === Roles.ADMIN ||
               userProfile.role === Roles.HR ||
               userProfile.role === Roles.SUPER_ADMIN) && (
               <div className="mb-2">
