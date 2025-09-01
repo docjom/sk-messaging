@@ -30,8 +30,8 @@ export const MessageList = ({
   getSenderDisplayName,
   messages,
   messagesLoading,
-  containerRef, 
-  endRef, 
+  containerRef,
+  endRef,
 }) => {
   const [loadingStates, setLoadingStates] = useState({});
   const [openPopoverId, setOpenPopoverId] = useState(null);
@@ -331,13 +331,18 @@ export const MessageList = ({
   };
 
   const handleImageLoad = useCallback(
-    (messageId) => {
+    (messageId, isError = false) => {
       setLoadingStates((prev) => ({
         ...prev,
-        [messageId]: { ...prev[messageId], imageLoaded: true },
+        [messageId]: {
+          ...prev[messageId],
+          imageLoaded: !isError,
+          imageError: isError,
+        },
       }));
-      // Only stick to bottom if user is already near bottom
-      if (scrollIsNearBottom() && endRef?.current) {
+
+      // Scroll only when successful load, not error
+      if (!isError && scrollIsNearBottom() && endRef?.current) {
         endRef.current.scrollIntoView({ behavior: "auto" });
       }
     },
@@ -345,12 +350,17 @@ export const MessageList = ({
   );
 
   const handleVideoLoad = useCallback(
-    (messageId) => {
+    (messageId, isError = false) => {
       setLoadingStates((prev) => ({
         ...prev,
-        [messageId]: { ...prev[messageId], videoLoaded: true },
+        [messageId]: {
+          ...prev[messageId],
+          videoLoaded: !isError,
+          videoError: isError,
+        },
       }));
-      if (scrollIsNearBottom() && endRef?.current) {
+
+      if (!isError && scrollIsNearBottom() && endRef?.current) {
         endRef.current.scrollIntoView({ behavior: "auto" });
       }
     },

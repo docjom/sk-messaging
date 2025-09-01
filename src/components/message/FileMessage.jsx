@@ -31,6 +31,9 @@ export const FileMessage = ({
   const isImageLoaded = loadingStates[messageId]?.imageLoaded || false;
   const isVideoLoaded = loadingStates[messageId]?.videoLoaded || false;
 
+  const isImageError = loadingStates[messageId]?.imageError || false;
+  const isVideoError = loadingStates[messageId]?.videoError || false;
+
   const downloadFile = async (url, filename) => {
     try {
       const response = await fetch(url, {
@@ -77,8 +80,8 @@ export const FileMessage = ({
       <div className="w-full sm:max-w-[20rem] md:max-w-[28rem] border rounded-lg">
         {isImage && (
           <div className="relative">
-            {/* Loading placeholder */}
-            {!isImageLoaded && (
+            {/* Loading or error placeholder */}
+            {!isImageLoaded && !isImageError && (
               <div
                 className={`w-52 h-52 border border-gray-200 flex items-center justify-center ${
                   message.message !== "" ? "rounded-t-lg" : "rounded-lg"
@@ -86,12 +89,30 @@ export const FileMessage = ({
               >
                 <div className="flex flex-col items-center gap-2">
                   <Icon
-                    icon="ic:round-image"
+                    icon="eos-icons:loading"
                     width="24"
                     height="24"
-                    className="text-gray-400 animate-pulse"
+                    className="text-gray-400 animate-spin"
                   />
                   <span className="text-xs text-gray-400">Loading...</span>
+                </div>
+              </div>
+            )}
+
+            {isImageError && (
+              <div
+                className={`w-52 h-52 border border-gray-200 flex items-center justify-center ${
+                  message.message !== "" ? "rounded-t-lg" : "rounded-lg"
+                }`}
+              >
+                <div className="flex flex-col items-center gap-2">
+                  <Icon
+                    icon="ic:round-broken-image"
+                    width="24"
+                    height="24"
+                    className="text-gray-400"
+                  />
+                  <span className="text-xs text-gray-400">Image Deleted</span>
                 </div>
               </div>
             )}
@@ -101,9 +122,10 @@ export const FileMessage = ({
               alt={fileData.name}
               className={`max-w-52 h-auto object-cover border cursor-pointer hover:opacity-90 transition-opacity ${
                 message.message !== "" ? "rounded-t-lg" : "rounded-lg"
-              } ${!isImageLoaded ? "hidden" : ""}`}
+              } ${!isImageLoaded || isImageError ? "hidden" : ""}`}
               onClick={openMediaDialog}
               onLoad={() => handleImageLoad(messageId)}
+              onError={() => handleImageLoad(messageId, true)}
             />
           </div>
         )}
@@ -111,23 +133,20 @@ export const FileMessage = ({
         {isVideo && (
           <div className="relative">
             {/* Loading placeholder */}
-            {!isVideoLoaded && (
-              <div
-                className={`w-52 h-52 border border-gray-200 flex items-center justify-center ${
-                  message.message !== "" ? "rounded-t-lg" : "rounded-lg"
-                }`}
-              >
-                <div className="flex flex-col items-center gap-2">
-                  <Icon
-                    icon="ic:round-play-circle-filled"
-                    width="32"
-                    height="32"
-                    className="text-gray-400 animate-pulse"
-                  />
-                  <span className="text-xs text-gray-400">
-                    Loading video...
-                  </span>
-                </div>
+            {!isVideoLoaded && !isVideoError && (
+              <div className="w-52 h-52 flex items-center justify-center border">
+                <Icon
+                  icon="eos-icons:loading"
+                  className="animate-spin text-gray-400"
+                />
+                <span className="text-xs text-gray-400">Loading video...</span>
+              </div>
+            )}
+
+            {isVideoError && (
+              <div className="w-52 h-52 flex items-center justify-center border">
+                <Icon icon="ic:round-videocam-off" className="text-gray-400" />
+                <span className="text-xs text-gray-400">Video Deleted</span>
               </div>
             )}
 
@@ -136,11 +155,13 @@ export const FileMessage = ({
                 src={fileData.url}
                 className={`max-w-52 h-auto object-cover border cursor-pointer hover:opacity-90 transition-opacity ${
                   message.message !== "" ? "rounded-t-lg" : "rounded-lg"
-                } ${!isVideoLoaded ? "hidden" : ""}`}
+                } ${!isVideoLoaded || isVideoError ? "hidden" : ""}`}
                 onLoadedData={() => handleVideoLoad(messageId)}
+                onError={() => handleVideoLoad(messageId, true)}
                 onClick={openMediaDialog}
                 muted
               />
+
               {/* Play button overlay */}
               {isVideoLoaded && (
                 <div

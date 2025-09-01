@@ -46,7 +46,7 @@ export function ChatLayout() {
     return () => unsubscribe();
   }, [selectedChatId]);
 
-  console.log("Chats:", chats);
+  //console.log("Chats:", chats);
 
   // ✅ Get messages of selected chat
   useEffect(() => {
@@ -76,8 +76,8 @@ export function ChatLayout() {
 
   const selectedChat = chats.find((chat) => chat.id === selectedChatId);
 
-  console.log("Selected Chat:", selectedChat);
-  console.log("Messages:", messages);
+  // console.log("Selected Chat:", selectedChat);
+  //console.log("Messages:", messages);
 
   return (
     <>
