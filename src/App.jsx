@@ -18,6 +18,8 @@ import { MainLoading } from "./components/loading/mainLoading";
 import { ProtectedRoute } from "./components/auth/AdminRoute";
 import { AdminSettings } from "./admin/pages/Settings";
 import { Roles } from "./scripts/roles";
+import { AllChatList } from "./admin/pages/AllChatList";
+import ChatAllProtectedRoute from "./admin/auth/ChatAllProtected";
 
 function App() {
   const { userProfile, initialized, initAuthListener } = useUserStore();
@@ -58,6 +60,17 @@ function App() {
             <Route path="home" element={<AdminHome />} />
             <Route path="management" element={<Management />} />
             <Route path="settings" element={<AdminSettings />} />
+            <Route
+              path="chats"
+              element={
+                <ChatAllProtectedRoute
+                  userProfile={userProfile}
+                  allowedRoles={Roles.SUPER_ADMIN}
+                >
+                  <AllChatList />
+                </ChatAllProtectedRoute>
+              }
+            />
           </Route>
         </Route>
       </Routes>

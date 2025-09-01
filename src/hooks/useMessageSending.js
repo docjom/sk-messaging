@@ -4,9 +4,11 @@ import { addDoc, serverTimestamp, updateDoc } from "firebase/firestore";
 import { useMessageActionStore } from "../stores/useMessageActionStore";
 
 import { getRefs } from "@/utils/firestoreRefs";
+import { useUserStore } from "@/stores/useUserStore";
 
 export const useMessageSending = () => {
   const users = useMessageActionStore.getState().users;
+  const userProfile = useUserStore.getState().userProfile;
   const clearMessage = useMessageActionStore.getState().clearMessage;
 
   const uploadImageToStorage = async (imageFile, chatId) => {
@@ -79,6 +81,8 @@ export const useMessageSending = () => {
       } else {
         const messagePayload = {
           senderId,
+          senderName: userProfile?.displayName,
+          senderProfilePic: userProfile?.photoURL || null,
           message,
           seenBy: [],
           timestamp: serverTimestamp(),
@@ -110,6 +114,8 @@ export const useMessageSending = () => {
           for (const url of foundLinks) {
             await addDoc(filesRef, {
               senderId,
+              senderName: userProfile?.displayName,
+              senderProfilePic: userProfile?.photoURL || null,
               type: "link",
               url,
               timestamp: serverTimestamp(),
@@ -121,6 +127,8 @@ export const useMessageSending = () => {
         if (imageURL) {
           await addDoc(filesRef, {
             senderId,
+            senderName: userProfile?.displayName,
+            senderProfilePic: userProfile?.photoURL || null,
             fileData: {
               fileName: pastedImage?.name,
               url: imageURL,
@@ -146,6 +154,8 @@ export const useMessageSending = () => {
           lastMessage: lastMessageText,
           lastMessageTime: serverTimestamp(),
           lastSenderName: getSenderDisplayName(senderId),
+          senderName: userProfile?.displayName,
+          senderProfilePic: userProfile?.photoURL || null,
         });
 
         useMessageActionStore.getState().clearReply();

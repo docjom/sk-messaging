@@ -150,6 +150,8 @@ function Dashboard() {
       const downloadURL = await getDownloadURL(uploadResult.ref);
       const messageData = {
         senderId: user?.uid,
+        senderName: user?.displayName,
+        senderProfilePic: user?.photoURL || null,
         message: message || "",
         timestamp: serverTimestamp(),
         status: "sent",
@@ -169,6 +171,8 @@ function Dashboard() {
         for (const url of foundLinks) {
           await addDoc(filesRef, {
             senderId: user?.uid,
+            senderName: user?.displayName,
+            senderProfilePic: user?.photoURL || null,
             type: "link",
             url,
             timestamp: serverTimestamp(),
@@ -178,6 +182,8 @@ function Dashboard() {
       if (fileName) {
         await addDoc(filesRef, {
           senderId: user?.uid,
+          senderName: user?.displayName,
+          senderProfilePic: user?.photoURL || null,
           fileData: {
             name: file.name,
             size: file.size,
@@ -195,6 +201,8 @@ function Dashboard() {
           seenBy: [],
           lastMessageTime: serverTimestamp(),
           lastSenderName: getSenderDisplayName(user?.uid),
+          senderName: user?.displayName,
+          senderProfilePic: user?.photoURL || null,
         });
       }
       toast.success("File sent successfully!");
