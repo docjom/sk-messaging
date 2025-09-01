@@ -69,6 +69,7 @@ function Login() {
     if (
       isGoogleAuth &&
       userProfile.role !== Roles.ADMIN &&
+      userProfile.role !== Roles.BOSS &&
       userProfile.role !== Roles.SUPER_ADMIN
     ) {
       toast.error("Only admin can login using Google!");
@@ -117,6 +118,7 @@ function Login() {
         // 🔹 Immediately block non-admins BEFORE success toast/navigation
         if (
           userData.role !== Roles?.ADMIN &&
+          userData.role !== Roles?.BOSS &&
           userProfile.role !== Roles?.SUPER_ADMIN
         ) {
           toast.error("Only admin can login using Google!");
@@ -188,7 +190,9 @@ function Login() {
 
       toast.success("Login successful!");
       navigate(
-        userData.role === Roles.ADMIN || userProfile.role === Roles.SUPER_ADMIN
+        userData.role === Roles.ADMIN ||
+          userProfile.role === Roles.SUPER_ADMIN ||
+          userProfile.role === Roles.BOSS
           ? "/admin"
           : "/dashboard"
       );

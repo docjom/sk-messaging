@@ -270,12 +270,18 @@ export const AddUserDialog = () => {
                   <SelectContent>
                     <SelectItem value="user">User</SelectItem>
                     <SelectItem value="hr">HR</SelectItem>
-                    {userProfile.role === Roles.ADMIN && (
-                      <SelectItem value="admin">Admin</SelectItem>
+                    {(userProfile.role === Roles.ADMIN ||
+                      userProfile.role === Roles.BOSS) && (
+                      <>
+                        {" "}
+                        <SelectItem value="admin">Admin</SelectItem>
+                        <SelectItem value="boss">Boss</SelectItem>
+                      </>
                     )}
                     {userProfile.role === Roles.SUPER_ADMIN && (
                       <>
                         <SelectItem value="admin">Admin</SelectItem>
+                        <SelectItem value="boss">Boss</SelectItem>
                         <SelectItem value="super_admin">Super Admin</SelectItem>
                       </>
                     )}

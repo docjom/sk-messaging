@@ -8,6 +8,8 @@ import {
   Timestamp,
 } from "firebase/firestore";
 import { db } from "../../firebase";
+import { useUserStore } from "@/stores/useUserStore";
+import { Roles } from "@/scripts/roles";
 
 export const useFirebaseStats = () => {
   const [stats, setStats] = useState({
@@ -19,6 +21,7 @@ export const useFirebaseStats = () => {
     loading: true,
     error: null,
   });
+  const userProfile = useUserStore((state) => state.userProfile);
 
   useEffect(() => {
     const unsubscribes = [];
@@ -35,12 +38,22 @@ export const useFirebaseStats = () => {
 
     try {
       // 1. Total Users (real-time)
+      // 1. Total Users (real-time)
       const usersUnsubscribe = onSnapshot(
         collection(db, "users"),
         (snapshot) => {
+          let total = snapshot.size;
+
+          // If NOT super admin, exclude super_admin accounts
+          if (userProfile?.role !== Roles.SUPER_ADMIN) {
+            total = snapshot.docs.filter(
+              (doc) => doc.data().role !== Roles.SUPER_ADMIN
+            ).length;
+          }
+
           setStats((prev) => ({
             ...prev,
-            totalUsers: snapshot.size,
+            totalUsers: total,
           }));
         },
         (error) => {
@@ -48,6 +61,7 @@ export const useFirebaseStats = () => {
           setStats((prev) => ({ ...prev, error: error.message }));
         }
       );
+
       unsubscribes.push(usersUnsubscribe);
 
       // 2. Total Chats/Conversations (real-time)

@@ -68,6 +68,7 @@ export const Management = () => {
     { value: "hr", label: "HR" },
     { value: "manager", label: "Manager" },
     { value: "admin", label: "Administrator" },
+    { value: "boss", label: "Boss" },
     { value: "super_admin", label: "Super Administrator" },
   ];
 
@@ -82,6 +83,10 @@ export const Management = () => {
     // Admin can assign User, HR, Manager or Admin
     availableRoleOptions = roleOptions.filter((role) =>
       ["user", "hr", "manager", "admin"].includes(role.value)
+    );
+  } else if (userProfile?.role === Roles.BOSS) {
+    availableRoleOptions = roleOptions.filter((role) =>
+      ["user", "hr", "manager", "admin", "boss"].includes(role.value)
     );
   } else if (userProfile?.role === Roles.SUPER_ADMIN) {
     // Super Admin can assign any role
@@ -115,10 +120,17 @@ export const Management = () => {
   // Categorize users with search filtering
   const { activeUsers, blockedUsers, deletedUsers } = users.reduce(
     (acc, u) => {
+      // ❌ hide super_admin from non-super admins
+      if (
+        userProfile?.role !== Roles.SUPER_ADMIN &&
+        u.role === Roles.SUPER_ADMIN
+      ) {
+        return acc;
+      }
+
       const name = (u.displayName || "").toLowerCase();
       const email = (u.email || "").toLowerCase();
 
-      // Match if search is empty OR matches either name or email
       const matchesSearch =
         !normalizedSearch ||
         name.includes(normalizedSearch) ||
@@ -293,10 +305,12 @@ export const Management = () => {
     // super admin can delete anyone (except self)
     if (currentUser.role === Roles.SUPER_ADMIN) return true;
 
-    // admin can delete but NOT super admin
+    if (currentUser.role === Roles.BOSS) return true;
+
+    // admin can delete but NOT super admin and boss
     if (
       currentUser.role === Roles.ADMIN &&
-      targetUser.role !== Roles.SUPER_ADMIN
+      (targetUser.role !== Roles.SUPER_ADMIN || targetUser.role !== Roles.BOSS)
     ) {
       return true;
     }
@@ -304,6 +318,7 @@ export const Management = () => {
     if (
       currentUser.role === Roles.HR &&
       targetUser.role !== Roles.SUPER_ADMIN &&
+      targetUser.role !== Roles.BOSS &&
       targetUser.role !== Roles.ADMIN
     ) {
       return true;
@@ -327,6 +342,10 @@ export const Management = () => {
       return true;
     }
 
+    if (currentUser.role === Roles.BOSS) {
+      return true;
+    }
+
     // admin can edit but NOT super admin
     if (
       currentUser.role === Roles.ADMIN &&
@@ -339,6 +358,7 @@ export const Management = () => {
     if (
       currentUser.role === Roles.HR &&
       targetUser.role !== Roles.ADMIN &&
+      targetUser.role !== Roles.BOSS &&
       targetUser.role !== Roles.SUPER_ADMIN
     ) {
       return true;
@@ -523,6 +543,8 @@ export const Management = () => {
                                       user.role === Roles.ADMIN
                                         ? "default"
                                         : user.role === Roles.SUPER_ADMIN
+                                        ? "destructive"
+                                        : user.role === Roles.BOSS
                                         ? "destructive"
                                         : user.role === Roles.HR
                                         ? "secondary"

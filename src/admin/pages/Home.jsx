@@ -168,7 +168,8 @@ export const AdminHome = () => {
         </motion.div>
 
         {(userProfile.role === Roles.SUPER_ADMIN ||
-          userProfile.role === Roles.ADMIN) && (
+          userProfile.role === Roles.ADMIN ||
+          userProfile.role === Roles.BOSS) && (
           <>
             {/* System Controls */}
             <motion.div
@@ -335,7 +336,7 @@ export const AdminHome = () => {
             <Link to={"/admin/management"}>
               <Button variant="outline" size="sm">
                 <Users className="h-4 w-4 mr-2" />
-                View All Users ({firebaseStats.totalUsers})
+                View All Users
               </Button>
             </Link>
             {/* <Button variant="outline" size="sm">
