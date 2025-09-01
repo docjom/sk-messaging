@@ -10,18 +10,18 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { Home, Inbox, Settings, MessageCircleMore } from "lucide-react";
-import { useUserStore } from "@/stores/useUserStore";
+//import { useUserStore } from "@/stores/useUserStore";
 import { Roles } from "@/scripts/roles";
 
 export function DashboardSidebar() {
-  const { userProfile } = useUserStore();
+  //  const { userProfile } = useUserStore();
   const items = [
     { title: "Home", url: "/admin/home", icon: Home },
     { title: "User Management", url: "/admin/management", icon: Inbox },
     { title: "Settings", url: "/admin/settings", icon: Settings },
-    ...(userProfile.role === Roles.SUPER_ADMIN
-      ? [{ title: "AllChats", url: "/admin/chats", icon: MessageCircleMore }]
-      : []),
+    // ...(userProfile.role === Roles.SUPER_ADMIN
+    //   ? [{ title: "AllChats", url: "/admin/chats", icon: MessageCircleMore }]
+    //   : []),
   ];
 
   return (
