@@ -6,6 +6,7 @@ import {
   AvatarImage,
 } from "../../components/ui/avatar";
 import { cn } from "../../components/ui/utils";
+import { useTopicId } from "../store/useTopicStore";
 
 // ✅ Utility to format file sizes
 function formatFileSize(bytes) {
@@ -99,7 +100,7 @@ function MessageBubble({ message }) {
           message.isOwn ? "items-end" : "items-start"
         )}
       >
-        { message.senderName && message.type !== "system" && (
+        {message.senderName && message.type !== "system" && (
           <span className="text-xs text-primary mb-0.5 sm:mb-1 px-1">
             {message.senderName}
           </span>
@@ -150,7 +151,9 @@ function MessageBubble({ message }) {
   );
 }
 
-export function ChatArea({ chat, messages }) {
+export function ChatArea({ chat, messages, topics }) {
+  const setTopicId = useTopicId((state) => state.setTopicId);
+  const topicId = useTopicId((state) => state.topicId);
   const getInitials = (name) => {
     return name
       .split(" ")
@@ -158,6 +161,11 @@ export function ChatArea({ chat, messages }) {
       .join("")
       .toUpperCase()
       .slice(0, 2);
+  };
+
+  const handleSelectTopic = (topic) => {
+    // console.log("Selected Topic:", topic);
+    setTopicId(topic.id);
   };
 
   if (!chat) {
@@ -197,9 +205,26 @@ export function ChatArea({ chat, messages }) {
           </Button>
         </div>
       </div>
+      <div>
+        {topics.length > 0 && (
+          <div className="p-3 sm:p-1 border-b border-border bg-card">
+            <div className="flex gap-2 flex-wrap">
+              {" "}
+              {topics.map((topic) => (
+                <Button
+                  onClick={() => handleSelectTopic(topic)}
+                  key={topic.id}
+                  variant={topicId === topic.id ? "default" : "ghost"}
+                  className="border"
+                >
+                  {topic.name}
+                </Button>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
       <div className="flex-1 flex flex-col bg-background overflow-y-auto">
-        {/* Chat Header */}
-
         {/* Messages */}
         <div className="flex-1 p-3 sm:p-4 bg-background ">
           <div className="space-y-0.5 sm:space-y-1">

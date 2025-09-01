@@ -8,7 +8,12 @@ import {
 import { Badge } from "../../components/ui/badge";
 import { cn } from "../../components/ui/utils";
 
-export function ChatSidebar({ chats, selectedChatId, onChatSelect }) {
+export function ChatSidebar({
+  chats,
+  selectedChatId,
+  onChatSelect,
+  clearTopicId,
+}) {
   return (
     <>
       {/* Header */}
@@ -30,7 +35,10 @@ export function ChatSidebar({ chats, selectedChatId, onChatSelect }) {
             {chats.map((chat) => (
               <div
                 key={chat.id}
-                onClick={() => onChatSelect(chat.id)}
+                onClick={() => {
+                  onChatSelect(chat.id);
+                  clearTopicId(chat.id);
+                }}
                 className={cn(
                   "flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg cursor-pointer transition-colors hover:bg-accent",
                   selectedChatId === chat.id && "bg-accent"

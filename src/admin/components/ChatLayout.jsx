@@ -9,12 +9,19 @@ import {
   where,
 } from "firebase/firestore";
 import { db } from "../../firebase";
+import { useUserStore } from "@/stores/useUserStore";
+import { getRefs } from "@/utils/firestoreRefs";
+import { useTopicId } from "../store/useTopicStore";
 
 export function ChatLayout() {
   const [selectedChatId, setSelectedChatId] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [chats, setAllChats] = useState([]);
   const [messages, setMessages] = useState([]);
+  const [topics, setTopics] = useState([]);
+  const { userProfile } = useUserStore();
+  const topicId = useTopicId((state) => state.topicId);
+  const clearTopicId = useTopicId((state) => state.clearTopicId);
 
   // ✅ Get all group chats
   useEffect(() => {
@@ -52,8 +59,12 @@ export function ChatLayout() {
   useEffect(() => {
     if (!selectedChatId) return;
 
-    const messagesRef = collection(db, "chats", selectedChatId, "messages");
-    const q = query(messagesRef, orderBy("timestamp", "asc"));
+    const { messageCollectionRef } = getRefs({
+      chatId: selectedChatId,
+      topicId: topicId,
+    });
+
+    const q = query(messageCollectionRef, orderBy("timestamp", "asc"));
 
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
       const msgsArray = [];
@@ -72,12 +83,46 @@ export function ChatLayout() {
     });
 
     return () => unsubscribe();
-  }, [selectedChatId]);
+  }, [selectedChatId, topicId]);
 
   const selectedChat = chats.find((chat) => chat.id === selectedChatId);
 
   // console.log("Selected Chat:", selectedChat);
   //console.log("Messages:", messages);
+
+  useEffect(() => {
+    if (!selectedChatId) return;
+    let unsubscribe;
+    const topicsRef = collection(db, "chats", selectedChatId, "topics");
+    const topicsQuery = query(topicsRef, orderBy("lastMessageTime", "desc"));
+    unsubscribe = onSnapshot(topicsQuery, (snapshot) => {
+      const loadedTopics = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      const sortedTopics = loadedTopics.sort((a, b) => {
+        const isAPinned = a.pin?.includes(userProfile.uid) ? 1 : 0;
+        const isBPinned = b.pin?.includes(userProfile.uid) ? 1 : 0;
+        if (isAPinned !== isBPinned) return isBPinned - isAPinned;
+        const timeA = a.createdAt?.toMillis?.() || 0;
+        const timeB = b.createdAt?.toMillis?.() || 0;
+        return timeB - timeA;
+      });
+      setTopics(sortedTopics);
+    });
+
+    return () => {
+      if (typeof unsubscribe === "function") {
+        unsubscribe();
+      }
+    };
+  }, [userProfile.uid, selectedChatId]);
+
+  //console.log("Topics:", topics);
+  const handleChatSelect = (chatId) => {
+    setSelectedChatId(chatId);
+    clearTopicId();
+  };
 
   return (
     <>
@@ -90,6 +135,7 @@ export function ChatLayout() {
               chats={chats}
               selectedChatId={selectedChatId}
               onChatSelect={setSelectedChatId}
+              clearTopicId={handleChatSelect}
               onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
             />
           </div>
@@ -99,6 +145,7 @@ export function ChatLayout() {
             <ChatArea
               chat={selectedChat}
               messages={messages}
+              topics={topics}
               onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
             />
           </div>
