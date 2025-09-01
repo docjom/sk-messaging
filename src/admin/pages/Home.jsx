@@ -134,6 +134,8 @@ export const AdminHome = () => {
                       ? "default"
                       : userProfile.role === Roles.SUPER_ADMIN
                       ? "destructive"
+                      : userProfile.role === Roles.BOSS
+                      ? "destructive"
                       : userProfile.role === Roles.HR
                       ? "secondary"
                       : "outline"

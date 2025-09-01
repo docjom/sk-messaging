@@ -39,6 +39,7 @@ export const Settings = () => {
           <div>
             {(userProfile.role === Roles.ADMIN ||
               userProfile.role === Roles.HR ||
+              userProfile.role === Roles.BOSS ||
               userProfile.role === Roles.SUPER_ADMIN) && (
               <div className="mb-2">
                 {" "}
