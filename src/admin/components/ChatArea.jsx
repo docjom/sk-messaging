@@ -34,45 +34,65 @@ function MessageBubble({ message }) {
 
       if (type.startsWith("image/")) {
         return (
-          <div className="rounded-lg overflow-hidden border max-w-xs sm:max-w-sm">
-            <img src={url} alt={name} className="w-full h-auto object-cover" />
-            {name && (
-              <p className="text-xs mt-1 text-muted-foreground">{name}</p>
+          <>
+            <div className="rounded-lg overflow-hidden border max-w-xs sm:max-w-sm">
+              <img
+                src={url}
+                alt={name}
+                className="w-full h-auto object-cover"
+              />
+              {name && (
+                <p className="text-xs mt-1 text-muted-foreground">{name}</p>
+              )}
+            </div>
+            {message.message && (
+              <p className="text-sm sm:text-base mt-1">{message.message}</p>
             )}
-          </div>
+          </>
         );
       }
 
       if (type.startsWith("video/")) {
         return (
-          <div className="rounded-lg overflow-hidden border max-w-xs sm:max-w-sm">
-            <video controls className="w-full rounded-lg">
-              <source src={url} type={type} />
-              Your browser does not support the video tag.
-            </video>
-            {name && (
-              <p className="text-xs mt-1 text-muted-foreground">{name}</p>
+          <>
+            <div className="rounded-lg overflow-hidden border max-w-xs sm:max-w-sm">
+              <video controls className="w-full rounded-lg">
+                <source src={url} type={type} />
+                Your browser does not support the video tag.
+              </video>
+              {name && (
+                <p className="text-xs mt-1 text-muted-foreground">{name}</p>
+              )}
+            </div>
+            {message.message && (
+              <p className="text-sm sm:text-base mt-1">{message.message}</p>
             )}
-          </div>
+          </>
         );
       }
 
       // Generic file
       return (
-        <a
-          href={url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-2 px-3 py-2 bg-accent rounded-lg hover:bg-accent/80"
-        >
-          <Download className="h-4 w-4 text-primary" />
-          <div>
-            <p className="text-sm font-medium">{name || "File"}</p>
-            <p className="text-xs text-muted-foreground">
-              {type} • {formatFileSize(size)}
-            </p>
-          </div>
-        </a>
+        <>
+          <a
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 px-3 py-2 bg-accent rounded-lg hover:bg-accent/80"
+          >
+            <Download className="h-4 w-4 text-primary" />
+            <div>
+              <p className="text-sm font-medium">{name || "File"}</p>
+              <p className="text-xs text-muted-foreground">
+                {type} • {formatFileSize(size)}
+              </p>
+            </div>
+          </a>
+
+          {message.message && (
+            <p className="text-sm sm:text-base mt-1">{message.message}</p>
+          )}
+        </>
       );
     }
 
