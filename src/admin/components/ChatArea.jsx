@@ -7,6 +7,8 @@ import {
 } from "../../components/ui/avatar";
 import { cn } from "../../components/ui/utils";
 import { useTopicId } from "../store/useTopicStore";
+import { formatMessageWithLinks } from "@/composables/scripts";
+import { useUserStore } from "@/stores/useUserStore";
 
 // ✅ Utility to format file sizes
 function formatFileSize(bytes) {
@@ -15,7 +17,7 @@ function formatFileSize(bytes) {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-function MessageBubble({ message }) {
+function MessageBubble({ message, userProfile }) {
   const renderContent = () => {
     // System messages (like "pinned a message")
     if (message.type === "system") {
@@ -97,7 +99,18 @@ function MessageBubble({ message }) {
     }
 
     // Normal text message
-    return <p className="text-sm sm:text-base">{message.message}</p>;
+    return (
+      <div
+        dangerouslySetInnerHTML={{
+          __html: formatMessageWithLinks(
+            message.message,
+            message.senderId,
+            userProfile?.uid
+          ),
+        }}
+        className="text-sm whitespace-pre-wrap break-words leading-relaxed"
+      />
+    );
   };
 
   return (
@@ -174,6 +187,7 @@ function MessageBubble({ message }) {
 export function ChatArea({ chat, messages, topics }) {
   const setTopicId = useTopicId((state) => state.setTopicId);
   const topicId = useTopicId((state) => state.topicId);
+  const { userProfile } = useUserStore();
   const getInitials = (name) => {
     return name
       .split(" ")
@@ -249,8 +263,17 @@ export function ChatArea({ chat, messages, topics }) {
         <div className="flex-1 p-3 sm:p-4 bg-background ">
           <div className="space-y-0.5 sm:space-y-1">
             {messages.map((message) => (
-              <MessageBubble key={message.id} message={message} />
+              <MessageBubble
+                key={message.id}
+                message={message}
+                userProfile={userProfile}
+              />
             ))}
+            {messages.length === 0 && (
+              <div className="text-center text-sm text-muted-foreground">
+                No messages yet.
+              </div>
+            )}
           </div>
         </div>
       </div>
