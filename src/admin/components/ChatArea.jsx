@@ -9,6 +9,7 @@ import { cn } from "../../components/ui/utils";
 import { useTopicId } from "../store/useTopicStore";
 import { formatMessageWithLinks } from "@/composables/scripts";
 import { useUserStore } from "@/stores/useUserStore";
+import { GroupMembers } from "./GroupChatMembers";
 
 // ✅ Utility to format file sizes
 function formatFileSize(bytes) {
@@ -234,9 +235,7 @@ export function ChatArea({ chat, messages, topics }) {
         </div>
 
         <div className="flex items-center gap-0.5 sm:gap-1 flex-shrink-0">
-          <Button variant="ghost" size="sm" className="h-8 w-8 sm:h-9 sm:w-9">
-            <MoreVertical className="h-4 w-4 sm:h-5 sm:w-5" />
-          </Button>
+          <GroupMembers chat={chat} />
         </div>
       </div>
       <div>

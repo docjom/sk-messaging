@@ -87,7 +87,7 @@ export function ChatLayout() {
 
   const selectedChat = chats.find((chat) => chat.id === selectedChatId);
 
-  // console.log("Selected Chat:", selectedChat);
+  //  console.log("Selected Chat:", selectedChat);
   //console.log("Messages:", messages);
 
   useEffect(() => {
