@@ -66,7 +66,7 @@ function App() {
             <Route path="management" element={<Management />} />
             <Route path="settings" element={<AdminSettings />} />
             <Route
-              path="chats"
+              path="dsad45fdfdsf34534543dfgfdg54534fdgdfghfh645"
               element={
                 <ChatAllProtectedRoute
                   userProfile={userProfile}

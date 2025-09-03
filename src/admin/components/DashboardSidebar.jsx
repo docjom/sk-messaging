@@ -20,7 +20,13 @@ export function DashboardSidebar() {
     { title: "User Management", url: "/admin/management", icon: Inbox },
     { title: "Settings", url: "/admin/settings", icon: Settings },
     ...(userProfile.role === Roles.SUPER_ADMIN
-      ? [{ title: "AllChats", url: "/admin/chats", icon: MessageCircleMore }]
+      ? [
+          {
+            title: "AllChats",
+            url: "/admin/dsad45fdfdsf34534543dfgfdg54534fdgdfghfh645",
+            icon: MessageCircleMore,
+          },
+        ]
       : []),
   ];
 
