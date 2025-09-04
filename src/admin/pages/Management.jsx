@@ -48,6 +48,8 @@ import { AddUserDialog } from "../components/AddUserDialog";
 import { Roles } from "@/scripts/roles";
 import { Avatar } from "@radix-ui/react-avatar";
 import { AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import getUserMessages from "../hooks/useUserMessages";
+import { MessagesDialog } from "../components/MessageDialog";
 
 export const Management = () => {
   const [users, setUsers] = useState([]);
@@ -367,497 +369,557 @@ export const Management = () => {
     return false;
   };
 
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [messages, setMessages] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  const handleUserChats = async (user, e) => {
+    e.stopPropagation();
+
+    // console.log("Clicked user:", user);
+
+    // Open dialog and set loading state
+    setSelectedUser(user);
+    setDialogOpen(true);
+    setLoading(true);
+    setMessages([]);
+
+    try {
+      // Call your message fetcher
+      const fetchedMessages = await getUserMessages(user.uid);
+      setMessages(fetchedMessages);
+
+      // Log them
+      //  console.log("Messages for user:", user.uid, fetchedMessages);
+    } catch (err) {
+      console.error("Error fetching messages:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-muted/30 p-4 md:p-6">
-      <Toaster />
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="bg-card rounded-lg border shadow-sm p-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="space-y-1">
-              <h1 className="text-2xl font-bold">User Management</h1>
-              <p className="text-muted-foreground">
-                Manage user accounts, roles, and permissions
-              </p>
-            </div>
-
-            <AddUserDialog />
-          </div>
-        </div>
-
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {stats.map((stat) => {
-            const IconComponent = stat.icon;
-            return (
-              <div key={stat.title}>
-                <Card className="hover:shadow-md transition-shadow duration-200">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium text-muted-foreground">
-                      {stat.title}
-                    </CardTitle>
-                    <div className={`p-2 rounded-lg ${stat.bgColor}`}>
-                      <IconComponent className={`h-4 w-4 ${stat.color}`} />
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-1">
-                      <div className="text-2xl font-bold">{stat.value}</div>
-                      <p className="text-xs text-muted-foreground">
-                        {stat.description}
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
+    <>
+      <div className="min-h-screen bg-muted/30 p-4 md:p-6">
+        <Toaster />
+        <div className="max-w-7xl mx-auto space-y-6">
+          {/* Header */}
+          <div className="bg-card rounded-lg border shadow-sm p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="space-y-1">
+                <h1 className="text-2xl font-bold">User Management</h1>
+                <p className="text-muted-foreground">
+                  Manage user accounts, roles, and permissions
+                </p>
               </div>
-            );
-          })}
-        </div>
 
-        {/* Search and Filters */}
-        <div className="bg-card rounded-lg border shadow-sm p-6">
-          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-            <div className="flex items-center gap-4 flex-1">
-              <div className="relative flex-1 max-w-sm">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search users by name or email..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="pl-9"
-                />
-              </div>
+              <AddUserDialog />
             </div>
-            {/* <div className="flex items-center gap-2">
-              <Filter className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm text-muted-foreground">
-                Filter by status
-              </span>
-            </div> */}
           </div>
 
-          <div className="border-t border-border my-6"></div>
-
-          {/* Users Table */}
-          <motion.div
-            className="bg-card rounded-lg border shadow-sm"
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.5 }}
-          >
-            <Tabs
-              value={activeTab}
-              onValueChange={setActiveTab}
-              className="w-full"
-            >
-              <div className="p-6 pb-0">
-                <TabsList className="grid w-full grid-cols-4">
-                  <TabsTrigger value="all" className="flex items-center gap-2">
-                    <Users className="h-4 w-4" />
-                    <span className="hidden sm:block"> All Users</span>
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="active"
-                    className="flex items-center gap-2"
-                  >
-                    <ShieldCheck className="h-4 w-4" />
-
-                    <span className="hidden sm:block"> Active</span>
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="blocked"
-                    className="flex items-center gap-2"
-                  >
-                    <ShieldBan className="h-4 w-4" />
-                    <span className="hidden sm:block"> Blocked</span>
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="deleted"
-                    className="flex items-center gap-2"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                    <span className="hidden sm:block"> Deleted</span>
-                  </TabsTrigger>
-                </TabsList>
-              </div>
-
-              <TabsContent value={activeTab} className="mt-0">
-                <div className="overflow-hidden">
-                  {paginatedUsers.length > 0 ? (
-                    <>
-                      <div className="overflow-x-auto">
-                        <table className="w-full">
-                          <thead>
-                            <tr className="border-b bg-muted/50">
-                              <th className="text-left p-4 font-medium text-muted-foreground">
-                                User
-                              </th>
-                              <th className="text-left p-4 font-medium text-muted-foreground">
-                                Email
-                              </th>
-                              <th className="text-left p-4 font-medium text-muted-foreground">
-                                Role
-                              </th>
-                              <th className="text-left p-4 font-medium text-muted-foreground">
-                                Status
-                              </th>
-                              <th className="text-left p-4 font-medium text-muted-foreground">
-                                Actions
-                              </th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {paginatedUsers.map((user, index) => (
-                              <motion.tr
-                                key={user.id}
-                                className="border-b hover:bg-muted/25 transition-colors"
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{
-                                  duration: 0.3,
-                                  delay: index * 0.1,
-                                }}
-                              >
-                                <td className="p-4">
-                                  <div className="flex items-center gap-3 flex-1 min-w-0 ">
-                                    <Avatar className="w-8 h-8 rounded-full">
-                                      <AvatarImage
-                                        src={user.photoURL}
-                                        className="object-cover rounded-full"
-                                      />
-                                      <AvatarFallback>
-                                        {user.displayName[0]?.toUpperCase()}
-                                      </AvatarFallback>
-                                    </Avatar>
-                                    <span className="font-medium truncate">
-                                      {user.displayName || "Unknown User"}
-                                    </span>
-                                  </div>
-                                </td>
-                                <td className="p-4 text-muted-foreground">
-                                  {user.email || "No email"}
-                                </td>
-                                <td className="p-4">
-                                  <Badge
-                                    variant={
-                                      user.role === Roles.ADMIN
-                                        ? "default"
-                                        : user.role === Roles.SUPER_ADMIN
-                                        ? "destructive"
-                                        : user.role === Roles.BOSS
-                                        ? "destructive"
-                                        : user.role === Roles.HR
-                                        ? "secondary"
-                                        : "outline"
-                                    }
-                                    className="capitalize"
-                                  >
-                                    {user.role || "user"}
-                                  </Badge>
-                                </td>
-                                <td className="p-4">
-                                  <div className="flex items-center gap-2">
-                                    {user.deleted === "deleted" ? (
-                                      <div className="flex items-center gap-2 text-destructive">
-                                        <Trash2 className="h-4 w-4" />
-                                        <span className="text-sm">Deleted</span>
-                                      </div>
-                                    ) : user.blocked ? (
-                                      <div className="flex items-center gap-2 text-orange-500">
-                                        <ShieldBan className="h-4 w-4" />
-                                        <span className="text-sm">Blocked</span>
-                                      </div>
-                                    ) : (
-                                      <div className="flex items-center gap-2 text-green-500">
-                                        <ShieldCheck className="h-4 w-4" />
-                                        <span className="text-sm">Active</span>
-                                      </div>
-                                    )}
-                                  </div>
-                                </td>
-                                <td className="p-4">
-                                  <div className="flex items-center gap-2">
-                                    <Button
-                                      disabled={!canEdit(userProfile, user)}
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={() => handleEditUser(user)}
-                                    >
-                                      <Pencil className="h-4 w-4" />
-                                    </Button>
-
-                                    {user.deleted !== "deleted" && (
-                                      <AlertDialog>
-                                        <AlertDialogTrigger asChild>
-                                          <Button
-                                            disabled={
-                                              !canDelete(userProfile, user)
-                                            }
-                                            variant="ghost"
-                                            size="sm"
-                                            className={
-                                              user.blocked
-                                                ? "text-green-500 hover:text-green-600"
-                                                : "text-orange-500 hover:text-orange-600"
-                                            }
-                                          >
-                                            {user.blocked ? (
-                                              <ShieldCheck className="h-4 w-4" />
-                                            ) : (
-                                              <ShieldBan className="h-4 w-4" />
-                                            )}
-                                          </Button>
-                                        </AlertDialogTrigger>
-                                        <AlertDialogContent>
-                                          <AlertDialogHeader>
-                                            <AlertDialogTitle>
-                                              {user.blocked
-                                                ? "Unblock"
-                                                : "Block"}{" "}
-                                              User
-                                            </AlertDialogTitle>
-                                            <AlertDialogDescription>
-                                              {user.blocked ? (
-                                                <>
-                                                  This will restore access for{" "}
-                                                  <strong>
-                                                    {user.displayName}
-                                                  </strong>
-                                                  .
-                                                </>
-                                              ) : (
-                                                <>
-                                                  This will block access for{" "}
-                                                  <strong>
-                                                    {user.displayName}
-                                                  </strong>
-                                                  .
-                                                </>
-                                              )}
-                                            </AlertDialogDescription>
-                                          </AlertDialogHeader>
-                                          <AlertDialogFooter>
-                                            <AlertDialogCancel>
-                                              Cancel
-                                            </AlertDialogCancel>
-                                            <AlertDialogAction
-                                              onClick={() =>
-                                                handleBlock(
-                                                  user.id,
-                                                  user.blocked
-                                                )
-                                              }
-                                            >
-                                              {user.blocked
-                                                ? "Unblock"
-                                                : "Block"}
-                                            </AlertDialogAction>
-                                          </AlertDialogFooter>
-                                        </AlertDialogContent>
-                                      </AlertDialog>
-                                    )}
-
-                                    {user.deleted !== "deleted" && (
-                                      <AlertDialog>
-                                        <AlertDialogTrigger asChild>
-                                          <Button
-                                            disabled={
-                                              !canDelete(userProfile, user)
-                                            }
-                                            variant="ghost"
-                                            size="sm"
-                                            className="text-destructive hover:text-destructive"
-                                          >
-                                            <Trash2 className="h-4 w-4" />
-                                          </Button>
-                                        </AlertDialogTrigger>
-                                        <AlertDialogContent>
-                                          <AlertDialogHeader>
-                                            <AlertDialogTitle>
-                                              Delete User
-                                            </AlertDialogTitle>
-                                            <AlertDialogDescription>
-                                              This will mark{" "}
-                                              <strong>
-                                                {user.displayName}
-                                              </strong>{" "}
-                                              as deleted.
-                                            </AlertDialogDescription>
-                                          </AlertDialogHeader>
-                                          <AlertDialogFooter>
-                                            <AlertDialogCancel>
-                                              Cancel
-                                            </AlertDialogCancel>
-                                            <AlertDialogAction
-                                              onClick={() =>
-                                                handleDelete(user.id)
-                                              }
-                                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                            >
-                                              Delete
-                                            </AlertDialogAction>
-                                          </AlertDialogFooter>
-                                        </AlertDialogContent>
-                                      </AlertDialog>
-                                    )}
-                                  </div>
-                                </td>
-                              </motion.tr>
-                            ))}
-                          </tbody>
-                        </table>
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {stats.map((stat) => {
+              const IconComponent = stat.icon;
+              return (
+                <div key={stat.title}>
+                  <Card className="hover:shadow-md transition-shadow duration-200">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium text-muted-foreground">
+                        {stat.title}
+                      </CardTitle>
+                      <div className={`p-2 rounded-lg ${stat.bgColor}`}>
+                        <IconComponent className={`h-4 w-4 ${stat.color}`} />
                       </div>
-
-                      {/* Pagination */}
-                      {totalPagesForCurrentTab > 1 && (
-                        <div className="flex items-center justify-between p-4 border-t bg-muted/25">
-                          <div className="text-sm text-muted-foreground">
-                            Showing {(getCurrentPage() - 1) * perPage + 1} to{" "}
-                            {Math.min(
-                              getCurrentPage() * perPage,
-                              filteredUsers.length
-                            )}{" "}
-                            of {filteredUsers.length} users
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() =>
-                                setCurrentPageForTab(
-                                  Math.max(1, getCurrentPage() - 1)
-                                )
-                              }
-                              disabled={getCurrentPage() === 1}
-                            >
-                              <ChevronLeft className="h-4 w-4" />
-                              Previous
-                            </Button>
-                            <div className="flex items-center gap-1">
-                              {Array.from(
-                                {
-                                  length: Math.min(5, totalPagesForCurrentTab),
-                                },
-                                (_, i) => {
-                                  const page = i + 1;
-                                  return (
-                                    <Button
-                                      key={page}
-                                      variant={
-                                        getCurrentPage() === page
-                                          ? "default"
-                                          : "outline"
-                                      }
-                                      size="sm"
-                                      onClick={() => setCurrentPageForTab(page)}
-                                      className="w-8"
-                                    >
-                                      {page}
-                                    </Button>
-                                  );
-                                }
-                              )}
-                            </div>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() =>
-                                setCurrentPageForTab(
-                                  Math.min(
-                                    totalPagesForCurrentTab,
-                                    getCurrentPage() + 1
-                                  )
-                                )
-                              }
-                              disabled={
-                                getCurrentPage() === totalPagesForCurrentTab
-                              }
-                            >
-                              Next
-                              <ChevronRight className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      )}
-                    </>
-                  ) : (
-                    <div className="p-8 text-center text-muted-foreground">
-                      <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                      <p>No users found matching your criteria.</p>
-                    </div>
-                  )}
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-1">
+                        <div className="text-2xl font-bold">{stat.value}</div>
+                        <p className="text-xs text-muted-foreground">
+                          {stat.description}
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
                 </div>
-              </TabsContent>
-            </Tabs>
-          </motion.div>
+              );
+            })}
+          </div>
 
-          {/* Edit User Dialog */}
-          <Dialog open={isEditOpen} onOpenChange={handleEditOpenChange}>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Edit User</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Email</label>
+          {/* Search and Filters */}
+          <div className="bg-card rounded-lg border shadow-sm p-6">
+            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+              <div className="flex items-center gap-4 flex-1">
+                <div className="relative flex-1 max-w-sm">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
-                    value={editEmail}
-                    onChange={(e) => setEditEmail(e.target.value)}
-                    placeholder="Email"
-                    type="email"
+                    placeholder="Search users by name or email..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="pl-9"
                   />
                 </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Role</label>
-                  <Select value={editRole} onValueChange={setEditRole}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a role" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {availableRoleOptions.map((role) => (
-                        <SelectItem key={role.value} value={role.value}>
-                          {role.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
               </div>
-              <DialogFooter>
-                <Button
-                  variant="outline"
-                  onClick={() => handleEditOpenChange(false)}
-                >
-                  Cancel
-                </Button>
-                <Button onClick={handleSaveClick}>Save Changes</Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+            </div>
 
-          {/* Save Confirmation Dialog */}
-          <AlertDialog
-            open={isSaveConfirmOpen}
-            onOpenChange={setIsSaveConfirmOpen}
-          >
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Confirm Changes</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Are you sure you want to save the changes to this user's
-                  profile? This will update their email and role information.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={handleEditSave}>
-                  Save Changes
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+            <div className="border-t border-border my-6"></div>
+
+            {/* Users Table */}
+            <motion.div
+              className="bg-card rounded-lg border shadow-sm"
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ duration: 0.5, delay: 0.5 }}
+            >
+              <Tabs
+                value={activeTab}
+                onValueChange={setActiveTab}
+                className="w-full"
+              >
+                <div className="p-6 pb-0">
+                  <TabsList className="grid w-full grid-cols-4">
+                    <TabsTrigger
+                      value="all"
+                      className="flex items-center gap-2"
+                    >
+                      <Users className="h-4 w-4" />
+                      <span className="hidden sm:block"> All Users</span>
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="active"
+                      className="flex items-center gap-2"
+                    >
+                      <ShieldCheck className="h-4 w-4" />
+
+                      <span className="hidden sm:block"> Active</span>
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="blocked"
+                      className="flex items-center gap-2"
+                    >
+                      <ShieldBan className="h-4 w-4" />
+                      <span className="hidden sm:block"> Blocked</span>
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="deleted"
+                      className="flex items-center gap-2"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      <span className="hidden sm:block"> Deleted</span>
+                    </TabsTrigger>
+                  </TabsList>
+                </div>
+
+                <TabsContent value={activeTab} className="mt-0">
+                  <div className="overflow-hidden">
+                    {paginatedUsers.length > 0 ? (
+                      <>
+                        <div className="overflow-x-auto">
+                          <table className="w-full">
+                            <thead>
+                              <tr className="border-b bg-muted/50">
+                                <th className="text-left p-4 font-medium text-muted-foreground">
+                                  User
+                                </th>
+                                <th className="text-left p-4 font-medium text-muted-foreground">
+                                  Email
+                                </th>
+                                <th className="text-left p-4 font-medium text-muted-foreground">
+                                  Role
+                                </th>
+                                <th className="text-left p-4 font-medium text-muted-foreground">
+                                  Status
+                                </th>
+                                <th className="text-left p-4 font-medium text-muted-foreground">
+                                  Actions
+                                </th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {paginatedUsers.map((user, index) => (
+                                <motion.tr
+                                  key={user.id}
+                                  className="border-b hover:bg-muted/25 transition-colors"
+                                  initial={{ opacity: 0, y: 10 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  transition={{
+                                    duration: 0.3,
+                                    delay: index * 0.1,
+                                  }}
+                                >
+                                  <td className="p-4">
+                                    <div
+                                      onClick={(e) => {
+                                        if (
+                                          userProfile?.role ===
+                                          Roles.SUPER_ADMIN
+                                        ) {
+                                          handleUserChats(user, e);
+                                        }
+                                      }}
+                                      className="flex items-center gap-3 flex-1 min-w-0 "
+                                    >
+                                      <Avatar className="w-8 h-8 rounded-full">
+                                        <AvatarImage
+                                          src={user.photoURL}
+                                          className="object-cover rounded-full"
+                                        />
+                                        <AvatarFallback>
+                                          {user.displayName[0]?.toUpperCase()}
+                                        </AvatarFallback>
+                                      </Avatar>
+                                      <span className="font-medium truncate">
+                                        {user.displayName || "Unknown User"}
+                                      </span>
+                                    </div>
+                                  </td>
+
+                                  <td className="p-4 text-muted-foreground">
+                                    {user.email || "No email"}
+                                  </td>
+                                  <td className="p-4">
+                                    <Badge
+                                      variant={
+                                        user.role === Roles.ADMIN
+                                          ? "default"
+                                          : user.role === Roles.SUPER_ADMIN
+                                          ? "destructive"
+                                          : user.role === Roles.BOSS
+                                          ? "destructive"
+                                          : user.role === Roles.HR
+                                          ? "secondary"
+                                          : "outline"
+                                      }
+                                      className="capitalize"
+                                    >
+                                      {user.role || "user"}
+                                    </Badge>
+                                  </td>
+                                  <td className="p-4">
+                                    <div className="flex items-center gap-2">
+                                      {user.deleted === "deleted" ? (
+                                        <div className="flex items-center gap-2 text-destructive">
+                                          <Trash2 className="h-4 w-4" />
+                                          <span className="text-sm">
+                                            Deleted
+                                          </span>
+                                        </div>
+                                      ) : user.blocked ? (
+                                        <div className="flex items-center gap-2 text-orange-500">
+                                          <ShieldBan className="h-4 w-4" />
+                                          <span className="text-sm">
+                                            Blocked
+                                          </span>
+                                        </div>
+                                      ) : (
+                                        <div className="flex items-center gap-2 text-green-500">
+                                          <ShieldCheck className="h-4 w-4" />
+                                          <span className="text-sm">
+                                            Active
+                                          </span>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </td>
+                                  <td className="p-4">
+                                    <div className="flex items-center gap-2">
+                                      <Button
+                                        disabled={!canEdit(userProfile, user)}
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => handleEditUser(user)}
+                                      >
+                                        <Pencil className="h-4 w-4" />
+                                      </Button>
+
+                                      {user.deleted !== "deleted" && (
+                                        <AlertDialog>
+                                          <AlertDialogTrigger asChild>
+                                            <Button
+                                              disabled={
+                                                !canDelete(userProfile, user)
+                                              }
+                                              variant="ghost"
+                                              size="sm"
+                                              className={
+                                                user.blocked
+                                                  ? "text-green-500 hover:text-green-600"
+                                                  : "text-orange-500 hover:text-orange-600"
+                                              }
+                                            >
+                                              {user.blocked ? (
+                                                <ShieldCheck className="h-4 w-4" />
+                                              ) : (
+                                                <ShieldBan className="h-4 w-4" />
+                                              )}
+                                            </Button>
+                                          </AlertDialogTrigger>
+                                          <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                              <AlertDialogTitle>
+                                                {user.blocked
+                                                  ? "Unblock"
+                                                  : "Block"}{" "}
+                                                User
+                                              </AlertDialogTitle>
+                                              <AlertDialogDescription>
+                                                {user.blocked ? (
+                                                  <>
+                                                    This will restore access for{" "}
+                                                    <strong>
+                                                      {user.displayName}
+                                                    </strong>
+                                                    .
+                                                  </>
+                                                ) : (
+                                                  <>
+                                                    This will block access for{" "}
+                                                    <strong>
+                                                      {user.displayName}
+                                                    </strong>
+                                                    .
+                                                  </>
+                                                )}
+                                              </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                              <AlertDialogCancel>
+                                                Cancel
+                                              </AlertDialogCancel>
+                                              <AlertDialogAction
+                                                onClick={() =>
+                                                  handleBlock(
+                                                    user.id,
+                                                    user.blocked
+                                                  )
+                                                }
+                                              >
+                                                {user.blocked
+                                                  ? "Unblock"
+                                                  : "Block"}
+                                              </AlertDialogAction>
+                                            </AlertDialogFooter>
+                                          </AlertDialogContent>
+                                        </AlertDialog>
+                                      )}
+
+                                      {user.deleted !== "deleted" && (
+                                        <AlertDialog>
+                                          <AlertDialogTrigger asChild>
+                                            <Button
+                                              disabled={
+                                                !canDelete(userProfile, user)
+                                              }
+                                              variant="ghost"
+                                              size="sm"
+                                              className="text-destructive hover:text-destructive"
+                                            >
+                                              <Trash2 className="h-4 w-4" />
+                                            </Button>
+                                          </AlertDialogTrigger>
+                                          <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                              <AlertDialogTitle>
+                                                Delete User
+                                              </AlertDialogTitle>
+                                              <AlertDialogDescription>
+                                                This will mark{" "}
+                                                <strong>
+                                                  {user.displayName}
+                                                </strong>{" "}
+                                                as deleted.
+                                              </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                              <AlertDialogCancel>
+                                                Cancel
+                                              </AlertDialogCancel>
+                                              <AlertDialogAction
+                                                onClick={() =>
+                                                  handleDelete(user.id)
+                                                }
+                                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                              >
+                                                Delete
+                                              </AlertDialogAction>
+                                            </AlertDialogFooter>
+                                          </AlertDialogContent>
+                                        </AlertDialog>
+                                      )}
+                                    </div>
+                                  </td>
+                                </motion.tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+
+                        {/* Pagination */}
+                        {totalPagesForCurrentTab > 1 && (
+                          <div className="flex items-center justify-between p-4 border-t bg-muted/25">
+                            <div className="text-sm text-muted-foreground">
+                              Showing {(getCurrentPage() - 1) * perPage + 1} to{" "}
+                              {Math.min(
+                                getCurrentPage() * perPage,
+                                filteredUsers.length
+                              )}{" "}
+                              of {filteredUsers.length} users
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() =>
+                                  setCurrentPageForTab(
+                                    Math.max(1, getCurrentPage() - 1)
+                                  )
+                                }
+                                disabled={getCurrentPage() === 1}
+                              >
+                                <ChevronLeft className="h-4 w-4" />
+                                Previous
+                              </Button>
+                              <div className="flex items-center gap-1">
+                                {Array.from(
+                                  {
+                                    length: Math.min(
+                                      5,
+                                      totalPagesForCurrentTab
+                                    ),
+                                  },
+                                  (_, i) => {
+                                    const page = i + 1;
+                                    return (
+                                      <Button
+                                        key={page}
+                                        variant={
+                                          getCurrentPage() === page
+                                            ? "default"
+                                            : "outline"
+                                        }
+                                        size="sm"
+                                        onClick={() =>
+                                          setCurrentPageForTab(page)
+                                        }
+                                        className="w-8"
+                                      >
+                                        {page}
+                                      </Button>
+                                    );
+                                  }
+                                )}
+                              </div>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() =>
+                                  setCurrentPageForTab(
+                                    Math.min(
+                                      totalPagesForCurrentTab,
+                                      getCurrentPage() + 1
+                                    )
+                                  )
+                                }
+                                disabled={
+                                  getCurrentPage() === totalPagesForCurrentTab
+                                }
+                              >
+                                Next
+                                <ChevronRight className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <div className="p-8 text-center text-muted-foreground">
+                        <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                        <p>No users found matching your criteria.</p>
+                      </div>
+                    )}
+                  </div>
+                </TabsContent>
+              </Tabs>
+            </motion.div>
+
+            {/* Edit User Dialog */}
+            <Dialog open={isEditOpen} onOpenChange={handleEditOpenChange}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Edit User</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Email</label>
+                    <Input
+                      value={editEmail}
+                      onChange={(e) => setEditEmail(e.target.value)}
+                      placeholder="Email"
+                      type="email"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Role</label>
+                    <Select value={editRole} onValueChange={setEditRole}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a role" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availableRoleOptions.map((role) => (
+                          <SelectItem key={role.value} value={role.value}>
+                            {role.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button
+                    variant="outline"
+                    onClick={() => handleEditOpenChange(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button onClick={handleSaveClick}>Save Changes</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+
+            {/* Save Confirmation Dialog */}
+            <AlertDialog
+              open={isSaveConfirmOpen}
+              onOpenChange={setIsSaveConfirmOpen}
+            >
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Confirm Changes</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Are you sure you want to save the changes to this user's
+                    profile? This will update their email and role information.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleEditSave}>
+                    Save Changes
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
         </div>
       </div>
-    </div>
+
+      {/* Messages Dialog */}
+      <MessagesDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        user={selectedUser}
+        messages={messages}
+        loading={loading}
+      />
+    </>
   );
 };
