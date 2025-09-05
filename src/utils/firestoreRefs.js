@@ -9,13 +9,14 @@ export const getRefs = ({
   fileName = null,
 }) => {
   const storage = getStorage();
+  const timestamp = Date.now();
   const basePath = topicId
     ? ["chats", chatId, "topics", topicId]
     : ["chats", chatId];
 
   const storageBasePath = topicId
-    ? ["chat-files", chatId, "topics", topicId]
-    : ["chat-files", chatId];
+    ? [`chat-files/${chatId}/topics/${topicId}/${timestamp}/`]
+    : [`chat-files/${chatId}-${timestamp}/`];
 
   const messageRef = messageId
     ? doc(db, ...basePath, "messages", messageId)

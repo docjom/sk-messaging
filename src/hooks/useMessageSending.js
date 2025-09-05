@@ -1,5 +1,5 @@
 import { toast } from "sonner";
-import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { uploadBytes, getDownloadURL } from "firebase/storage";
 import { addDoc, serverTimestamp, updateDoc } from "firebase/firestore";
 import { useMessageActionStore } from "../stores/useMessageActionStore";
 
@@ -11,14 +11,14 @@ export const useMessageSending = () => {
   const userProfile = useUserStore.getState().userProfile;
   const clearMessage = useMessageActionStore.getState().clearMessage;
 
-  const uploadImageToStorage = async (imageFile, chatId) => {
-    const storage = getStorage();
-    const timestamp = Date.now();
-    const imageRef = ref(
-      storage,
-      `chat-files/${chatId}/${timestamp}_${imageFile?.name}`
-    );
-    const snapshot = await uploadBytes(imageRef, imageFile);
+  const uploadImageToStorage = async (imageFile, chatId, topicId) => {
+    const { storageRef } = getRefs({
+      chatId,
+      topicId,
+      fileName: imageFile?.name,
+    });
+
+    const snapshot = await uploadBytes(storageRef, imageFile);
     const downloadURL = await getDownloadURL(snapshot.ref);
     return downloadURL;
   };
@@ -46,7 +46,11 @@ export const useMessageSending = () => {
     try {
       let imageURL = null;
       if (pastedImage) {
-        imageURL = await uploadImageToStorage(pastedImage.file, chatId);
+        imageURL = await uploadImageToStorage(
+          pastedImage.file,
+          chatId,
+          topicId
+        );
       }
 
       const { chatRef, filesRef, messageCollectionRef } = getRefs({

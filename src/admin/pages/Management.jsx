@@ -325,7 +325,6 @@ export const Management = () => {
     ) {
       return true;
     }
-
     return false;
   };
 
@@ -376,22 +375,13 @@ export const Management = () => {
 
   const handleUserChats = async (user, e) => {
     e.stopPropagation();
-
-    // console.log("Clicked user:", user);
-
-    // Open dialog and set loading state
     setSelectedUser(user);
     setDialogOpen(true);
     setLoading(true);
     setMessages([]);
-
     try {
-      // Call your message fetcher
       const fetchedMessages = await getUserMessages(user.uid);
       setMessages(fetchedMessages);
-
-      // Log them
-      //  console.log("Messages for user:", user.uid, fetchedMessages);
     } catch (err) {
       console.error("Error fetching messages:", err);
     } finally {
@@ -550,14 +540,14 @@ export const Management = () => {
                                 >
                                   <td className="p-4">
                                     <div
-                                      onClick={(e) => {
-                                        if (
-                                          userProfile?.role ===
-                                          Roles.SUPER_ADMIN
-                                        ) {
-                                          handleUserChats(user, e);
-                                        }
-                                      }}
+                                      // onClick={(e) => {
+                                      //   if (
+                                      //     userProfile?.role ===
+                                      //     Roles.SUPER_ADMIN
+                                      //   ) {
+                                      //     handleUserChats(user, e);
+                                      //   }
+                                      // }}
                                       className="flex items-center gap-3 flex-1 min-w-0 "
                                     >
                                       <Avatar className="w-8 h-8 rounded-full">
