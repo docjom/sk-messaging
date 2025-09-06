@@ -77,14 +77,14 @@ export const FileMessage = ({
 
   return (
     <>
-      <div className="w-full sm:max-w-[20rem] md:max-w-[28rem] border rounded-lg">
+      <div className="w-full sm:max-w-[20rem] md:max-w-[28rem]  rounded-lg">
         {isImage && (
           <div className="relative">
             {/* Loading or error placeholder */}
             {!isImageLoaded && !isImageError && (
               <div
-                className={`w-52 h-52 border border-gray-200 flex items-center justify-center ${
-                  message.message !== "" ? "rounded-t-lg" : "rounded-lg"
+                className={`w-52 h-52  flex items-center justify-center ${
+                  message.message !== "" ? "rounded-t-xl" : "rounded-xl"
                 }`}
               >
                 <div className="flex flex-col items-center gap-2">
@@ -101,8 +101,8 @@ export const FileMessage = ({
 
             {isImageError && (
               <div
-                className={`w-52 h-52 border border-gray-200 flex items-center justify-center ${
-                  message.message !== "" ? "rounded-t-lg" : "rounded-lg"
+                className={`w-52 h-52 border border-gray-200 dark:border-gray-400 flex items-center justify-center ${
+                  message.message !== "" ? "rounded-t-xl" : "rounded-xl"
                 }`}
               >
                 <div className="flex flex-col items-center gap-2">
@@ -121,7 +121,7 @@ export const FileMessage = ({
               src={fileData.url}
               alt={fileData.name}
               className={`max-w-52 h-auto object-cover border cursor-pointer hover:opacity-90 transition-opacity ${
-                message.message !== "" ? "rounded-t-lg" : "rounded-lg"
+                message.message !== "" ? "rounded-t-xl" : "rounded-lg"
               } ${!isImageLoaded || isImageError ? "hidden" : ""}`}
               onClick={openMediaDialog}
               onLoad={() => handleImageLoad(messageId)}
@@ -154,7 +154,7 @@ export const FileMessage = ({
               <video
                 src={fileData.url}
                 className={`max-w-52 h-auto object-cover border cursor-pointer hover:opacity-90 transition-opacity ${
-                  message.message !== "" ? "rounded-t-lg" : "rounded-lg"
+                  message.message !== "" ? "rounded-t-lg" : "rounded-xl"
                 } ${!isVideoLoaded || isVideoError ? "hidden" : ""}`}
                 onLoadedData={() => handleVideoLoad(messageId)}
                 onError={() => handleVideoLoad(messageId, true)}

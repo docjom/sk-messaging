@@ -1,4 +1,10 @@
-import { MoreVertical, Check, CheckCheck, Download } from "lucide-react";
+import {
+  MoreVertical,
+  Check,
+  CheckCheck,
+  Download,
+  MessageCircle,
+} from "lucide-react";
 import { Button } from "../../components/ui/button";
 import {
   Avatar,
@@ -239,24 +245,45 @@ export function ChatArea({ chat, messages, topics }) {
         </div>
       </div>
 
-      <div className=" flex items-center w-full justify-start scrollbar-hide relative">
-        <div className=" flex gap-1 border-b border p-1 overflow-x-auto">
-          {topics.length > 0 && (
-            <>
-              {topics.map((topic) => (
-                <Button
-                  onClick={() => handleSelectTopic(topic)}
-                  key={topic.id}
-                  variant={topicId === topic.id ? "default" : "ghost"}
-                  className="border flex"
-                >
-                  {topic.name}
-                </Button>
-              ))}
-            </>
-          )}
-        </div>
-      </div>
+      {topics.length !== 0 && (
+        <>
+          <div className="relative h-10">
+            <div className="absolute top-0 bg-card z-20 left-0 w-full ">
+              <div className=" flex items-center w-full justify-start scrollbar-hide relative">
+                <div className=" flex border-b gap-1 w-full border p-1 overflow-x-auto">
+                  {topics.length > 0 && (
+                    <>
+                      {topics.map((topic) => (
+                        <Button
+                          onClick={() => handleSelectTopic(topic)}
+                          key={topic.id}
+                          variant="ghost"
+                          className={cn(
+                            "flex p-0 rounded-full",
+                            topicId === topic.id ? " pr-2  border" : "pr-2"
+                          )}
+                        >
+                          <div
+                            className={cn(
+                              "border p-2 rounded-full",
+                              topicId === topic.id
+                                ? "bg-gray-900 text-white"
+                                : "ghost"
+                            )}
+                          >
+                            <MessageCircle size={14} />
+                          </div>{" "}
+                          {topic.name}
+                        </Button>
+                      ))}
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
 
       <div className="flex-1 flex flex-col bg-background overflow-y-auto">
         {/* Messages */}
