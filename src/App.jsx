@@ -8,7 +8,7 @@ import {
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import { WelcomePage } from "./WelcomePage";
-import Register from "./pages/Register";
+//import Register from "./pages/Register";
 import { NoInternetPage } from "./pages/NoInternet";
 import { useUserStore } from "@/stores/useUserStore";
 import { AdminDashboard } from "./admin/pages/Dashboard";
@@ -41,7 +41,7 @@ function App() {
         <Route path="/" element={<WelcomePage />} />
         <Route path="/no-internet" element={<NoInternetPage />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
+        {/* <Route path="/register" element={<Register />} /> */}
         <Route
           path="/dashboard"
           element={userProfile ? <Dashboard /> : <Navigate to="/login" />}

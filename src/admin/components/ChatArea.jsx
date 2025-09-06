@@ -238,25 +238,26 @@ export function ChatArea({ chat, messages, topics }) {
           <GroupMembers chat={chat} />
         </div>
       </div>
-      <div>
-        {topics.length > 0 && (
-          <div className="p-3 sm:p-1 border-b border-border bg-card">
-            <div className="flex gap-2 flex-wrap">
-              {" "}
+
+      <div className=" flex items-center w-full justify-start scrollbar-hide relative">
+        <div className=" flex gap-1 border-b border p-1 overflow-x-auto">
+          {topics.length > 0 && (
+            <>
               {topics.map((topic) => (
                 <Button
                   onClick={() => handleSelectTopic(topic)}
                   key={topic.id}
                   variant={topicId === topic.id ? "default" : "ghost"}
-                  className="border"
+                  className="border flex"
                 >
                   {topic.name}
                 </Button>
               ))}
-            </div>
-          </div>
-        )}
+            </>
+          )}
+        </div>
       </div>
+
       <div className="flex-1 flex flex-col bg-background overflow-y-auto">
         {/* Messages */}
         <div className="flex-1 p-3 sm:p-4 bg-background ">
