@@ -13,9 +13,17 @@ import {
 } from "../../components/ui/avatar";
 import { cn } from "../../components/ui/utils";
 import { useTopicId } from "../store/useTopicStore";
-import { formatMessageWithLinks } from "@/composables/scripts";
+import { formatMessageWithLinks, formatTimestamp } from "@/composables/scripts";
 import { useUserStore } from "@/stores/useUserStore";
 import { GroupMembers } from "./GroupChatMembers";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Input } from "@/components/ui/input";
+import { useState } from "react";
+import { useMemo } from "react";
 
 // ✅ Utility to format file sizes
 function formatFileSize(bytes) {
@@ -195,6 +203,7 @@ export function ChatArea({ chat, messages, topics }) {
   const setTopicId = useTopicId((state) => state.setTopicId);
   const topicId = useTopicId((state) => state.topicId);
   const { userProfile } = useUserStore();
+  const [searchTerm, setSearchTerm] = useState("");
   const getInitials = (name) => {
     return name
       .split(" ")
@@ -208,6 +217,18 @@ export function ChatArea({ chat, messages, topics }) {
     // console.log("Selected Topic:", topic);
     setTopicId(topic.id);
   };
+
+  const filteredTopics = useMemo(() => {
+    if (!searchTerm.trim()) return topics;
+    return topics.filter((chat) => {
+      const name = chat.name || "";
+      const lastMessage = chat.lastMessage || "";
+      return (
+        name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        lastMessage.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    });
+  }, [topics, searchTerm]);
 
   if (!chat) {
     return (
@@ -225,7 +246,7 @@ export function ChatArea({ chat, messages, topics }) {
   return (
     <>
       <div className="flex items-center justify-between p-3 sm:p-4 border-b border-border bg-card">
-        <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+        <div className="flex items-center justify-start gap-2 sm:gap-3 flex-1 min-w-0">
           <div className="relative flex-shrink-0">
             <Avatar className="h-8 w-8 sm:h-10 sm:w-10">
               <AvatarImage src={chat.avatar} />
@@ -238,50 +259,96 @@ export function ChatArea({ chat, messages, topics }) {
           <div className="min-w-0 flex-1">
             <h2 className="truncate text-sm sm:text-base">{chat.name}</h2>
           </div>
+          {topics.length !== 0 && (
+            <div className="mr-2">
+              <Input
+                placeholder="Search topic name.."
+                value={searchTerm}
+                type="search"
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className=" border"
+              />
+            </div>
+          )}
         </div>
 
         <div className="flex items-center gap-0.5 sm:gap-1 flex-shrink-0">
           <GroupMembers chat={chat} />
         </div>
       </div>
-
       {topics.length !== 0 && (
         <>
-          <div className="relative h-10">
-            <div className="absolute top-0 bg-card z-20 left-0 w-full ">
-              <div className=" flex items-center w-full justify-start scrollbar-hide relative">
-                <div className=" flex border-b gap-1 w-full border p-1 overflow-x-auto">
-                  {topics.length > 0 && (
-                    <>
-                      {topics.map((topic) => (
-                        <Button
-                          onClick={() => handleSelectTopic(topic)}
-                          key={topic.id}
-                          variant="ghost"
-                          className={cn(
-                            "flex p-0 rounded-full",
-                            topicId === topic.id ? " pr-2  border" : "pr-2"
-                          )}
-                        >
-                          <div
-                            className={cn(
-                              "border p-2 rounded-full",
-                              topicId === topic.id
-                                ? "bg-gray-900 text-white"
-                                : "ghost"
-                            )}
-                          >
-                            <MessageCircle size={14} />
-                          </div>{" "}
-                          {topic.name}
-                        </Button>
-                      ))}
-                    </>
-                  )}
+          {filteredTopics.length !== 0 ? (
+            <>
+              <div className="relative h-10">
+                <div className="absolute top-0 bg-card z-20 left-0 w-full ">
+                  <div className=" flex items-center w-full justify-start scrollbar-hide relative">
+                    <div className=" flex border-b gap-1 w-full border p-1 overflow-x-auto">
+                      {filteredTopics.length > 0 && (
+                        <>
+                          {filteredTopics.map((topic) => (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  onClick={() => handleSelectTopic(topic)}
+                                  key={topic.id}
+                                  variant="ghost"
+                                  className={cn(
+                                    "flex p-0 rounded-full",
+                                    topicId === topic.id
+                                      ? " pr-2  border"
+                                      : "pr-2"
+                                  )}
+                                >
+                                  <div
+                                    className={cn(
+                                      "border p-2 rounded-full",
+                                      topicId === topic.id
+                                        ? "bg-gray-900 text-white"
+                                        : "ghost"
+                                    )}
+                                  >
+                                    <MessageCircle size={14} />
+                                  </div>{" "}
+                                  {topic.name}
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                {topic.lastMessage ? (
+                                  <>
+                                    {" "}
+                                    <p>Last sender info</p>
+                                    <p>
+                                      Name: {topic.lastSenderName || "No user"}
+                                    </p>
+                                    <p>
+                                      Message:{" "}
+                                      {topic.lastMessage || "No message"}
+                                    </p>
+                                    <p>
+                                      Time:{" "}
+                                      {formatTimestamp(topic.lastMessageTime) ||
+                                        "No message"}
+                                    </p>
+                                  </>
+                                ) : (
+                                  <>No messages</>
+                                )}
+                              </TooltipContent>
+                            </Tooltip>
+                          ))}
+                        </>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
+            </>
+          ) : (
+            <div className="p-2 text-sm border-b">
+              No results with "{searchTerm}"
             </div>
-          </div>
+          )}
         </>
       )}
 
