@@ -118,7 +118,7 @@ export function ChatLayout() {
     };
   }, [userProfile.uid, selectedChatId]);
 
-  //console.log("Topics:", topics);
+  console.log("Topics:", topics);
   const handleChatSelect = (chatId) => {
     setSelectedChatId(chatId);
     clearTopicId();
