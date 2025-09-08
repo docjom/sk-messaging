@@ -287,11 +287,10 @@ export function ChatArea({ chat, messages, topics }) {
                       {filteredTopics.length > 0 && (
                         <>
                           {filteredTopics.map((topic) => (
-                            <Tooltip>
+                            <Tooltip key={topic.id}>
                               <TooltipTrigger asChild>
                                 <Button
                                   onClick={() => handleSelectTopic(topic)}
-                                  key={topic.id}
                                   variant="ghost"
                                   className={cn(
                                     "flex p-0 rounded-full",

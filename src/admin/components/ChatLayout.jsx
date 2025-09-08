@@ -13,7 +13,6 @@ import { useUserStore } from "@/stores/useUserStore";
 import { getRefs } from "@/utils/firestoreRefs";
 import { useTopicId } from "../store/useTopicStore";
 
-
 export function ChatLayout() {
   const [selectedChatId, setSelectedChatId] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -119,7 +118,7 @@ export function ChatLayout() {
     };
   }, [userProfile.uid, selectedChatId]);
 
-  console.log("Topics:", topics);
+  //console.log("Topics:", topics);
   const handleChatSelect = (chatId) => {
     setSelectedChatId(chatId);
     clearTopicId();
