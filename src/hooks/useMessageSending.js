@@ -1,6 +1,14 @@
 import { toast } from "sonner";
 import { uploadBytes, getDownloadURL } from "firebase/storage";
-import { addDoc, serverTimestamp, updateDoc } from "firebase/firestore";
+import {
+  addDoc,
+  serverTimestamp,
+  updateDoc,
+  setDoc,
+  getDoc,
+  doc,
+} from "firebase/firestore";
+import { db } from "@/firebase";
 import { useMessageActionStore } from "../stores/useMessageActionStore";
 
 import { getRefs } from "@/utils/firestoreRefs";
@@ -161,6 +169,42 @@ export const useMessageSending = () => {
           senderName: userProfile?.displayName,
           senderProfilePic: userProfile?.photoURL || null,
         });
+
+        let topicName = null;
+        let chatName = null;
+
+        if (chatId) {
+          const getChatRef = doc(db, "chats", chatId);
+          const chatSnap = await getDoc(getChatRef);
+          chatName = chatSnap.exists() ? chatSnap.data()?.name : null;
+        }
+
+        if (topicId) {
+          const { chatRef } = getRefs({
+            chatId,
+            topicId,
+          });
+
+          const topicSnap = await getDoc(chatRef);
+          topicName = topicSnap.exists() ? topicSnap.data()?.name : null;
+        }
+
+        const messageData = {
+          ...messagePayload,
+          chatName: chatName,
+          topicName: topicName,
+          status: "sent",
+        };
+
+        const userMessageRef = doc(
+          db,
+          "userMessages",
+          senderId,
+          "messages",
+          msgRef.id
+        );
+
+        await setDoc(userMessageRef, messageData);
 
         useMessageActionStore.getState().clearReply();
       }

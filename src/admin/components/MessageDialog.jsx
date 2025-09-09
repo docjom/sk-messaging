@@ -12,6 +12,8 @@ import { formatFileSize, formatTimestamp } from "@/composables/scripts";
 import { DialogDescription } from "@radix-ui/react-dialog";
 import { Button } from "@/components/ui/button";
 import { Download, File, FileText, Image, Video } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { useState } from "react";
 
 export function MessagesDialog({
   open,
@@ -19,7 +21,19 @@ export function MessagesDialog({
   user,
   messages,
   loading,
+  onChangeLimit,
+  limitValue,
 }) {
+  const [inputLimit, setInputLimit] = useState(limitValue || 50);
+
+  const handleLimitSubmit = (e) => {
+    e.preventDefault();
+    const parsed = parseInt(inputLimit, 10);
+    if (!isNaN(parsed) && parsed > 0) {
+      onChangeLimit(parsed);
+    }
+  };
+
   const getFileIcon = (fileType) => {
     if (fileType.startsWith("image/")) {
       return <Image className="w-5 h-5" />;
@@ -111,7 +125,7 @@ export function MessagesDialog({
                     {user.displayName[0]?.toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
-                <span className="truncate">
+                <span className="truncate py-2">
                   Messages with {user.displayName}
                 </span>
                 {!loading && (
@@ -122,9 +136,29 @@ export function MessagesDialog({
           </DialogTitle>
           <DialogDescription className="text-sm">
             View the most recent messages sent by this user across all chats and
-            topics. Only top 50 most recent messages are shown.
+            topics. Default limit is 50 messages
           </DialogDescription>
         </DialogHeader>
+
+        <form
+          onSubmit={handleLimitSubmit}
+          className="flex items-center justify-end gap-2"
+        >
+          <Input
+            type="number"
+            min={1}
+            value={inputLimit}
+            onChange={(e) => setInputLimit(e.target.value)}
+            className="w-20"
+          />
+          <Button
+            disabled={Number(inputLimit) < 1}
+            type="submit"
+            variant="outline"
+          >
+            Apply
+          </Button>
+        </form>
 
         <ScrollArea className="flex-1 max-h-[60vh]">
           {loading ? (

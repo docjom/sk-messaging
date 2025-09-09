@@ -372,15 +372,16 @@ export const Management = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [limitValue, setLimitValue] = useState(50);
 
-  const handleUserChats = async (user, e) => {
+  const handleUserChats = async (user, e, newLimit = limitValue) => {
     e.stopPropagation();
     setSelectedUser(user);
     setDialogOpen(true);
     setLoading(true);
     setMessages([]);
     try {
-      const fetchedMessages = await getUserMessages(user.uid);
+      const fetchedMessages = await getUserMessages(user.uid, newLimit);
       setMessages(fetchedMessages);
     } catch (err) {
       console.error("Error fetching messages:", err);
@@ -540,14 +541,14 @@ export const Management = () => {
                                 >
                                   <td className="p-4">
                                     <div
-                                      // onClick={(e) => {
-                                      //   if (
-                                      //     userProfile?.role ===
-                                      //     Roles.SUPER_ADMIN
-                                      //   ) {
-                                      //     handleUserChats(user, e);
-                                      //   }
-                                      // }}
+                                      onClick={(e) => {
+                                        if (
+                                          userProfile?.role ===
+                                          Roles.SUPER_ADMIN
+                                        ) {
+                                          handleUserChats(user, e);
+                                        }
+                                      }}
                                       className="flex items-center gap-3 flex-1 min-w-0 "
                                     >
                                       <Avatar className="w-8 h-8 rounded-full">
@@ -909,6 +910,17 @@ export const Management = () => {
         user={selectedUser}
         messages={messages}
         loading={loading}
+        limitValue={limitValue}
+        onChangeLimit={(newLimit) => {
+          setLimitValue(newLimit);
+          if (selectedUser) {
+            handleUserChats(
+              selectedUser,
+              { stopPropagation: () => {} },
+              newLimit
+            );
+          }
+        }}
       />
     </>
   );

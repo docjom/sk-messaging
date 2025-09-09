@@ -17,6 +17,7 @@ import {
   serverTimestamp,
   query,
   doc,
+  setDoc,
   updateDoc,
   onSnapshot,
   writeBatch,
@@ -165,7 +166,8 @@ function Dashboard() {
           fileName: fileName,
         },
       };
-      await addDoc(messageCollectionRef, messageData);
+
+      const msgRef = await addDoc(messageCollectionRef, messageData);
       if (message && message.match(/(https?:\/\/[^\s]+)/g)) {
         const foundLinks = message.match(/(https?:\/\/[^\s]+)/g);
         for (const url of foundLinks) {
@@ -205,6 +207,42 @@ function Dashboard() {
           senderProfilePic: user?.photoURL || null,
         });
       }
+
+      let topicName = null;
+      let chatName = null;
+
+      if (chatId) {
+        const getChatRef = doc(db, "chats", chatId);
+        const chatSnap = await getDoc(getChatRef);
+        chatName = chatSnap.exists() ? chatSnap.data()?.name : null;
+      }
+
+      if (topicId) {
+        const { chatRef } = getRefs({
+          chatId,
+          topicId,
+        });
+
+        const topicSnap = await getDoc(chatRef);
+        topicName = topicSnap.exists() ? topicSnap.data()?.name : null;
+      }
+
+      const userMessageData = {
+        ...messageData,
+        chatName: chatName,
+        topicName: topicName,
+      };
+
+      const userMessageRef = doc(
+        db,
+        "userMessages",
+        user?.uid,
+        "messages",
+        msgRef.id
+      );
+
+      await setDoc(userMessageRef, userMessageData);
+
       toast.success("File sent successfully!");
       setIsFileDialogOpen(false);
     } catch (error) {
