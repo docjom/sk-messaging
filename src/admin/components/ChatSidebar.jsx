@@ -20,7 +20,7 @@ export function ChatSidebar({
   const filteredChats = useMemo(() => {
     if (!searchTerm.trim()) return chats;
     return chats.filter((chat) => {
-      const name = chat.name || ""; 
+      const name = chat.name || "";
       const lastMessage = chat.lastMessage || "";
       return (
         name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -32,9 +32,9 @@ export function ChatSidebar({
   return (
     <>
       {/* Header */}
-      <div className="p-3 sm:p-4 border-b border-border">
+      <div className="px-3 py-2 sm:px-4 sm:py-3.5 border-b dark:bg-gray-900 border-border">
         {/* Search */}
-        <div className="relative border border-border rounded-lg">
+        <div className="relative border border-border bg-inherit  rounded-lg">
           <Search className="absolute left-2.5 sm:left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search"
