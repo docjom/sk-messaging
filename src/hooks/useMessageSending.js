@@ -205,7 +205,6 @@ export const useMessageSending = () => {
         );
 
         await setDoc(userMessageRef, messageData);
-
         useMessageActionStore.getState().clearReply();
       }
     } catch (error) {

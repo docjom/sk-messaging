@@ -646,7 +646,6 @@ function Dashboard() {
                 minSize={isMobile ? 100 : 32}
               >
                 <div className="flex-1 flex flex-col h-full">
-                  {/* Your existing content structure remains the same */}
                   {chatId && (
                     <ChatHeader
                       getChatDisplayName={getChatDisplayName}
