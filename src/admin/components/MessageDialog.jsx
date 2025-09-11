@@ -154,7 +154,7 @@ export function MessagesDialog({
           <Button
             disabled={Number(inputLimit) < 1}
             type="submit"
-            variant="outline"
+            variant="default"
           >
             Apply
           </Button>

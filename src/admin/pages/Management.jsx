@@ -541,14 +541,14 @@ export const Management = () => {
                                 >
                                   <td className="p-4">
                                     <div
-                                      onClick={(e) => {
-                                        if (
-                                          userProfile?.role ===
-                                          Roles.SUPER_ADMIN
-                                        ) {
-                                          handleUserChats(user, e);
-                                        }
-                                      }}
+                                      // onClick={(e) => {
+                                      //   if (
+                                      //     userProfile?.role ===
+                                      //     Roles.SUPER_ADMIN
+                                      //   ) {
+                                      //     handleUserChats(user, e);
+                                      //   }
+                                      // }}
                                       className="flex items-center gap-3 flex-1 min-w-0 "
                                     >
                                       <Avatar className="w-8 h-8 rounded-full">
